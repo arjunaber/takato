@@ -5,20 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo; // <-- Tambahkan ini
-use Illuminate\Database\Eloquent\Relations\HasMany; // <-- Tambahkan ini
 
-class Order extends Model
+class RecipeItem extends Model
 {
     use HasFactory;
     protected $guarded = []; // Izinkan mass assignment
+    public $timestamps = false; // Tabel ini tidak punya created_at/updated_at
 
-    public function user(): BelongsTo
+    public function ingredient(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Ingredient::class);
     }
 
-    public function orderItems(): HasMany
+    public function variant(): BelongsTo
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->belongsTo(Variant::class);
     }
 }

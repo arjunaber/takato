@@ -7,18 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo; // <-- Tambahkan ini
 use Illuminate\Database\Eloquent\Relations\HasMany; // <-- Tambahkan ini
 
-class Order extends Model
+class Variant extends Model
 {
     use HasFactory;
     protected $guarded = []; // Izinkan mass assignment
 
-    public function user(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Product::class);
     }
 
-    public function orderItems(): HasMany
+    public function recipeItems(): HasMany
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(RecipeItem::class);
     }
 }

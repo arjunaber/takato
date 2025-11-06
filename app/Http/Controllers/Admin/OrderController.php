@@ -1,0 +1,121 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Order; // <-- Import Model
+
+class OrderController extends Controller
+{
+    /**
+     * Menampilkan daftar histori pesanan
+     */
+    public function index(Request $request)
+    {
+        $query = Order::with('user')->latest(); // 'user' adalah kasir/admin
+
+        // == TAMBAHAN: Search query ==
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            
+            // Grup query agar tidak bentrok dengan filter lain
+            $query->where(function($q) use ($searchTerm) {
+                // Cari berdasarkan ID Pesanan (harus sama persis)
+                $q->where('id', $searchTerm)
+                  // ATAU cari berdasarkan nama kasir
+                  ->orWhereHas('user', function($userQuery) use ($searchTerm) {
+                      $userQuery->where('name', 'LIKE', '%' . $searchTerm . '%');
+                  });
+                // Catatan: Jika Anda punya kolom 'customer_name' di tabel Order,
+                // tambahkan juga: ->orWhere('customer_name', 'LIKE', '%' . $searchTerm . '%')
+            });
+        }
+
+        // Filter Tanggal
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->paginate(20);
+        
+        // Kirim juga data filter untuk ditampilkan kembali di form
+        return view('admin.orders.index', [
+            'orders' => $orders,
+            'filters' => $request->only(['search', 'date', 'status']) // Kirim filter ke view
+        ]);
+    }
+
+    /**
+     * Admin tidak membuat pesanan dari sini, jadi method ini bisa kosong
+     */
+    public function create()
+    {
+        return redirect()->route('admin.pos.index'); // Arahkan ke POS
+    }
+
+    /**
+     * Admin tidak membuat pesanan dari sini
+     */
+    public function store(Request $request)
+    {
+        abort(404);
+    }
+
+    /**
+     * Menampilkan detail satu pesanan (struk)
+     * PERBAIKAN: Menggunakan Route Model Binding (Order $order)
+     */
+    public function show(Order $order)
+    {
+        // Data order sudah otomatis diambil oleh Laravel (findOrFail)
+        
+        // Load relasi yang dibutuhkan untuk halaman detail
+        $order->load(['user', 'orderItems.product', 'orderItems.variant', 'orderItems.addons.addon']);
+
+        return view('admin.orders.show', compact('order'));
+    }
+
+    /**
+     * Admin tidak meng-edit pesanan yang sudah selesai
+     * PERBAIKAN: Menggunakan Route Model Binding (Order $order)
+     */
+    public function edit(Order $order)
+    {
+        abort(404);
+    }
+
+    /**
+     * Admin mungkin bisa update status (cth: dari pending ke cancelled)
+     * PERBAIKAN: Menggunakan Route Model Binding (Order $order)
+     */
+    public function update(Request $request, Order $order)
+    {
+        // Data order sudah otomatis diambil
+
+        // Contoh update status
+        $request->validate(['status' => 'required|in:pending,completed,cancelled']);
+        $order->update(['status' => $request->status]);
+
+        return back()->with('success', 'Status pesanan berhasil diupdate.');
+    }
+
+    /**
+     * Menghapus data pesanan
+     * PERBAIKAN: Menggunakan Route Model Binding (Order $order)
+     */
+    public function destroy(Order $order)
+    {
+        // Data order sudah otomatis diambil
+
+        // Cara lebih aman:
+        $order->update(['status' => 'cancelled']);
+
+        return redirect()->route('admin.orders.index')->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+}

@@ -6,7 +6,15 @@ use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\BookingController;
-
+use App\Http\Controllers\Pos\PosController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\IngredientController;
+use App\Http\Controllers\Admin\AddonController;
+use App\Http\Controllers\Admin\DiscountController;
+use App\Http\Controllers\Admin\OrderTypeController;
+use App\Http\Controllers\Admin\OrderController;
 
 // Public routes
 Route::get('/', function () {
@@ -33,9 +41,7 @@ Route::controller(LoginController::class)->group(function () {
 // Admin routes group
 Route::prefix('admin')->name('admin.')->middleware(['auth', AdminMiddleware::class])->group(function () {
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Grand Schedule Management
     Route::prefix('grand-schedules')->name('grand-schedules.')->controller(GrandScheduleController::class)->group(function () {
@@ -60,4 +66,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', AdminMiddleware::cla
         // Get Calendar Data (JSON)
         Route::get('/calendar-data', 'getCalendarData')->name('calendar-data');
     });
+
+
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::post('/pos/store', [PosController::class, 'store'])->name('pos.store');
+    Route::get('/pos/data', [PosController::class, 'getDataForPos'])->name('pos.data');
+
+    Route::resource('categories', CategoryController::class);
+    Route::resource('products', ProductController::class);
+    Route::resource('ingredients', IngredientController::class);
+    Route::resource('addons', AddonController::class);
+    Route::resource('discounts', DiscountController::class);
+    Route::resource('order-types', OrderTypeController::class);
+    Route::resource('orders', OrderController::class);
 });

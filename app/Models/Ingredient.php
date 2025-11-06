@@ -4,15 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasMany; // <-- Tambahkan ini
 
-class Category extends Model
+class Ingredient extends Model
 {
     use HasFactory;
     protected $guarded = []; // Izinkan mass assignment
 
-    public function products(): HasMany
+    public function recipeItems(): HasMany
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(RecipeItem::class);
     }
 }
