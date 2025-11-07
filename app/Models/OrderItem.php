@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo; // <-- Tambahkan ini
-use Illuminate\Database\Eloquent\Relations\HasMany; // <-- Tambahkan ini
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class OrderItem extends Model
 {
@@ -36,9 +37,10 @@ class OrderItem extends Model
     {
         return $this->belongsTo(OrderType::class);
     }
-
-    public function addons(): HasMany
+    
+    public function addons(): BelongsToMany
     {
-        return $this->hasMany(OrderItemAddon::class);
+        return $this->belongsToMany(Addon::class, 'order_item_addons')
+            ->withPivot('addon_name', 'addon_price');
     }
 }

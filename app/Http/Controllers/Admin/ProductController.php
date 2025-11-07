@@ -3,121 +3,162 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product; // <-- Import
+use App\Models\Category; // <-- Import
 use Illuminate\Http\Request;
-
-// Panggil semua model yang dibutuhkan
-use App\Models\Product;
-use App\Models\Category;
-use App\Models\Addon;
-use App\Models\Ingredient;
-use App\Models\Variant;
+use App\Models\Addon; // <-- 1. IMPORT MODEL ADDON
 
 class ProductController extends Controller
 {
-    // Menampilkan daftar semua produk
-    public function index()
+    /**
+     * Menampilkan daftar semua produk.
+     */
+    public function index(Request $request)
     {
-        $products = Product::with('category', 'variants')->latest()->paginate(10);
-        return view('admin.products.index', compact('products'));
+        $query = Product::with('category')->latest(); // Muat relasi kategori
+
+        // Filter: Search
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', '%' . $searchTerm . '%')
+                    ->orWhereHas('category', function ($catQuery) use ($searchTerm) {
+                        $catQuery->where('name', 'LIKE', '%' . $searchTerm . '%');
+                    });
+            });
+        }
+
+        // Filter: Kategori
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        $products = $query->paginate(20);
+
+        // Ambil semua kategori untuk dropdown filter
+        $categories = Category::orderBy('name')->get();
+
+        // Kirim data ke view
+        return view('admin.products.index', [
+            'products' => $products,
+            'categories' => $categories,
+            'filters' => $request->only(['search', 'category_id']) // Kirim filter ke view
+        ]);
     }
 
-    // Menampilkan form untuk membuat produk baru
+    /**
+     * Menampilkan form untuk membuat produk baru.
+     */
     public function create()
     {
-        // Kita butuh data ini untuk mengisi <select> di form
         $categories = Category::orderBy('name')->get();
-        $addons = Addon::orderBy('name')->get();
-        $ingredients = Ingredient::orderBy('name')->get();
+        $addons = Addon::orderBy('name')->get(); // <-- 2. AMBIL SEMUA ADDON
 
-        return view('admin.products.create', compact('categories', 'addons', 'ingredients'));
+        return view('admin.products.create', compact('categories', 'addons')); // <-- 3. KIRIM KE VIEW
     }
 
-    // Menyimpan produk baru
     public function store(Request $request)
     {
-        // (Di sini Anda perlu validasi data)
-        // $request->validate([...]);
-
-        // 1. Buat Produk Utama
-        $product = Product::create([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'is_favorite' => $request->has('is_favorite'),
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'variants' => 'required|array|min:1',
+            'variants.*.name' => 'required|string|max:255',
+            'variants.*.price' => 'required|numeric|min:0',
+            'addons' => 'nullable|array', // <-- 4. TAMBAHKAN VALIDASI ADDONS
+            'addons.*' => 'exists:addons,id'
         ]);
 
-        // 2. Hubungkan Addons (dari checkbox)
+        $product = Product::create([
+            'name' => $validatedData['name'],
+            'category_id' => $validatedData['category_id'],
+        ]);
+
+        foreach ($validatedData['variants'] as $variantData) {
+            $product->variants()->create($variantData);
+        }
+
+        // 5. SINKRONKAN ADDONS (Simpan ke tabel jembatan)
         if ($request->has('addons')) {
-            $product->addons()->sync($request->addons); // sync() akan otomatis attach/detach
+            $product->addons()->sync($validatedData['addons']);
         }
 
-        // 3. Buat Varian-varian (dari form repeater)
-        if ($request->has('variants')) {
-            foreach ($request->variants as $variantData) {
-                $variant = $product->variants()->create([
-                    'name' => $variantData['name'],
-                    'price' => $variantData['price'],
-                ]);
-
-                // 4. Buat Resep untuk varian tsb
-                if (isset($variantData['recipe'])) {
-                    foreach ($variantData['recipe'] as $recipeData) {
-                        $variant->recipeItems()->create([
-                            'ingredient_id' => $recipeData['ingredient_id'],
-                            'quantity_used' => $recipeData['quantity_used'],
-                        ]);
-                    }
-                }
-            }
-        }
-
-        return redirect()->route('products.index')->with('success', 'Produk berhasil dibuat.');
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Produk berhasil ditambahkan.');
     }
 
-    // Menampilkan detail 1 produk (biasanya tidak dipakai di admin, tapi ada)
+    /**
+     * Menampilkan detail produk (biasanya langsung ke edit).
+     */
     public function show(Product $product)
     {
-        return view('admin.products.show', compact('product'));
+        return redirect()->route('admin.products.edit', $product);
     }
 
-    // Menampilkan form untuk edit produk
+    /**
+     * Menampilkan form untuk mengedit produk.
+     */
     public function edit(Product $product)
     {
-        // Load relasi agar bisa ditampilkan di form
-        $product->load('variants.recipeItems', 'addons');
-
         $categories = Category::orderBy('name')->get();
-        $addons = Addon::orderBy('name')->get();
-        $ingredients = Ingredient::orderBy('name')->get();
+        $addons = Addon::orderBy('name')->get(); // <-- 6. AMBIL SEMUA ADDON
 
-        return view('admin.products.edit', compact('product', 'categories', 'addons', 'ingredients'));
+        $product->load('variants', 'addons'); // <-- 7. LOAD RELASI VARIANTS & ADDONS
+
+        return view('admin.products.edit', compact('product', 'categories', 'addons')); // <-- 8. KIRIM KE VIEW
     }
 
-    // Mengupdate produk yang ada
     public function update(Request $request, Product $product)
     {
-        // (Mirip dengan store, tapi Anda perlu logika update/delete varian lama)
-        // 1. Update data produk utama
-        $product->update([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'is_favorite' => $request->has('is_favorite'),
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'variants' => 'required|array|min:1',
+            'variants.*.id' => 'nullable|exists:variants,id',
+            'variants.*.name' => 'required|string|max:255',
+            'variants.*.price' => 'required|numeric|min:0',
+            'addons' => 'nullable|array', // <-- 9. TAMBAHKAN VALIDASI ADDONS
+            'addons.*' => 'exists:addons,id'
         ]);
 
-        // 2. Update relasi addon
-        $product->addons()->sync($request->addons);
+        $product->update([
+            'name' => $validatedData['name'],
+            'category_id' => $validatedData['category_id'],
+        ]);
 
-        // 3. Update Varian & Resep (Logika ini bisa jadi kompleks)
-        // ... (Logika untuk menghapus varian lama, update yg ada, dan menambah yg baru) ...
+        // ... (Logika update varian Anda sudah benar) ...
+        $existingVariantIds = [];
+        foreach ($validatedData['variants'] as $variantData) {
+            $variantId = $variantData['id'] ?? null;
+            $variant = $product->variants()->updateOrCreate(
+                ['id' => $variantId],
+                ['name' => $variantData['name'], 'price' => $variantData['price']]
+            );
+            $existingVariantIds[] = $variant->id;
+        }
+        $product->variants()->whereNotIn('id', $existingVariantIds)->delete();
 
-        return redirect()->route('products.index')->with('success', 'Produk berhasil diupdate.');
+        // 10. SINKRONKAN ADDONS
+        // sync() akan otomatis menambah/menghapus relasi di tabel jembatan
+        $product->addons()->sync($request->addons ?? []); // '?? []' untuk menghapus semua jika tidak ada yg dipilih
+
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Produk berhasil diperbarui.');
     }
 
-    // Menghapus produk
+    /**
+     * Menghapus produk.
+     */
     public function destroy(Product $product)
     {
-        // Karena kita setting cascadeOnDelete di migrasi,
-        // saat produk dihapus, semua varian & resepnya akan ikut terhapus.
-        $product->delete();
-        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
+        try {
+            $product->delete();
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Produk berhasil dihapus.');
+        } catch (\Exception $e) {
+            // Tangani jika produk tidak bisa dihapus (misal: terkait data order)
+            return redirect()->route('admin.products.index')
+                ->with('error', 'Gagal menghapus produk. Mungkin terkait data pesanan.');
+        }
     }
 }

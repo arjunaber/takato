@@ -18,15 +18,15 @@ class OrderController extends Controller
         // == TAMBAHAN: Search query ==
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            
+
             // Grup query agar tidak bentrok dengan filter lain
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 // Cari berdasarkan ID Pesanan (harus sama persis)
                 $q->where('id', $searchTerm)
-                  // ATAU cari berdasarkan nama kasir
-                  ->orWhereHas('user', function($userQuery) use ($searchTerm) {
-                      $userQuery->where('name', 'LIKE', '%' . $searchTerm . '%');
-                  });
+                    // ATAU cari berdasarkan nama kasir
+                    ->orWhereHas('user', function ($userQuery) use ($searchTerm) {
+                        $userQuery->where('name', 'LIKE', '%' . $searchTerm . '%');
+                    });
                 // Catatan: Jika Anda punya kolom 'customer_name' di tabel Order,
                 // tambahkan juga: ->orWhere('customer_name', 'LIKE', '%' . $searchTerm . '%')
             });
@@ -43,7 +43,7 @@ class OrderController extends Controller
         }
 
         $orders = $query->paginate(20);
-        
+
         // Kirim juga data filter untuk ditampilkan kembali di form
         return view('admin.orders.index', [
             'orders' => $orders,
@@ -74,7 +74,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         // Data order sudah otomatis diambil oleh Laravel (findOrFail)
-        
+
         // Load relasi yang dibutuhkan untuk halaman detail
         $order->load(['user', 'orderItems.product', 'orderItems.variant', 'orderItems.addons.addon']);
 
@@ -117,5 +117,14 @@ class OrderController extends Controller
         $order->update(['status' => 'cancelled']);
 
         return redirect()->route('admin.orders.index')->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+
+    public function printReceipt(Order $order)
+    {
+        // Pastikan kita mengambil semua data yang diperlukan untuk struk
+        $order->load('user', 'orderItems', 'orderItems.addons');
+
+        // Kita akan membuat view baru untuk ini
+        return view('admin.receipts.print', compact('order'));
     }
 }

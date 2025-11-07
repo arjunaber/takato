@@ -26,6 +26,9 @@ return new class extends Migration
             $table->enum('payment_status', ['paid', 'unpaid'])->default('unpaid');
             $table->string('payment_gateway_ref')->nullable(); // Ref dari Midtrans, dll.
 
+            $table->decimal('cash_received', 15, 2)->nullable(); // Uang dari customer
+            $table->decimal('cash_change', 15, 2)->nullable();   // Kembalian
+
             $table->timestamps();
         });
     }

@@ -3,63 +3,105 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Ingredient;
 use Illuminate\Http\Request;
-use App\Models\Ingredient; // <-- Import Model
 
 class IngredientController extends Controller
 {
-    public function index()
+    /**
+     * Menampilkan daftar semua bahan baku.
+     */
+    public function index(Request $request)
     {
-        $ingredients = Ingredient::latest()->paginate(10);
-        return view('admin.ingredients.index', compact('ingredients'));
+        $query = Ingredient::latest();
+
+        if ($request->filled('search')) {
+            $query->where('name', 'LIKE', '%' . $request->search . '%');
+        }
+
+        $ingredients = $query->paginate(20);
+
+        return view('admin.ingredients.index', [
+            'ingredients' => $ingredients,
+            'filters' => $request->only(['search'])
+        ]);
     }
 
+    /**
+     * Menampilkan form untuk membuat bahan baku baru.
+     */
     public function create()
     {
         return view('admin.ingredients.create');
     }
 
+    /**
+     * Menyimpan bahan baku baru ke database.
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:ingredients',
-            'unit' => 'required|string|max:50',
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255', // Dihilangkan 'unique' sesuai migrasi
             'stock' => 'required|numeric|min:0',
+            'unit' => 'required|string|max:50',
         ]);
 
-        Ingredient::create($request->all());
-        return redirect()->route('admin.ingredients.index')->with('success', 'Bahan baku berhasil dibuat.');
+        Ingredient::create($validatedData);
+
+        return redirect()->route('admin.ingredients.index')
+            ->with('success', 'Bahan baku berhasil ditambahkan.');
     }
 
-    public function edit(string $id)
+    /**
+     * Tampilkan form edit.
+     */
+    public function show(Ingredient $ingredient)
     {
-        $ingredient = Ingredient::findOrFail($id);
+        return redirect()->route('admin.ingredients.edit', $ingredient);
+    }
+
+    /**
+     * Menampilkan form untuk mengedit bahan baku.
+     */
+    public function edit(Ingredient $ingredient)
+    {
         return view('admin.ingredients.edit', compact('ingredient'));
     }
 
-    public function update(Request $request, string $id)
+    /**
+     * Update bahan baku di database.
+     */
+    public function update(Request $request, Ingredient $ingredient)
     {
-        $ingredient = Ingredient::findOrFail($id);
-
-        $request->validate([
-            'name' => 'required|string|max:255|unique:ingredients,name,' . $ingredient->id,
-            'unit' => 'required|string|max:50',
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255', // Dihilangkan 'unique'
             'stock' => 'required|numeric|min:0',
+            'unit' => 'required|string|max:50',
         ]);
 
-        $ingredient->update($request->all());
-        return redirect()->route('admin.ingredients.index')->with('success', 'Bahan baku berhasil diupdate.');
+        $ingredient->update($validatedData);
+
+        return redirect()->route('admin.ingredients.index')
+            ->with('success', 'Bahan baku berhasil diperbarui.');
     }
 
-    public function destroy(string $id)
+    /**
+     * Menghapus bahan baku.
+     */
+    public function destroy(Ingredient $ingredient)
     {
-        $ingredient = Ingredient::findOrFail($id);
-        // Tambahkan validasi: Cek jika bahan baku masih terpakai di resep
-        if ($ingredient->recipeItems()->count() > 0) {
-            return back()->with('error', 'Bahan baku tidak bisa dihapus karena masih terdaftar di resep.');
-        }
+        try {
+            // Nanti kita cek relasi ke resep
+            // if ($ingredient->variants()->count() > 0) {
+            //    return back()->with('error', 'Gagal! Bahan ini masih dipakai di resep produk.');
+            // }
 
-        $ingredient->delete();
-        return redirect()->route('admin.ingredients.index')->with('success', 'Bahan baku berhasil dihapus.');
+            $ingredient->delete();
+            return redirect()->route('admin.ingredients.index')
+                ->with('success', 'Bahan baku berhasil dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.ingredients.index')
+                ->with('error', 'Gagal menghapus bahan baku.');
+        }
     }
 }

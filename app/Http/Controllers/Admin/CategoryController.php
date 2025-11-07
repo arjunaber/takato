@@ -3,71 +3,107 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use Illuminate\Http\Request;
-use App\Models\Category; // <-- Import Model
 
 class CategoryController extends Controller
 {
-    public function index()
+    /**
+     * Menampilkan daftar semua kategori.
+     */
+    public function index(Request $request)
     {
-        $categories = Category::latest()->paginate(10);
-        return view('admin.categories.index', compact('categories'));
+        $query = Category::latest();
+
+        // Tambahkan fungsi search
+        if ($request->filled('search')) {
+            $query->where('name', 'LIKE', '%' . $request->search . '%');
+        }
+
+        $categories = $query->paginate(20);
+
+        return view('admin.categories.index', [
+            'categories' => $categories,
+            'filters' => $request->only(['search'])
+        ]);
     }
 
+    /**
+     * Menampilkan form untuk membuat kategori baru.
+     */
     public function create()
     {
         return view('admin.categories.create');
     }
 
+    /**
+     * Menyimpan kategori baru ke database.
+     */
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255|unique:categories',
-            'icon' => 'nullable|string|max:10',
+            'icon' => 'nullable|string|max:50', // Untuk emoji atau nama ikon
         ]);
 
-        Category::create($request->all());
+        Category::create($validatedData);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil dibuat.');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Kategori baru berhasil ditambahkan.');
     }
 
-    public function show(string $id)
+    /**
+     * Tampilkan form edit (kita tidak perlu halaman 'show' terpisah).
+     */
+    public function show(Category $category)
     {
-        // Biasanya tidak dipakai, tapi kita isi saja
-        $category = Category::findOrFail($id);
-        return view('admin.categories.show', compact('category'));
+        return redirect()->route('admin.categories.edit', $category);
     }
 
-    public function edit(string $id)
+    /**
+     * Menampilkan form untuk mengedit kategori.
+     */
+    public function edit(Category $category)
     {
-        $category = Category::findOrFail($id);
         return view('admin.categories.edit', compact('category'));
     }
 
-    public function update(Request $request, string $id)
+    /**
+     * Update kategori di database.
+     */
+    public function update(Request $request, Category $category)
     {
-        $category = Category::findOrFail($id);
-
-        $request->validate([
+        $validatedData = $request->validate([
+            // 'unique' di-ignore untuk ID kategori ini
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'icon' => 'nullable|string|max:10',
+            'icon' => 'nullable|string|max:50',
         ]);
 
-        $category->update($request->all());
+        $category->update($validatedData);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil diupdate.');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Kategori berhasil diperbarui.');
     }
 
-    public function destroy(string $id)
+    /**
+     * Menghapus kategori.
+     */
+    public function destroy(Category $category)
     {
-        $category = Category::findOrFail($id);
-        // Tambahkan validasi: Cek jika kategori masih punya produk
-        if ($category->products()->count() > 0) {
-            return back()->with('error', 'Kategori tidak bisa dihapus karena masih memiliki produk.');
+        try {
+            // Cek relasi (jika ada) sebelum menghapus
+            if ($category->products()->count() > 0) {
+                return redirect()->route('admin.categories.index')
+                    ->with('error', 'Gagal! Kategori ini masih memiliki produk terkait.');
+            }
+
+            $category->delete();
+            return redirect()->route('admin.categories.index')
+                ->with('success', 'Kategori berhasil dihapus.');
+        } catch (\Exception $e) {
+            // Tangkap error foreign key constraint jika ada
+            return redirect()->route('admin.categories.index')
+                ->with('error', 'Gagal menghapus kategori. Pastikan tidak ada produk yang terkait.');
         }
-
-        $category->delete();
-
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil dihapus.');
     }
 }

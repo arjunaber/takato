@@ -10,6 +10,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany; // <-- Tambahkan ini
 class Order extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'user_id',
+        'invoice_number',
+        'status',
+        'subtotal',
+        'tax_amount',     
+        'total',
+        'payment_method',
+        'payment_status',   
+        'payment_gateway_ref', 
+        'cash_received',
+        'cash_change',
+    ];
     protected $guarded = []; // Izinkan mass assignment
 
     public function user(): BelongsTo

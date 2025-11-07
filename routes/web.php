@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AddonController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\OrderTypeController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\RecipeController;
 
 // Public routes
 Route::get('/', function () {
@@ -71,6 +72,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', AdminMiddleware::cla
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/store', [PosController::class, 'store'])->name('pos.store');
     Route::get('/pos/data', [PosController::class, 'getDataForPos'])->name('pos.data');
+    Route::get('/variants/{variant}/recipe', [RecipeController::class, 'show'])->name('variants.recipe.show');
+    Route::post('/variants/{variant}/recipe', [RecipeController::class, 'update'])->name('variants.recipe.update');
+    Route::get('/orders/{order}/receipt', [OrderController::class, 'printReceipt'])->name('orders.receipt');
 
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);

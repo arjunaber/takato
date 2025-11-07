@@ -25,7 +25,6 @@ class Product extends Model
 
     public function addons(): BelongsToMany
     {
-        // Terhubung ke tabel pivot 'addon_product'
         return $this->belongsToMany(Addon::class);
     }
 }
