@@ -77,6 +77,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', AdminMiddleware::cla
     Route::get('/variants/{variant}/recipe', [RecipeController::class, 'show'])->name('variants.recipe.show');
     Route::post('/variants/{variant}/recipe', [RecipeController::class, 'update'])->name('variants.recipe.update');
     Route::get('/orders/{order}/receipt', [OrderController::class, 'printReceipt'])->name('orders.receipt');
+    Route::post('/ingredients/adjust-stock', [IngredientController::class, 'adjustStock'])->name('ingredients.adjust-stock');
 
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
