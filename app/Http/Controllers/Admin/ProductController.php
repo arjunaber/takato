@@ -33,7 +33,7 @@ class ProductController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
-        $products = $query->paginate(20);
+        $products = $query->paginate(10);
 
         // Ambil semua kategori untuk dropdown filter
         $categories = Category::orderBy('name')->get();

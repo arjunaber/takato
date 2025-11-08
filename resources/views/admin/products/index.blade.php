@@ -50,6 +50,52 @@
             gap: 10px;
             padding-bottom: 10px;
         }
+
+        /* == CSS BARU UNTUK PAGINATION BOOTSTRAP == */
+        .pagination {
+            display: flex;
+            padding-left: 0;
+            list-style: none;
+            border-radius: 0.25rem;
+            justify-content: center;
+            /* Opsional: Posisikan di tengah */
+        }
+
+        .page-item {
+            margin: 0 2px;
+        }
+
+        .page-item.disabled .page-link {
+            color: var(--text-muted);
+            pointer-events: none;
+            background-color: var(--secondary-light);
+            border-color: var(--border-color);
+        }
+
+        .page-item.active .page-link {
+            z-index: 1;
+            color: #fff;
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .page-link {
+            position: relative;
+            display: block;
+            padding: 0.5rem 0.75rem;
+            line-height: 1.25;
+            color: var(--primary);
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            border-radius: 0.25rem;
+        }
+
+        .page-link:hover {
+            color: #0056b3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
     </style>
 @endpush
 

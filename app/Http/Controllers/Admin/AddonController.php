@@ -20,7 +20,7 @@ class AddonController extends Controller
             $query->where('name', 'LIKE', '%' . $request->search . '%');
         }
 
-        $addons = $query->paginate(20);
+        $addons = $query->paginate(10);
 
         return view('admin.addons.index', [
             'addons' => $addons,

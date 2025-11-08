@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ingredient;
+use App\Models\Ingredient; // <-- Pastikan ini di-import
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon; // <-- 1. TAMBAHKAN INI
+use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
 class DashboardController extends Controller
@@ -16,11 +16,10 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // === 1. TENTUKAN RENTANG TANGGAL ===
-        // Ambil dari request, atau set default ke "Hari Ini"
         $startDate = Carbon::parse($request->input('start_date', Carbon::today()))->startOfDay();
         $endDate = Carbon::parse($request->input('end_date', Carbon::today()))->endOfDay();
 
-        // === 2. DATA UNTUK KARTU KPI (Key Performance Indicators) ===
+        // === 2. DATA UNTUK KARTU KPI ===
         $kpiQuery = Order::where('status', 'completed')
             ->whereBetween('created_at', [$startDate, $endDate]);
 
@@ -28,39 +27,51 @@ class DashboardController extends Controller
         $totalOrders = (clone $kpiQuery)->count();
         $avgOrderValue = ($totalOrders > 0) ? $totalSales / $totalOrders : 0;
 
+        $totalDiscountsGiven = OrderItem::whereHas('order', function ($query) use ($startDate, $endDate) {
+            $query->where('status', 'completed')
+                ->whereBetween('created_at', [$startDate, $endDate]);
+        })->sum('discount_amount');
 
-        // === 3. DATA UNTUK GRAFIK PENJUALAN ===
+
+        // === 3. DATA GRAFIK PENJUALAN (LINE CHART) ===
+        $salesData = Order::where('status', 'completed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total) as daily_sales'))
+            ->groupBy('date')->orderBy('date', 'ASC')->get()->pluck('daily_sales', 'date');
+
         $chartLabels = [];
         $chartData = [];
+        $period = CarbonPeriod::create($startDate, '1 day', $endDate);
+
         $dateDiff = $startDate->diffInDays($endDate);
+        $step = $dateDiff > 14 ? 3 : 1;
 
-        if ($dateDiff <= 31) {
-            // JIKA RENTANG < 31 HARI: Tampilkan harian
-            $salesData = Order::where('status', 'completed')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total) as sales'))
-                ->groupBy('date')->orderBy('date', 'ASC')->get()->pluck('sales', 'date');
-
-            $period = CarbonPeriod::create($startDate, '1 day', $endDate);
-            foreach ($period as $date) {
-                $chartLabels[] = $date->format('d M'); // Cth: "09 Nov"
-                $chartData[] = $salesData->get($date->format('Y-m-d'), 0); // Ambil data, jika tidak ada = 0
-            }
-        } else {
-            // JIKA RENTANG > 31 HARI: Tampilkan bulanan
-            $salesData = Order::where('status', 'completed')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->select(DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"), DB::raw('SUM(total) as sales'))
-                ->groupBy('month')->orderBy('month', 'ASC')->get()->pluck('sales', 'month');
-
-            $period = CarbonPeriod::create($startDate->startOfMonth(), '1 month', $endDate->endOfMonth());
-            foreach ($period as $date) {
-                $chartLabels[] = $date->format('M Y'); // Cth: "Nov 2025"
-                $chartData[] = $salesData->get($date->format('Y-m'), 0);
+        foreach ($period as $date) {
+            $dateString = $date->format('Y-m-d');
+            if ($date->day % $step == 0 || $dateDiff <= 14) {
+                $chartLabels[] = $date->format('d M');
+                $chartData[] = $salesData->get($dateString, 0);
             }
         }
 
-        // === 4. DATA UNTUK DAFTAR "TOP SELLING" ===
+        // === 4. DATA GRAFIK KATEGORI (PIE CHART) ===
+        $categorySales = OrderItem::whereHas('order', function ($query) use ($startDate, $endDate) {
+            $query->where('status', 'completed')
+                ->whereBetween('created_at', [$startDate, $endDate]);
+        })
+            ->whereNotNull('product_id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->select('categories.name as category_name', DB::raw('SUM(order_items.subtotal) as category_sales'))
+            ->groupBy('categories.name')
+            ->orderBy('category_sales', 'DESC')
+            ->limit(5)
+            ->get();
+
+        $categoryChartLabels = $categorySales->pluck('category_name');
+        $categoryChartData = $categorySales->pluck('category_sales');
+
+        // === 5. DATA PRODUK TERLARIS ===
         $topProducts = OrderItem::whereHas('order', function ($query) use ($startDate, $endDate) {
             $query->where('status', 'completed')
                 ->whereBetween('created_at', [$startDate, $endDate]);
@@ -71,26 +82,25 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // === 5. DATA UNTUK DAFTAR "STOK MENIPIS" ===
-        // (Stok tidak terpengaruh filter tanggal)
-        $lowStockItems = Ingredient::where('stock', '<=', 20)
-            ->orderBy('stock', 'ASC')
-            ->limit(5)
-            ->get();
+        // === 6. DATA BAHAN BAKU (UNTUK MODAL PERMINTAAN STOK) ===
+        $allIngredients = Ingredient::orderBy('name')->get();
 
-        // === 6. KIRIM SEMUA DATA KE VIEW ===
+        // === 7. KIRIM SEMUA DATA KE VIEW ===
         return view('admin.dashboard', [
-            'totalSales' => $totalSales, // <-- Nama diubah
-            'totalOrders' => $totalOrders, // <-- Nama diubah
-            'avgOrderValue' => $avgOrderValue, // <-- Nama diubah
+            'totalSales' => $totalSales,
+            'totalOrders' => $totalOrders,
+            'avgOrderValue' => $avgOrderValue,
+            'totalDiscountsGiven' => $totalDiscountsGiven,
 
             'chartLabels' => $chartLabels,
             'chartData' => $chartData,
-            'topProducts' => $topProducts,
-            'lowStockItems' => $lowStockItems,
+            'categoryChartLabels' => $categoryChartLabels,
+            'categoryChartData' => $categoryChartData,
 
-            // Kirim tanggal kembali ke view untuk mengisi form filter
-            'startDate' => $startDate->toDateString(), // cth: "2025-11-09"
+            'topProducts' => $topProducts,
+            'allIngredients' => $allIngredients, // <-- Data untuk modal
+
+            'startDate' => $startDate->toDateString(),
             'endDate' => $endDate->toDateString(),
         ]);
     }

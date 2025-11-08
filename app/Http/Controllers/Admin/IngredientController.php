@@ -19,7 +19,7 @@ class IngredientController extends Controller
             $query->where('name', 'LIKE', '%' . $request->search . '%');
         }
 
-        $ingredients = $query->paginate(20);
+        $ingredients = $query->paginate(10);
 
         return view('admin.ingredients.index', [
             'ingredients' => $ingredients,

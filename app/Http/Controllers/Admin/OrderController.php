@@ -44,7 +44,7 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        $orders = $query->paginate(20);
+        $orders = $query->paginate(10);
 
         // Kirim juga data filter untuk ditampilkan kembali di form
         return view('admin.orders.index', [
