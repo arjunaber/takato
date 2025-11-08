@@ -1,219 +1,396 @@
-<!DOCTYPE html>
-<html lang="en">
+@php
+    use Carbon\Carbon;
+@endphp
+@extends('layouts.admin')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+@section('title', 'Dashboard')
+
+@push('styles')
     <style>
-        body {
-            background-color: #f8f9fa;
-            padding-top: 20px;
-        }
-
-        .admin-card {
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: none;
-        }
-
-        .card-header {
-            background-color: #4e73df;
-            color: white;
-            font-weight: bold;
-            border-radius: 10px 10px 0 0 !important;
-        }
-
-        .welcome-message {
-            color: #000000;
-            margin-bottom: 20px;
-        }
-
-        /* Flip Card Styles */
-        .flip-card-container {
+        /* ... (CSS KPI Card & Grid Anda yang lama) ... */
+        .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-            max-width: 900px;
-            margin: 30px auto;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
         }
 
-        .flip-card {
-            background-color: transparent;
-            perspective: 1000px;
-            height: 300px;
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
         }
 
-        .flip-card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
+        .kpi-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin: 0 0 10px 0;
         }
 
-        .flip-card:hover .flip-card-inner {
-            transform: rotateY(180deg);
+        .kpi-card .value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text-color);
         }
 
-        .flip-card-front,
-        .flip-card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .flip-card-front {
-            background-color: white;
-            color: #333;
-        }
-
-        .flip-card-back {
-            background-color: #000000;
+        .kpi-card-pos {
+            background: var(--primary);
             color: white;
-            transform: rotateY(180deg);
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
         }
 
-        .flip-card-back img {
-            max-width: 80%;
-            max-height: 80%;
-            object-fit: contain;
+        .kpi-card-pos:hover {
+            background: #0069d9;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
-        .card-icon {
-            background-color: rgba(78, 115, 223, 0.1);
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+        .kpi-card-pos h3 {
+            color: white;
+            margin: 0;
+        }
+
+        /* == CSS BARU UNTUK FILTER TANGGAL == */
+        .dashboard-filter-form {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
         }
 
-        .card-icon i {
-            font-size: 24px;
-            color: #000000;
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
         }
 
-        .flip-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+        .filter-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .filter-group .form-control {
+            width: 100%;
+            padding: 10px 14px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            padding-bottom: 10px;
+            /* Agar sejajar dengan form-control */
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-basis: 100%;
+        }
+
+        .quick-links a {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* ... (CSS Grid & List Card Anda yang lama) ... */
+        .dashboard-grid-large {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .list-card ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list-card li {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .list-card li:last-child {
+            border-bottom: none;
+        }
+
+        .list-card .item-name {
             font-weight: 600;
         }
 
-        .flip-card p {
-            color: #666;
-            margin-bottom: 25px;
-            flex-grow: 1;
+        .list-card .item-value {
+            font-weight: 600;
+            color: var(--text-color);
         }
 
-        .flip-card .btn {
-            background-color: #000000;
-            color: white;
-            border: none;
-            padding: 8px 25px;
-            border-radius: 20px;
-            font-weight: 500;
-            transition: all 0.3s;
+        .list-card .item-unit {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-left: 5px;
         }
 
-        .flip-card .btn:hover {
-            background-color: #000000;
+        .list-card .item-low-stock {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        /* Responsif */
+        @media (max-width: 1024px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid-large {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-filter-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .filter-buttons {
+                padding-bottom: 0;
+            }
         }
     </style>
-</head>
+@endpush
 
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card admin-card">
-                    <div class="card-header text-center py-3">
-                        <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
-                    </div>
 
-                    <div class="card-body p-4">
-                        @if (session('status'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                {{ session('status') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                    aria-label="Close"></button>
-                            </div>
-                        @endif
+@section('content')
+    <div class="page-header">
+        <h1>Dashboard</h1>
+    </div>
 
-                        <div class="text-center welcome-message">
-                            <h3><i class="fas fa-user-shield me-2"></i>Selamat datang, Admin!</h3>
-                            <p class="text-muted">Ini adalah area khusus untuk administrator sistem</p>
-                        </div>
+    {{-- =================================== --}}
+    {{-- =     BARU: FILTER TANGGAL        = --}}
+    {{-- =================================== --}}
+    <div class="card" style="margin-bottom: 24px;">
+        <form action="{{ route('admin.dashboard') }}" method="GET" class="dashboard-filter-form">
 
-                        <!-- Flip Cards Section -->
-                        <div class="flip-card-container">
-                            <!-- Takato House Card -->
-                            <div class="flip-card">
-                                <div class="flip-card-inner">
-                                    <div class="flip-card-front">
-                                        <div class="card-icon">
-                                            <i class="fas fa-calendar-alt"></i>
-                                        </div>
-                                        <h3>TAKATO HOUSE</h3>
-                                        <p>Manage your villa bookings with our intuitive calendar system. See
-                                            availability at a glance and update status with ease.</p>
-                                        <button class="btn">Check</button>
-                                    </div>
-                                    <div class="flip-card-back">
-                                        <img src="https://cdn-icons-png.flaticon.com/512/3652/3652191.png"
-                                            alt="Calendar Icon">
-                                    </div>
-                                </div>
-                            </div>
+            {{-- Input Start Date --}}
+            <div class="filter-group">
+                <label for="start_date">Mulai Tanggal</label>
+                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ $startDate }}">
+            </div>
 
-                            <!-- Takato Resto Card -->
-                            <div class="flip-card">
-                                <div class="flip-card-inner">
-                                    <div class="flip-card-front">
-                                        <div class="card-icon">
-                                            <i class="fas fa-utensils"></i>
-                                        </div>
-                                        <h3>TAKATO RESTO</h3>
-                                        <p>Streamline your restaurant operations with our integrated ordering system.
-                                            From menu management to payment processing.</p>
-                                        <button class="btn">Check</button>
-                                    </div>
-                                    <div class="flip-card-back" style="background-color: rgb(0, 109, 78);">
-                                        <img src="/cafe2.png" alt="Restaurant Icon">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            {{-- Input End Date --}}
+            <div class="filter-group">
+                <label for="end_date">Sampai Tanggal</label>
+                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ $endDate }}">
+            </div>
 
-                    <div class="card-footer text-muted text-center py-3">
-                        <small>Sistem Admin &copy; {{ date('Y') }}</small>
-                    </div>
-                </div>
+            {{-- Tombol Filter --}}
+            <div class="filter-buttons">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary"
+                    style="background-color: var(--secondary-light); color: var(--text-color);">Reset</a>
+            </div>
+
+            {{-- Tombol Cepat --}}
+            <div class="quick-links">
+                <a
+                    href="{{ route('admin.dashboard') }}?start_date={{ Carbon::today()->toDateString() }}&end_date={{ Carbon::today()->toDateString() }}">
+                    Hari Ini
+                </a>
+                <a
+                    href="{{ route('admin.dashboard') }}?start_date={{ Carbon::yesterday()->toDateString() }}&end_date={{ Carbon::yesterday()->toDateString() }}">
+                    Kemarin
+                </a>
+                <a
+                    href="{{ route('admin.dashboard') }}?start_date={{ Carbon::today()->subDays(6)->toDateString() }}&end_date={{ Carbon::today()->toDateString() }}">
+                    7 Hari Terakhir
+                </a>
+                <a
+                    href="{{ route('admin.dashboard') }}?start_date={{ Carbon::today()->subDays(29)->toDateString() }}&end_date={{ Carbon::today()->toDateString() }}">
+                    30 Hari Terakhir
+                </a>
+            </div>
+        </form>
+    </div>
+
+
+    {{-- =================================== --}}
+    {{-- =     BARIS 1: KARTU KPI          = --}}
+    {{-- =================================== --}}
+    <div class="kpi-grid">
+        {{-- Ganti variabelnya agar dinamis --}}
+        <div class="kpi-card">
+            <h3>Omzet Penjualan</h3>
+            <div class="value">Rp {{ number_format($totalSales, 0, ',', '.') }}</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Total Transaksi</h3>
+            <div class="value">{{ $totalOrders }}</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Rata-rata / Transaksi</h3>
+            <div class="value">Rp {{ number_format($avgOrderValue, 0, ',', '.') }}</div>
+        </div>
+        <a href="{{ route('admin.pos.index') }}" class="kpi-card kpi-card-pos">
+            <h3>BUKA HALAMAN KASIR &rarr;</h3>
+        </a>
+    </div>
+
+    {{-- =================================== --}}
+    {{-- =     BARIS 2: GRAFIK & LIST      = --}}
+    {{-- =================================== --}}
+    <div class="dashboard-grid-large">
+
+        {{-- Kolom Kiri: Grafik --}}
+        <div class="card">
+            <h3>Grafik Penjualan</h3>
+            <div style="height: 350px;">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        {{-- Kolom Kanan: List --}}
+        <div>
+            {{-- Kartu Top Selling --}}
+            <div class="card list-card" style="margin-bottom: 24px;">
+                <h3>Produk Terlaris (Sesuai Filter)</h3>
+                <ul>
+                    @forelse($topProducts as $product)
+                        <li>
+                            <span class="item-name">{{ $product->item_name }}</span>
+                            <span class="item-value">
+                                {{ $product->total_sold }}
+                                <span class="item-unit">terjual</span>
+                            </span>
+                        </li>
+                    @empty
+                        <li>
+                            <span class="item-unit">Belum ada penjualan.</span>
+                        </li>
+                    @endforelse
+                </ul>
+            </div>
+
+            {{-- Kartu Stok Menipis (Tidak terpengaruh filter) --}}
+            <div class="card list-card">
+                <h3>Stok Akan Habis</h3>
+                <ul>
+                    @forelse($lowStockItems as $item)
+                        <li>
+                            <span class="item-name">{{ $item->name }}</span>
+                            <span class="item-value item-low-stock">
+                                {{ $item->stock }}
+                                <span class="item-unit">{{ $item->unit }}</span>
+                            </span>
+                        </li>
+                    @empty
+                        <li>
+                            <span class="item-unit">Semua stok aman.</span>
+                        </li>
+                    @endforelse
+                </ul>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+@endsection
 
-</html>
+@push('scripts')
+    {{-- Library Chart.js untuk membuat grafik --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ambil data dari Controller yang di-passing ke Blade
+            const chartLabels = @json($chartLabels);
+            const chartData = @json($chartData);
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+
+            var gradient = ctx.createLinearGradient(0, 0, 0, 350);
+            gradient.addColorStop(0, 'rgba(0, 123, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 123, 255, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Omzet Penjualan',
+                        data: chartData,
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+                        pointRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('id-ID', {
+                                            style: 'currency',
+                                            currency: 'IDR',
+                                            minimumFractionDigits: 0
+                                        }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

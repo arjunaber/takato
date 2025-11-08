@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\OrderTypeController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\RecipeController;
+use App\Http\Controllers\WebhookController;
+use App\Http\Middleware\VerifyCsrfToken;
 
 // Public routes
 Route::get('/', function () {
@@ -84,3 +86,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', AdminMiddleware::cla
     Route::resource('order-types', OrderTypeController::class);
     Route::resource('orders', OrderController::class);
 });
+
+// Route::post('/midtrans-webhook', [WebhookController::class, 'webhook']);

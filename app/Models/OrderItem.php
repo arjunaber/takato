@@ -11,7 +11,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class OrderItem extends Model
 {
     use HasFactory;
-    protected $guarded = []; // Izinkan mass assignment
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'variant_id',
+        'item_name',
+        'base_price',
+        'quantity',
+        'notes',
+        'order_type_id',
+        'order_type_fee',
+        'discount_id',
+        'discount_amount',
+        'unit_price_final',
+        'subtotal',
+    ];
 
     public function order(): BelongsTo
     {
@@ -37,7 +51,7 @@ class OrderItem extends Model
     {
         return $this->belongsTo(OrderType::class);
     }
-    
+
     public function addons(): BelongsToMany
     {
         return $this->belongsToMany(Addon::class, 'order_item_addons')

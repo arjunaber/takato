@@ -7,37 +7,41 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Discount;
 use App\Models\OrderType;
 use App\Models\Ingredient;
-use App\Models\RecipeItem;
-use App\Models\Order;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Variant;
+use App\Models\Order;
 
 class PosController extends Controller
 {
+    /**
+     * Inisialisasi konfigurasi Midtrans
+     */
+    public function __construct()
+    {
+        // Set konfigurasi Midtrans saat controller ini diinisialisasi
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        \Midtrans\Config::$isSanitized = true;
+        \Midtrans\Config::$is3ds = config('midtrans.is_3ds');
+    }
+
+    /**
+     * Menampilkan halaman POS dan memuat semua data awal.
+     */
     public function index()
     {
-        // 1. Ambil data untuk Tab Kategori & Library
         $categories = Category::orderBy('name')->get();
-
-        $libraryProducts = Product::with(['variants', 'addons'])
-            ->orderBy('name')
-            ->get();
-
-        $favoriteProducts = Product::with(['variants', 'addons'])
-            ->where('is_favorite', true)
-            ->orderBy('name')
-            ->get();
-
-        // 2. Ambil data untuk Modal
+        $libraryProducts = Product::with(['variants', 'addons'])->orderBy('name')->get();
+        $favoriteProducts = Product::with(['variants', 'addons'])->where('is_favorite', true)->orderBy('name')->get();
         $discounts = Discount::orderBy('name')->get();
         $orderTypes = OrderType::orderBy('id')->get();
 
-        // 3. Kirim semua 5 variabel ke view
+        // Pastikan path view Anda benar (admin.pos.index atau admin.cafe.index)
         return view('admin.cafe.index', [
             'categories' => $categories,
             'libraryProducts' => $libraryProducts,
@@ -48,23 +52,14 @@ class PosController extends Controller
     }
 
     /**
-     * FUNGSI BARU: Endpoint API ini dipanggil oleh JavaScript
-     * untuk mendapatkan semua data yang dibutuhkan POS.
+     * Endpoint API (jika Anda membutuhkannya)
      */
     public function getDataForPos()
     {
         try {
             $categories = Category::orderBy('name')->get();
-
-            $libraryProducts = Product::with(['variants', 'addons'])
-                ->orderBy('name')
-                ->get();
-
-            $favoriteProducts = Product::with(['variants', 'addons'])
-                ->where('is_favorite', true)
-                ->orderBy('name')
-                ->get();
-
+            $libraryProducts = Product::with(['variants', 'addons'])->orderBy('name')->get();
+            $favoriteProducts = Product::with(['variants', 'addons'])->where('is_favorite', true)->orderBy('name')->get();
             $discounts = Discount::orderBy('name')->get();
             $orderTypes = OrderType::orderBy('id')->get();
 
@@ -83,12 +78,10 @@ class PosController extends Controller
 
 
     /**
-     * Method store() tetap sama, tidak perlu diubah.
-     * (Saya potong kodenya agar ringkas, JANGAN HAPUS method store() Anda)
+     * Menyimpan pesanan dari POS (Versi Final dengan Logika Midtrans)
      */
     public function store(Request $request)
     {
-        // 1. Validasi data JSON yang dikirim (Sesuai JS baru kita)
         $data = $request->validate([
             'cartItems' => 'required|array|min:1',
             'cartItems.*' => 'required|array',
@@ -100,63 +93,57 @@ class PosController extends Controller
             'cashChange' => 'nullable|numeric',
         ]);
 
+        $snapToken = null;
+        $order = null;
+        $paymentMethod = $data['paymentMethod'];
+        $isCash = ($paymentMethod === 'cash');
+
         try {
             DB::beginTransaction();
 
-            $paymentMethod = $data['paymentMethod'];
-            $isCash = ($paymentMethod === 'cash');
+            // == INI LOGIKA KUNCINYA ==
+            $orderStatus = $isCash ? 'completed' : 'pending';
+            $paymentStatus = $isCash ? 'paid' : 'unpaid';
+            // =========================
 
-            // 2. Buat Order (Sesuai migrasi baru Anda + data JS)
             $order = Order::create([
-                'user_id' => Auth::id(), // ID kasir
-                'invoice_number' => 'INV-' . date('YmdHi') . '-' . Str::random(4),
-
-                'status' => $isCash ? 'completed' : 'pending',
-                'payment_status' => $isCash ? 'paid' : 'unpaid',
-
+                'user_id' => Auth::id(),
+                'invoice_number' => 'INV-' . date('YmdHi') . '-' . strtoupper(Str::random(4)),
+                'status' => $orderStatus, // <-- Menggunakan status yang benar
+                'payment_status' => $paymentStatus, // <-- Menggunakan status yang benar
                 'subtotal' => $data['subtotal'],
-                'tax_amount' => $data['tax'], // Nama kolom di migrasi baru Anda
+                'tax_amount' => $data['tax'],
                 'total' => $data['total'],
-
                 'payment_method' => $paymentMethod,
-                'cash_received' => $data['cashReceived'], // Data dari modal
-                'cash_change' => $data['cashChange'],     // Data dari modal
+                'cash_received' => $data['cashReceived'],
+                'cash_change' => $data['cashChange'],
             ]);
 
-            // 3. Loop dan simpan OrderItems
             foreach ($data['cartItems'] as $item) {
 
-                // Siapkan data snapshot
                 $basePrice = 0;
                 $orderTypeFee = 0;
                 $discountAmount = 0;
                 $unitPriceFinal = $item['finalPrice'];
 
                 if (!$item['isCustom']) {
-                    // Hitung ulang biaya snapshot (Lebih aman di backend)
                     $basePrice = (float) $item['selectedVariant']['price'];
-
-                    // Harga Addon (dihitung terpisah, tidak ditambahkan ke base_price)
                     $addonPrice = array_sum(array_column($item['selectedAddons'], 'price'));
-                    $priceAfterAddons = $basePrice + $addonPrice; // Harga dasar + addon
-
+                    $priceAfterAddons = $basePrice + $addonPrice;
                     if ($item['selectedOrderType']['type'] == 'percentage') {
                         $orderTypeFee = $priceAfterAddons * (float) $item['selectedOrderType']['value'];
                     } else {
                         $orderTypeFee = (float) $item['selectedOrderType']['value'];
                     }
                     $priceAfterMarkup = $priceAfterAddons + $orderTypeFee;
-
                     if ($item['discount']['type'] == 'percentage') {
                         $discountAmount = $priceAfterMarkup * (float) $item['discount']['value'];
                     } else {
                         $discountAmount = (float) $item['discount']['value'];
                     }
-
                     $unitPriceFinal = $priceAfterMarkup - $discountAmount;
                     if ($unitPriceFinal < 0) $unitPriceFinal = 0;
                 } else {
-                    // Untuk item kustom
                     $basePrice = $item['finalPrice'];
                 }
 
@@ -175,55 +162,44 @@ class PosController extends Controller
                     'subtotal' => $unitPriceFinal * $item['quantity'],
                 ]);
 
-                // ===============================================
-                // ==         INI BAGIAN PERBAIKANNYA           ==
-                // ===============================================
                 if (!$item['isCustom'] && !empty($item['selectedAddons'])) {
-
                     $addonsToSync = [];
                     foreach ($item['selectedAddons'] as $addon) {
-                        // Buat array asosiatif
-                        // [ addon_id => [ 'kolom_pivot_1' => 'nilai', 'kolom_pivot_2' => 'nilai' ] ]
-                        $addonsToSync[$addon['id']] = [
-                            'addon_name' => $addon['name'],
-                            'addon_price' => $addon['price']
-                        ];
+                        $addonsToSync[$addon['id']] = ['addon_name' => $addon['name'], 'addon_price' => $addon['price']];
                     }
-
-                    // sync() sekarang akan mengisi kolom ekstra
                     $orderItem->addons()->sync($addonsToSync);
                 }
-                // ===============================================
-                // ==         AKHIR PERBAIKAN                   ==
-                // ===============================================
 
-
-                // 5. Kurangi Stok (Logika Anda sudah benar, tapi kita optimalkan)
-                if (!$item['isCustom']) {
-                    // Kita pakai 'find' karena $variant belum tentu ada
-                    $variant = Variant::with('ingredients')->find($item['selectedVariant']['id']);
-                    if ($variant) {
-                        foreach ($variant->ingredients as $ingredient) {
-                            $stockToReduce = $ingredient->pivot->quantity_used * $item['quantity'];
-
-                            // Cek stok dulu sebelum mengurangi
-                            if ($ingredient->stock < $stockToReduce) {
-                                // Batalkan transaksi dan kirim pesan error
-                                throw new \Exception("Stok tidak cukup untuk: " . $ingredient->name);
-                            }
-                            // decrement() lebih aman untuk stock
-                            $ingredient->decrement('stock', $stockToReduce);
-                        }
-                    }
+                // Kurangi Stok HANYA JIKA CASH
+                if (!$item['isCustom'] && $isCash) {
+                    $this->reduceStock($item['selectedVariant']['id'], $item['quantity']);
                 }
-            } // Akhir loop cartItems
+            }
+
+            // == INI LOGIKA KUNCINYA ==
+            // Buat Snap Token HANYA JIKA BUKAN CASH
+            if (!$isCash) {
+                $params = [
+                    'transaction_details' => [
+                        'order_id' => $order->invoice_number,
+                        'gross_amount' => (int) $order->total,
+                    ],
+                    'customer_details' => [
+                        'first_name' => Auth::user()->name ?? 'Pelanggan',
+                        'email' => Auth::user()->email ?? 'customer@tokomu.com',
+                    ],
+                ];
+                $snapToken = \Midtrans\Snap::getSnapToken($params);
+            }
+            // =========================
 
             DB::commit();
 
             return response()->json([
                 'message' => 'Pesanan berhasil disimpan!',
                 'order_id' => $order->id,
-                'status' => $order->status,
+                'status' => $order->status, // Ini akan mengirim 'pending'
+                'snap_token' => $snapToken  // Ini akan mengirim token
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -233,8 +209,29 @@ class PosController extends Controller
             Log::error('Gagal menyimpan pesanan: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Gagal menyimpan pesanan.',
-                'error' => $e->getMessage(), // Kirim pesan error (cth: "Stok tidak cukup")
+                'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Fungsi private untuk mengurangi stok
+     */
+    private function reduceStock($variantId, $quantity)
+    {
+        try {
+            $variant = Variant::with('ingredients')->find($variantId);
+            if (!$variant) return;
+
+            foreach ($variant->ingredients as $ingredient) {
+                $stockToReduce = $ingredient->pivot->quantity_used * $quantity;
+                if ($ingredient->stock < $stockToReduce) {
+                    throw new \Exception("Stok tidak cukup untuk: " . $ingredient->name);
+                }
+                $ingredient->decrement('stock', $stockToReduce);
+            }
+        } catch (\Exception $e) {
+            throw $e; // Lemparkan error agar DB::rollBack() menangkapnya
         }
     }
 }

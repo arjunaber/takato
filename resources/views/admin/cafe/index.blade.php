@@ -89,9 +89,9 @@
 
 
         /* ============================================================
-                           CSS BARU: UNTUK MODAL STATUS (SUKSES/GAGAL)
-                         ============================================================
-                        */
+                                               CSS BARU: UNTUK MODAL STATUS (SUKSES/GAGAL)
+                                             ============================================================
+                                            */
         #status-modal-overlay .modal-content {
             max-width: 400px;
             /* Modal lebih kecil */
@@ -1010,6 +1010,14 @@
 ======================================================================
 --}}
 @push('scripts')
+    {{-- =============================================== --}}
+    {{-- ==  1. TAMBAHKAN SCRIPT SNAP.JS DARI MIDTRANS  == --}}
+    {{-- =============================================== --}}
+    <script type="text/javascript"
+        src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}"
+        data-client-key="{{ config('midtrans.client_key') }}"></script>
+
+
     <script>
         // ... (Script Sidebar Toggle) ...
         document.addEventListener('DOMContentLoaded', function() {
@@ -1039,10 +1047,8 @@
         let currentPaymentMethod = 'cash';
         let currentCashAmount = 0;
         let currentChange = 0;
-
-        // == VARIABEL BARU UNTUK MODAL STATUS ==
-        let isLastTransactionSuccess = false; // Flag untuk reset keranjang
-        let lastSuccessfulOrderId = null; // **BARU**: Menyimpan ID order untuk print
+        let isLastTransactionSuccess = false;
+        let lastSuccessfulOrderId = null;
 
 
         // ===============================================
@@ -1063,7 +1069,7 @@
             const name = nameInput.value.trim();
             const price = parseFloat(priceInput.value) || 0;
             if (!name || price <= 0) {
-                alert('Nama item dan harga (lebih dari 0) harus diisi.');
+                showStatusModal('error', 'Input Tidak Valid', 'Nama item dan harga (lebih dari 0) harus diisi.');
                 return;
             }
             const cartItem = {
@@ -1154,8 +1160,6 @@
             const cartContainer = document.getElementById('cart-items-container');
             cartContainer.innerHTML = '';
             if (cartItems.length === 0) {
-                // HAPUS showStatusModal() DARI SINI
-                // CUKUP TAMPILKAN PESAN KOSONG
                 cartContainer.innerHTML = '<p class="cart-empty">Keranjang masih kosong.</p>';
                 return;
             }
@@ -1237,14 +1241,14 @@
         }
 
         // ===============================================
-        // ==  Fungsi submitPayment (AJAX) - DIMODIFIKASI
+        // ==  Fungsi submitPayment (AJAX) - VERSI BARU
         // ===============================================
         async function submitPayment() {
             const payButton = document.getElementById('payment-submit-btn');
             payButton.disabled = true;
             payButton.innerText = 'Memproses...';
-            isLastTransactionSuccess = false; // Reset flag
-            lastSuccessfulOrderId = null; // Reset flag ID
+            isLastTransactionSuccess = false;
+            lastSuccessfulOrderId = null;
 
             const dataToSend = {
                 cartItems: cartItems,
@@ -1265,6 +1269,7 @@
                             'content'),
                         'Accept': 'application/json'
                     },
+                    credentials: "include",
                     body: JSON.stringify(dataToSend)
                 });
 
@@ -1273,15 +1278,44 @@
                     throw new Error(result.error || result.message || 'Terjadi kesalahan server');
                 }
 
-                // == SUKSES ==
-                isLastTransactionSuccess = true;
-                lastSuccessfulOrderId = result.order_id; // Simpan ID untuk print
-                showStatusModal('success', 'Pesanan Berhasil', 'Order ID: ' + result.order_id +
-                    ' telah berhasil disimpan.');
+                // == INI LOGIKA BARU YANG ANDA BUTUHKAN ==
+                if (result.status === 'pending' && result.snap_token) {
+                    // --- 1. JIKA PAYMENT GATEWAY (PENDING) ---
+                    isLastTransactionSuccess = true;
+                    lastSuccessfulOrderId = result.order_id;
+                    closePaymentModal(); // Tutup modal pembayaran
+
+                    // Buka pop-up Midtrans
+                    snap.pay(result.snap_token, {
+                        onSuccess: function(trxResult) {
+                            showStatusModal('success', 'Pembayaran Berhasil', 'Order ID: ' + result
+                                .order_id + ' telah dibayar.');
+                        },
+                        onPending: function(trxResult) {
+                            showStatusModal('pending', 'Menunggu Pembayaran', 'Order ID: ' + result
+                                .order_id + '. Selesaikan pembayaran.');
+                        },
+                        onError: function(trxResult) {
+                            showStatusModal('error', 'Pembayaran Gagal', 'Order ID: ' + result.order_id +
+                                '. Coba lagi.');
+                        },
+                        onClose: function() {
+                            // Saat pop-up Midtrans ditutup, kita juga panggil closeStatusModal
+                            // agar keranjang di-reset
+                            closeStatusModal();
+                        }
+                    });
+
+                } else if (result.status === 'completed') {
+                    // --- 2. JIKA CASH (COMPLETED) ---
+                    isLastTransactionSuccess = true;
+                    lastSuccessfulOrderId = result.order_id;
+                    showStatusModal('success', 'Pesanan Berhasil', 'Order ID: ' + result.order_id + ' telah disimpan.');
+                }
+                // ======================================
 
             } catch (error) {
                 console.error('Error submitting payment:', error);
-                // == GAGAL ==
                 isLastTransactionSuccess = false;
                 lastSuccessfulOrderId = null;
                 showStatusModal('error', 'Gagal Menyimpan', error.message);
@@ -1449,9 +1483,8 @@
             closeItemModal();
         }
 
-
         // ===============================================
-        // ==  SCRIPT MODAL PEMBAYARAN (Lama, tidak berubah)
+        // ==  SCRIPT MODAL PEMBAYARAN
         // ===============================================
         const paymentModal = document.getElementById('payment-modal-overlay');
         const paymentTotalEl = document.getElementById('payment-modal-total');
@@ -1463,7 +1496,6 @@
         const finalSubmitBtn = document.getElementById('payment-submit-btn');
 
         function openPaymentModal() {
-            /* ... (kode tidak berubah) ... */
             if (cartItems.length === 0) {
                 showStatusModal('error', 'Keranjang Kosong', 'Anda belum menambahkan item apapun ke keranjang.');
                 return;
@@ -1528,43 +1560,29 @@
         // ===============================================
         // ==  SCRIPT MODAL STATUS (DIMODIFIKASI)
         // ===============================================
-
         const statusModal = document.getElementById('status-modal-overlay');
         const statusModalContent = statusModal.querySelector('.modal-content');
         const statusModalTitle = document.getElementById('status-modal-title');
         const statusModalMessage = document.getElementById('status-modal-message');
         const statusIconSuccess = statusModal.querySelector('.status-modal-icon-success');
         const statusIconDanger = statusModal.querySelector('.status-modal-icon-danger');
-
-        // **PERUBAHAN 1: Ganti nama variabel**
         const statusOkBtn = document.getElementById('status-modal-ok-btn');
-        // **PERUBAHAN 2: Tambahkan tombol print**
         const statusPrintBtn = document.getElementById('status-modal-print-btn');
 
-        /**
-         * Menampilkan modal status
-         * @param {'success'|'error'} type Tipe modal
-         * @param {string} title Judul modal
-         * @param {string} message Pesan di modal
-         */
         function showStatusModal(type, title, message) {
             statusModalTitle.innerText = title;
             statusModalMessage.innerText = message;
-
-            // **PERUBAHAN 3: Reset tombol print**
             statusPrintBtn.style.display = 'none';
             statusPrintBtn.onclick = null;
 
-            if (type === 'success') {
+            if (type === 'success' || type === 'pending') { // Izinkan print untuk sukses & pending
                 statusModalContent.classList.remove('error');
                 statusModalContent.classList.add('success');
                 statusIconSuccess.style.display = 'flex';
                 statusIconDanger.style.display = 'none';
 
-                // **PERUBAHAN 4: Tampilkan tombol print jika sukses**
                 if (lastSuccessfulOrderId) {
-                    statusPrintBtn.style.display = 'block'; // Tampilkan
-                    // Atur fungsi kliknya
+                    statusPrintBtn.style.display = 'block';
                     statusPrintBtn.onclick = () => printReceipt(lastSuccessfulOrderId);
                 }
             } else { // 'error'
@@ -1576,13 +1594,12 @@
             statusModal.style.display = 'flex';
         }
 
-        // **FUNGSI BARU: Untuk print**
         function printReceipt(orderId) {
-            const url = `/admin/orders/${orderId}/receipt`;
+            // == PASTIKAN RUTE INI ADA DI web.php ==
+            const url = `{{ url('admin/orders') }}/${orderId}/receipt`;
             window.open(url, '_blank');
         }
 
-        // Fungsi untuk menutup modal status
         function closeStatusModal() {
             statusModal.style.display = 'none';
             if (isLastTransactionSuccess) {
@@ -1591,17 +1608,11 @@
                 renderCart();
                 updateSummary();
                 isLastTransactionSuccess = false;
-                lastSuccessfulOrderId = null; // **BARU**: Reset ID
+                lastSuccessfulOrderId = null;
             }
         }
-
-        // Ganti event listener ke tombol 'OK'
         statusOkBtn.addEventListener('click', closeStatusModal);
 
-
-        // ===============================================
-        // ==  Panggil fungsi saat halaman dimuat
-        // ===============================================
         window.onload = () => {
             renderProductsInGrid('favorit-product-grid', allFavoriteProducts);
             renderCategories();

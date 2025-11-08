@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order; // <-- Import Model
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -111,12 +113,38 @@ class OrderController extends Controller
      */
     public function destroy(Order $order)
     {
-        // Data order sudah otomatis diambil
+        // Jika order sudah 'cancelled', tidak perlu lakukan apa-apa
+        if ($order->status == 'cancelled') {
+            return redirect()->route('admin.orders.index')->with('success', 'Pesanan sudah dibatalkan.');
+        }
 
-        // Cara lebih aman:
-        $order->update(['status' => 'cancelled']);
+        // Cek apakah order ini sudah lunas (completed)
+        $wasCompleted = ($order->status == 'completed');
 
-        return redirect()->route('admin.orders.index')->with('success', 'Pesanan berhasil dibatalkan.');
+        try {
+            DB::beginTransaction();
+
+            // 1. Kembalikan stok HANYA JIKA order sebelumnya completed
+            if ($wasCompleted) {
+                $order->returnStock(); // Panggil fungsi yang baru kita buat
+            }
+
+            // 2. Ubah status order
+            $order->update([
+                'status' => 'cancelled',
+                'payment_status' => 'unpaid' // Set juga status bayar (jika perlu)
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.orders.index')
+                ->with('success', 'Pesanan berhasil dibatalkan. Stok telah dikembalikan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Gagal membatalkan Order ID {$order->id}: " . $e->getMessage());
+            return redirect()->route('admin.orders.index')
+                ->with('error', 'Gagal membatalkan pesanan. Terjadi error.');
+        }
     }
 
     public function printReceipt(Order $order)
