@@ -78,7 +78,7 @@ class OrderController extends Controller
         // Data order sudah otomatis diambil oleh Laravel (findOrFail)
 
         // Load relasi yang dibutuhkan untuk halaman detail
-        $order->load(['user', 'orderItems.product', 'orderItems.variant', 'orderItems.addons.addon']);
+        $order->load(['user', 'orderItems.product', 'orderItems.variant', 'orderItems.addons']);
 
         return view('admin.orders.show', compact('order'));
     }
