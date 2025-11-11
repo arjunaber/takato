@@ -9,15 +9,30 @@
 --}}
 @push('styles')
     <style>
-        /* ... (CSS override .main-content, .pos-container, .cart Anda) ... */
+        /* ======================================================================
+                                     * PERBAIKAN TINGGI KRITIS (FIX CUTOFF DENGAN MENGURANGI TINGGI HEADER)
+                                     * ====================================================================== */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            /* Penting: Set overflow hidden pada body untuk mencegah double scrollbar */
+            overflow: hidden;
+        }
+
         .main-content {
             padding: 0 !important;
             overflow-y: hidden !important;
+            height: 100%;
         }
 
         .pos-container {
             display: flex;
-            height: 100%;
+            /* SOLUSI AMAN: Kurangi 55px (estimasi tinggi navbar/header admin).
+                                           Jika masih terpotong, coba kurangi angkanya (misal: 50px).
+                                           Jika ada footer, tambahkan pengurangan tinggi footer juga.
+                                           Misalnya: height: calc(100vh - 55px - 40px); */
+            height: calc(100vh - 55px);
             width: 100%;
         }
 
@@ -28,6 +43,41 @@
             display: flex;
             flex-direction: column;
             box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05);
+            height: 100%;
+            /* Memastikan cart mengambil tinggi penuh dari pos-container */
+        }
+
+        .product-list {
+            height: 100%;
+            /* Memastikan product-list mengambil tinggi penuh dari pos-container */
+            flex: 3;
+            background-color: var(--body-bg);
+            padding: 24px;
+            overflow-y: hidden;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ======================================================================
+                                     * MODIFIKASI MARGIN & PENGATURAN LAINNYA
+                                     * ====================================================================== */
+
+        .pay-button {
+            flex-shrink: 0;
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            /* Margin ditinggikan ke 25px */
+            margin-top: 25px;
+            margin-bottom: 100px;
+            transition: all 0.2s ease;
         }
 
         /* ... (CSS Modal Pembayaran Anda) ... */
@@ -41,6 +91,8 @@
             display: flex;
             justify-content: space-between;
         }
+
+        /* ... (CSS di bawah ini tidak diubah dari kode sebelumnya, hanya untuk kelengkapan) ... */
 
         .payment-method-selector {
             display: grid;
@@ -87,14 +139,8 @@
             color: var(--danger);
         }
 
-
-        /* ============================================================
-                                               CSS BARU: UNTUK MODAL STATUS (SUKSES/GAGAL)
-                                             ============================================================
-                                            */
         #status-modal-overlay .modal-content {
             max-width: 400px;
-            /* Modal lebih kecil */
             text-align: center;
         }
 
@@ -113,7 +159,6 @@
             height: 40px;
         }
 
-        /* Style untuk SUKSES */
         #status-modal-overlay .modal-content.success {
             border-top: 5px solid var(--success);
         }
@@ -122,10 +167,8 @@
             background-color: #eafbf0;
             color: var(--success);
             display: none;
-            /* Sembunyikan by default */
         }
 
-        /* Style untuk GAGAL */
         #status-modal-overlay .modal-content.error {
             border-top: 5px solid var(--danger);
         }
@@ -134,7 +177,6 @@
             background-color: #fdeeee;
             color: var(--danger);
             display: none;
-            /* Sembunyikan by default */
         }
 
         #status-modal-title {
@@ -150,12 +192,9 @@
 
         #status-modal-overlay .modal-footer {
             justify-content: center;
-            /* Tombol OK di tengah */
             gap: 10px;
-            /* Beri jarak antar tombol */
         }
 
-        /* ... (Sisa CSS POS Anda lainnya) ... */
         :root {
             --primary: #007bff;
             --primary-light: #e6f0ff;
@@ -171,16 +210,6 @@
             --border-color: #dee2e6;
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .product-list {
-            flex: 3;
-            background-color: var(--body-bg);
-            padding: 24px;
-            overflow-y: hidden;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
         }
 
         .product-nav-container {
@@ -438,7 +467,7 @@
             font-weight: 600;
             width: 30px;
             height: 30px;
-            margin-right: 10px;
+            margin-right: 8px;
             font-size: 16px;
         }
 
@@ -449,6 +478,7 @@
         .cart-item-actions span {
             font-weight: 600;
             font-size: 16px;
+            margin: 0 12px;
         }
 
         .cart-item-actions .remove-btn {
@@ -490,21 +520,6 @@
 
         .summary-row.total span:last-child {
             color: var(--primary);
-        }
-
-        .pay-button {
-            flex-shrink: 0;
-            width: 100%;
-            padding: 16px;
-            font-size: 18px;
-            font-weight: 700;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.2s ease;
         }
 
         .pay-button:hover {
@@ -796,7 +811,7 @@
 
         @media (max-width: 768px) {
             .modal-content {
-                max-height: 80vh;
+                max-height: 95vh;
             }
 
             .product-nav {
