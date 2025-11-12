@@ -861,44 +861,14 @@
                     return;
                 }
 
-                const today = new Date();
-                const options = {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                };
-                const formattedDate = today.toLocaleDateString('id-ID', options);
+                // 1. Encode data array ke JSON, lalu ke Base64 (untuk transfer aman via URL)
+                const encodedItems = btoa(JSON.stringify(stockRequestItems));
 
-                let printHTML = '<div class="print-header">';
-                printHTML += '<h1>Surat Permintaan Stok</h1>';
-                printHTML += '<p><strong>Diajukan oleh:</strong> {{ auth()->user()->name }}</p>';
-                printHTML += '<p><strong>Tanggal:</strong> ' + formattedDate + '</p>';
-                printHTML += '</div>';
-                printHTML += '<h2>Daftar Kebutuhan Bahan Baku</h2>';
-                printHTML += '<table><thead><tr>';
-                printHTML += '<th>Nama Bahan Baku</th>';
-                printHTML += '<th>Sisa Stok</th>';
-                printHTML += '<th>Jumlah Permintaan</th>';
-                printHTML += '<th>Satuan</th>';
-                printHTML += '</tr></thead><tbody>';
+                // 2. Buat URL baru dan buka di tab baru
+                const printUrl = '{{ route('admin.stock.request.print') }}?items=' + encodedItems;
 
-                stockRequestItems.forEach(function(item) {
-                    printHTML += '<tr>';
-                    printHTML += '<td>' + item.name + '</td>';
-                    printHTML += '<td>' + item.stock + '</td>';
-                    printHTML += '<td>' + item.amount + '</td>';
-                    printHTML += '<td>' + item.unit + '</td>';
-                    printHTML += '</tr>';
-                });
-
-                printHTML += '</tbody></table>';
-
-                $printArea.html(printHTML);
-
-                console.log('Print area updated, triggering print...');
-                setTimeout(function() {
-                    window.print();
-                }, 200);
+                console.log('Navigating to print URL:', printUrl);
+                window.open(printUrl, '_blank');
             });
 
         });

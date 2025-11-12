@@ -1,11 +1,11 @@
-{{-- File: resources/views/admin/receipts/print.blade.php --}}
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Struk Pesanan {{ $order->invoice_number }}</title>
+    {{-- Hapus elemen <title> agar browser tidak mencetak judul halaman/struk --}}
+    <title></title>
     <style>
         * {
             margin: 0;
@@ -27,6 +27,22 @@
             text-align: center;
             margin-bottom: 10px;
         }
+
+        /* CSS Tambahan untuk Logo */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .logo-container img {
+            max-width: 40mm;
+            /* Mengurangi lebar maksimal logo dari 50mm menjadi 40mm. */
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Akhir CSS Tambahan Logo */
 
         .header h1 {
             font-size: 14pt;
@@ -91,6 +107,15 @@
             margin-top: 5px;
         }
 
+        /* Tambahkan style untuk memisahkan Subtotal/Pajak dengan TOTAL */
+        .summary-total-separator {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+        }
+
+        /* Akhir penambahan style */
+
+
         .summary-item {
             display: flex;
             justify-content: space-between;
@@ -108,6 +133,16 @@
             font-size: 9pt;
         }
 
+        /* CSS Tambahan untuk Info Kaki Struk yang Bisa Diedit */
+        .editable-info {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 9pt;
+        }
+
+        /* Akhir CSS Tambahan Info Kaki Struk */
+
+
         /* Aturan untuk print */
         @media print {
             body {
@@ -119,6 +154,15 @@
 {{-- Script ini akan otomatis memanggil print dialog dan menutup jendela setelah 1 detik --}}
 
 <body onload="window.print(); setTimeout(window.close, 1000);">
+
+    {{-- =================================== --}}
+    {{-- == 1. LOGO ATAS --}}
+    {{-- =================================== --}}
+    <div class="logo-container">
+        {{-- GANTI DENGAN PATH ASLI LOGO ANDA --}}
+        <img src="{{ asset('/cafe.png') }}" alt="Logo Takato">
+    </div>
+
     <div class="header">
         <h1>TAKATO</h1>
         <p>Jl. Babakan Palasari No. 1, Cihideung, Bogor</p>
@@ -148,9 +192,9 @@
         <thead>
             <tr>
                 <th>Item</th>
-                <th>Qty</th>
-                <th>Harga</th>
-                <th>Total</th>
+                <th class="item-qty">Qty</th>
+                <th class="item-price">Harga</th>
+                <th class="item-total">Total</th>
             </tr>
         </thead>
         <tbody>
@@ -182,6 +226,10 @@
             <span>Pajak:</span>
             <span>{{ number_format($order->tax_amount, 0, ',', '.') }}</span>
         </div>
+
+        {{-- Tambahkan pemisah setelah Pajak --}}
+        <div class="summary-total-separator"></div>
+
         <div class="summary-item">
             <span>TOTAL:</span>
             <span>{{ number_format($order->total, 0, ',', '.') }}</span>
@@ -200,9 +248,31 @@
         @endif
     </div>
 
+    {{-- =================================== --}}
+    {{-- == 2. EDITABLE INFO SECTION --}}
+    {{-- =================================== --}}
+    <div class="editable-info">
+        <p> INFO TAMBAHAN </p>
+        {{-- AREA INI MUDAH DIEDIT: Ubah teks di bawah ini --}}
+        <p><strong>Free Wi-Fi</strong>: TAKATO-Guest</p>
+        <p><strong>Pass</strong>: takato123</p>
+        <p>Jangan lupa follow Instagram kami @takato.id</p>
+        {{-- Akhir Area Edit --}}
+    </div>
+
+
     <div class="footer">
         <p>Terima kasih atas kunjungan Anda!</p>
     </div>
+
+    {{-- =================================== --}}
+    {{-- == 3. LOGO BAWAH --}}
+    {{-- =================================== --}}
+    <div class="logo-container">
+        {{-- GANTI DENGAN PATH ASLI LOGO ANDA --}}
+        <img src="{{ asset('/cafe.png') }}" alt="Logo Takato">
+    </div>
+
 </body>
 
 </html>

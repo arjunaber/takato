@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\RecipeController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Middleware\VerifyCsrfToken;
+use App\Http\Controllers\Admin\StockRequestController;
 
 // Public routes
 Route::get('/', function () {
@@ -78,6 +79,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', AdminMiddleware::cla
     Route::post('/variants/{variant}/recipe', [RecipeController::class, 'update'])->name('variants.recipe.update');
     Route::get('/orders/{order}/receipt', [OrderController::class, 'printReceipt'])->name('orders.receipt');
     Route::post('/ingredients/adjust-stock', [IngredientController::class, 'adjustStock'])->name('ingredients.adjust-stock');
+    Route::get('/stock/request/print', [StockRequestController::class, 'printRequest'])->name('stock.request.print');
 
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
