@@ -19,6 +19,18 @@
             color: var(--text-muted);
         }
 
+        /* == CSS BARU UNTUK GAMBAR THUMBNAIL == */
+        .product-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        /* == AKHIR CSS GAMBAR THUMBNAIL == */
+
         /* CSS untuk Form Filter */
         .filter-form {
             display: flex;
@@ -30,7 +42,6 @@
         .filter-group {
             flex: 1;
             min-width: 200px;
-            /* Beri ruang lebih */
         }
 
         .filter-group label {
@@ -58,7 +69,6 @@
             list-style: none;
             border-radius: 0.25rem;
             justify-content: center;
-            /* Opsional: Posisikan di tengah */
         }
 
         .page-item {
@@ -160,6 +170,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Gambar</th> {{-- <<< KOLOM BARU --}}
                         <th>Nama Produk</th>
                         <th>Kategori</th>
                         <th>Harga Mulai</th>
@@ -170,6 +181,14 @@
                     @forelse ($products as $product)
                         <tr>
                             <td>{{ $product->id }}</td>
+                            <td> {{-- <<< GAMBAR THUMBNAIL --}}
+                                @if ($product->image_url)
+                                    <img src="{{ asset('storage/' . $product->image_url) }}" alt="{{ $product->name }}"
+                                        class="product-thumb">
+                                @else
+                                    <span style="color: var(--text-muted); font-size: 14px;">-</span>
+                                @endif
+                            </td>
                             <td>
                                 <div class="product-name">{{ $product->name }}</div>
                             </td>
@@ -200,7 +219,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                            <td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">
                                 Tidak ada data produk yang cocok dengan filter.
                             </td>
                         </tr>

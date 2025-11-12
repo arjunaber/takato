@@ -10,8 +10,8 @@
 @push('styles')
     <style>
         /* ======================================================================
-                                     * PERBAIKAN TINGGI KRITIS (FIX CUTOFF DENGAN MENGURANGI TINGGI HEADER)
-                                     * ====================================================================== */
+                                             * PERBAIKAN TINGGI KRITIS (FIX CUTOFF DENGAN MENGURANGI TINGGI HEADER)
+                                             * ====================================================================== */
         html,
         body {
             height: 100%;
@@ -29,9 +29,9 @@
         .pos-container {
             display: flex;
             /* SOLUSI AMAN: Kurangi 55px (estimasi tinggi navbar/header admin).
-                                           Jika masih terpotong, coba kurangi angkanya (misal: 50px).
-                                           Jika ada footer, tambahkan pengurangan tinggi footer juga.
-                                           Misalnya: height: calc(100vh - 55px - 40px); */
+                                                   Jika masih terpotong, coba kurangi angkanya (misal: 50px).
+                                                   Jika ada footer, tambahkan pengurangan tinggi footer juga.
+                                                   Misalnya: height: calc(100vh - 55px - 40px); */
             height: calc(100vh - 55px);
             width: 100%;
         }
@@ -60,8 +60,8 @@
         }
 
         /* ======================================================================
-                                     * MODIFIKASI MARGIN & PENGATURAN LAINNYA
-                                     * ====================================================================== */
+                                             * MODIFIKASI MARGIN & PENGATURAN LAINNYA
+                                             * ====================================================================== */
 
         .pay-button {
             flex-shrink: 0;
@@ -821,6 +821,15 @@
             .nav-tab {
                 flex: 1;
             }
+        }
+
+        .product-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
         }
     </style>
 @endpush
@@ -1638,5 +1647,42 @@
             document.getElementById('payment-modal-overlay').onclick = closePaymentModal;
             document.getElementById('status-modal-overlay').onclick = closeStatusModal;
         };
+
+        function renderProductsInGrid(gridId, productArray) {
+            /* ... (kode tidak berubah) ... */
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            if (!productArray || productArray.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">Tidak ada produk.</p>';
+                return;
+            }
+            productArray.forEach(product => {
+                const productElement = document.createElement('div');
+                productElement.className = 'product-item';
+                productElement.onclick = () => openItemModal(product);
+                let minPrice = 0;
+                if (product.variants && product.variants.length > 0) {
+                    minPrice = Math.min(...product.variants.map(v => parseFloat(v.price)));
+                }
+
+                // --- KODE BARU UNTUK MENAMPILKAN GAMBAR ---
+                let imageHtml = '';
+                if (product.image_url) {
+                    // Gunakan fungsi Blade asset() untuk mendapatkan URL publik
+                    // Perhatian: Karena ini di JS, kita gunakan cara string template
+                    const imageUrl = `{{ asset('storage') }}/${product.image_url}`;
+                    imageHtml = `<img src="${imageUrl}" alt="${product.name}" />`;
+                } else {
+                    // Placeholder jika tidak ada gambar (opsional)
+                    imageHtml =
+                        `<div style="height: 80px; width: 80px; background: var(--secondary-light); margin: 0 auto 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Image</div>`;
+                }
+                // --- AKHIR KODE BARU ---
+
+                productElement.innerHTML =
+                    `${imageHtml}<div class="product-name">${product.name}</div><div class="product-price">Mulai ${formatRupiah(minPrice)}</div>`; // <-- Masukkan imageHtml
+                grid.appendChild(productElement);
+            });
+        }
     </script>
 @endpush

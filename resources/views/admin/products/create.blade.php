@@ -11,7 +11,6 @@
             padding-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
             align-items: flex-end;
-            /* Posisikan tombol di bawah */
         }
 
         .variant-item .form-group {
@@ -37,6 +36,18 @@
             border: 1px solid #f5c6cb;
             color: var(--danger);
         }
+
+        .image-preview {
+            max-width: 150px;
+            max-height: 150px;
+            margin-top: 10px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            padding: 5px;
+            display: none;
+            /* Sembunyikan jika tidak ada gambar */
+        }
     </style>
 @endpush
 
@@ -46,7 +57,7 @@
     </div>
 
     <div class="card">
-        <form action="{{ route('admin.products.store') }}" method="POST">
+        <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-group">
@@ -56,6 +67,8 @@
                 @error('name')
                     <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
                 @enderror
+
+
             </div>
 
             <div class="form-group">
@@ -71,7 +84,26 @@
                 @error('category_id')
                     <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
                 @enderror
+
+
             </div>
+
+            {{-- INPUT GAMBAR BARU --}}
+            <div class="form-group">
+                <label for="image">Gambar Produk (Opsional)</label>
+                {{-- Pastikan ini bertipe file dan memiliki atribut accept --}}
+                <input type="file" name="image" id="image" class="form-control" accept="image/*">
+                {{-- Elemen untuk menampilkan preview gambar --}}
+                <img id="image-preview" src="#" alt="Preview" class="image-preview">
+                @error('image')
+                    <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
+                @enderror
+
+            </div>
+            {{-- AKHIR INPUT GAMBAR BARU --}}
+
+
+
 
             <hr style="margin: 25px 0;">
 
@@ -112,6 +144,8 @@
                 <div style="color: var(--danger); margin-top: 15px;">{{ $message }} (Minimal harus ada 1 varian)</div>
             @enderror
 
+
+
             <hr style="margin: 25px 0;">
 
             <h3>Pilihan Add-On</h3>
@@ -121,7 +155,8 @@
                     @foreach ($addons as $addon)
                         <option value="{{ $addon->id }}"
                             {{ is_array(old('addons')) && in_array($addon->id, old('addons')) ? 'selected' : '' }}>
-                            {{ $addon->name }} (+ Rp {{ number_format($addon->price, 0, ',', '.') }})
+                            {{ $addon->name }} (+ Rp
+                            {{ number_format($addon->price, 0, ',', '.') }})
                         </option>
                     @endforeach
                 </select>
@@ -134,6 +169,8 @@
                 </a>
                 <button type="submit" class="btn btn-primary">Simpan Produk</button>
             </div>
+
+
 
         </form>
     </div>
@@ -166,6 +203,25 @@
             const addButton = document.getElementById('add-variant-btn');
             const template = document.getElementById('variant-template');
 
+            // Tambahan untuk Image Preview
+            const imageInput = document.getElementById('image');
+            const imagePreview = document.getElementById('image-preview');
+
+            imageInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.style.display = 'none';
+                    imagePreview.src = '#';
+                }
+            });
+
             addButton.addEventListener('click', addVariantRow);
 
             function addVariantRow() {
@@ -190,13 +246,13 @@
             @if (!old('variants'))
                 addVariantRow();
             @endif
-        });
 
-        // Script untuk Select2 Addon
-        $(document).ready(function() {
-            $('#addons').select2({
-                placeholder: "Cari dan pilih add-on...",
-                allowClear: true
+            // Script untuk Select2 Addon
+            $(document).ready(function() {
+                $('#addons').select2({
+                    placeholder: "Cari dan pilih add-on...",
+                    allowClear: true
+                });
             });
         });
     </script>

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product; // <-- Import
-use App\Models\Category; // <-- Import
+use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
-use App\Models\Addon; // <-- 1. IMPORT MODEL ADDON
+use App\Models\Addon;
+use Illuminate\Support\Facades\Storage; // <<< IMPORT STORAGE
 
 class ProductController extends Controller
 {
@@ -15,7 +16,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category')->latest(); // Muat relasi kategori
+        $query = Product::with('category')->latest(); 
 
         // Filter: Search
         if ($request->filled('search')) {
@@ -42,7 +43,7 @@ class ProductController extends Controller
         return view('admin.products.index', [
             'products' => $products,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'category_id']) // Kirim filter ke view
+            'filters' => $request->only(['search', 'category_id']) 
         ]);
     }
 
@@ -52,9 +53,9 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::orderBy('name')->get();
-        $addons = Addon::orderBy('name')->get(); // <-- 2. AMBIL SEMUA ADDON
+        $addons = Addon::orderBy('name')->get();
 
-        return view('admin.products.create', compact('categories', 'addons')); // <-- 3. KIRIM KE VIEW
+        return view('admin.products.create', compact('categories', 'addons')); 
     }
 
     public function store(Request $request)
@@ -62,23 +63,35 @@ class ProductController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
+            // VALIDASI FILE GAMBAR
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', 
             'variants' => 'required|array|min:1',
             'variants.*.name' => 'required|string|max:255',
             'variants.*.price' => 'required|numeric|min:0',
-            'addons' => 'nullable|array', // <-- 4. TAMBAHKAN VALIDASI ADDONS
+            'addons' => 'nullable|array', 
             'addons.*' => 'exists:addons,id'
         ]);
+
+        $imagePath = null;
+        
+        // 1. UPLOAD GAMBAR
+        if ($request->hasFile('image')) {
+            // Simpan gambar ke storage/app/public/images/products
+            $imagePath = $request->file('image')->store('images/products', 'public');
+        }
 
         $product = Product::create([
             'name' => $validatedData['name'],
             'category_id' => $validatedData['category_id'],
+            // 2. SIMPAN PATH GAMBAR
+            'image_url' => $imagePath,
         ]);
 
         foreach ($validatedData['variants'] as $variantData) {
             $product->variants()->create($variantData);
         }
 
-        // 5. SINKRONKAN ADDONS (Simpan ke tabel jembatan)
+        // 3. SINKRONKAN ADDONS
         if ($request->has('addons')) {
             $product->addons()->sync($validatedData['addons']);
         }
@@ -101,11 +114,11 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::orderBy('name')->get();
-        $addons = Addon::orderBy('name')->get(); // <-- 6. AMBIL SEMUA ADDON
+        $addons = Addon::orderBy('name')->get(); 
 
-        $product->load('variants', 'addons'); // <-- 7. LOAD RELASI VARIANTS & ADDONS
+        $product->load('variants', 'addons'); 
 
-        return view('admin.products.edit', compact('product', 'categories', 'addons')); // <-- 8. KIRIM KE VIEW
+        return view('admin.products.edit', compact('product', 'categories', 'addons')); 
     }
 
     public function update(Request $request, Product $product)
@@ -113,18 +126,32 @@ class ProductController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
+            // VALIDASI FILE GAMBAR (boleh kosong)
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', 
             'variants' => 'required|array|min:1',
             'variants.*.id' => 'nullable|exists:variants,id',
             'variants.*.name' => 'required|string|max:255',
             'variants.*.price' => 'required|numeric|min:0',
-            'addons' => 'nullable|array', // <-- 9. TAMBAHKAN VALIDASI ADDONS
+            'addons' => 'nullable|array', 
             'addons.*' => 'exists:addons,id'
         ]);
 
-        $product->update([
+        $updateData = [
             'name' => $validatedData['name'],
             'category_id' => $validatedData['category_id'],
-        ]);
+        ];
+
+        // 4. UPLOAD DAN GANTI GAMBAR LAMA (JIKA ADA FILE BARU)
+        if ($request->hasFile('image')) {
+            // Hapus gambar lama jika ada
+            if ($product->image_url) {
+                Storage::disk('public')->delete($product->image_url);
+            }
+            // Simpan gambar baru
+            $updateData['image_url'] = $request->file('image')->store('images/products', 'public');
+        }
+
+        $product->update($updateData);
 
         // ... (Logika update varian Anda sudah benar) ...
         $existingVariantIds = [];
@@ -138,9 +165,8 @@ class ProductController extends Controller
         }
         $product->variants()->whereNotIn('id', $existingVariantIds)->delete();
 
-        // 10. SINKRONKAN ADDONS
-        // sync() akan otomatis menambah/menghapus relasi di tabel jembatan
-        $product->addons()->sync($request->addons ?? []); // '?? []' untuk menghapus semua jika tidak ada yg dipilih
+        // 5. SINKRONKAN ADDONS
+        $product->addons()->sync($request->addons ?? []); 
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Produk berhasil diperbarui.');
@@ -152,7 +178,13 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
+            // Hapus gambar dari storage sebelum menghapus record
+            if ($product->image_url) {
+                Storage::disk('public')->delete($product->image_url);
+            }
+            
             $product->delete();
+
             return redirect()->route('admin.products.index')
                 ->with('success', 'Produk berhasil dihapus.');
         } catch (\Exception $e) {

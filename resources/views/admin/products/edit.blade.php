@@ -12,7 +12,6 @@
             padding-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
             align-items: flex-end;
-            /* Posisikan tombol di bawah */
         }
 
         .variant-item .form-group {
@@ -43,6 +42,17 @@
             background-color: #e6f0ff;
             border: 1px solid #b3d1ff;
             color: var(--primary);
+        }
+
+        /* == CSS GAMBAR == */
+        .image-preview {
+            max-width: 150px;
+            max-height: 150px;
+            margin-top: 10px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            padding: 5px;
         }
 
         /* == CSS MODAL RESEP == */
@@ -128,7 +138,8 @@
     </div>
 
     <div class="card">
-        <form action="{{ route('admin.products.update', $product->id) }}" method="POST">
+        {{-- PENTING: Tambahkan enctype="multipart/form-data" --}}
+        <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -156,6 +167,24 @@
                     <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
                 @enderror
             </div>
+
+            {{-- >>> BARU: INPUT GAMBAR & PREVIEW <<< --}}
+            <div class="form-group">
+                <label for="image">Gambar Produk (Biarkan kosong jika tidak ingin mengubah)</label>
+                <input type="file" name="image" id="image" class="form-control" accept="image/*">
+
+                {{-- Preview Gambar --}}
+                @php
+                    $imageUrl = $product->image_url ? asset('storage/' . $product->image_url) : '#';
+                @endphp
+                <img id="image-preview" src="{{ $imageUrl }}" alt="Preview" class="image-preview"
+                    style="{{ $product->image_url ? 'display: block;' : 'display: none;' }}">
+
+                @error('image')
+                    <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
+                @enderror
+            </div>
+            {{-- >>> AKHIR INPUT GAMBAR <<< --}}
 
             <hr style="margin: 25px 0;">
 
@@ -263,7 +292,7 @@
 
 
     {{-- =================================== --}}
-    {{-- ==  HTML MODAL RESEP (YANG HILANG) == --}}
+    {{-- ==  HTML MODAL RESEP == --}}
     {{-- =================================== --}}
     <div class="modal-overlay" id="recipe-modal">
         <div class="modal-content">
@@ -276,7 +305,7 @@
                         <label>Pilih Bahan Baku</label>
                         <select id="recipe-ingredient-select" class="form-control"></select>
 
-                        {{-- INFO STOK (FITUR BARU) --}}
+                        {{-- INFO STOK --}}
                         <small id="recipe-stock-info"
                             style="color: var(--text-muted); margin-top: 5px; display: block;"></small>
                     </div>
@@ -302,7 +331,7 @@
         </div>
     </div>
     {{-- =================================== --}}
-    {{-- ==  AKHIR KODE HTML MODAL        == --}}
+    {{-- ==  AKHIR KODE HTML MODAL  == --}}
     {{-- =================================== --}}
 
 @endsection
@@ -311,6 +340,29 @@
     {{-- Script Varian & Select2 --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // SCRIPT IMAGE PREVIEW START
+            const imageInput = document.getElementById('image');
+            const imagePreview = document.getElementById('image-preview');
+
+            imageInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    // Jika user menghapus file, cek apakah ada gambar lama (yang sudah ada di src)
+                    if (imagePreview.src === window.location.href + '#') {
+                        imagePreview.style.display = 'none';
+                    }
+                    // Jika ada gambar lama, biarkan gambar lama tetap tampil.
+                }
+            });
+            // SCRIPT IMAGE PREVIEW END
+
             // Script Varian
             const container = document.getElementById('variants-container');
             const addButton = document.getElementById('add-variant-btn');
@@ -369,7 +421,7 @@
             // --- FUNGSI BARU: Menampilkan sisa stok ---
             function updateStockInfo() {
                 const selectedOption = ingredientSelect.options[ingredientSelect.selectedIndex];
-                if (selectedOption) {
+                if (selectedOption && selectedOption.value) { // Cek value juga agar tidak error saat option kosong
                     // Ambil data 'stock' dan 'unit' dari dataset option
                     stockInfo.innerText =
                         `Stok saat ini: ${selectedOption.dataset.stock} ${selectedOption.dataset.unit}`;
@@ -384,7 +436,7 @@
                 currentVariantId = variantId;
                 modalTitle.innerText = `Atur Resep: ${variantName}`;
                 recipeList.innerHTML = 'Memuat...';
-                ingredientSelect.innerHTML = '';
+                ingredientSelect.innerHTML = '<option value="">Memuat bahan...</option>'; // Placeholder loading
                 currentRecipe = [];
 
                 try {
@@ -394,6 +446,9 @@
                     const data = await response.json();
                     allIngredients = data.all_ingredients;
 
+                    // Bersihkan dan isi ulang Select
+                    ingredientSelect.innerHTML =
+                    '<option value="">-- Pilih Bahan Baku --</option>'; // Opsi default
                     allIngredients.forEach(ing => {
                         const option = document.createElement('option');
                         option.value = ing.id;
@@ -404,9 +459,7 @@
                         ingredientSelect.appendChild(option);
                     });
 
-                    // Tampilkan stok untuk item pertama
-                    updateStockInfo();
-
+                    // Muat resep saat ini
                     data.current_recipe.forEach(item => {
                         currentRecipe.push({
                             ingredient_id: item.id,
@@ -415,6 +468,9 @@
                             quantity_used: item.pivot.quantity_used
                         });
                     });
+
+                    // Tampilkan stok untuk item pertama setelah semua dimuat
+                    updateStockInfo();
 
                     renderRecipeList();
                     modal.style.display = 'flex';
@@ -452,7 +508,7 @@
                 const selectedId = parseInt(ingredientSelect.value);
                 const amount = parseFloat(amountInput.value);
 
-                if (!selectedId || !amount || amount <= 0) {
+                if (!selectedId || isNaN(amount) || amount <= 0) {
                     alert('Pilih bahan baku dan isi jumlah dengan benar.');
                     return;
                 }
@@ -461,14 +517,16 @@
                     return;
                 }
 
-                // Cek apakah jumlahnya melebihi stok
+                // Cek apakah jumlahnya melebihi stok (hanya untuk peringatan visual)
                 const selectedOption = ingredientSelect.options[ingredientSelect.selectedIndex];
                 const currentStock = parseFloat(selectedOption.dataset.stock);
                 if (amount > currentStock) {
                     stockInfo.innerText =
-                        `Stok tidak cukup! Sisa: ${currentStock} ${selectedOption.dataset.unit}`;
+                        `PERINGATAN: Stok saat ini (${currentStock} ${selectedOption.dataset.unit}) tidak cukup!`;
                     stockInfo.style.color = 'var(--danger)';
-                    return; // Hentikan penambahan jika stok tidak cukup
+                    // Lanjutkan, karena resep boleh melebihi stok yang ada
+                } else {
+                    updateStockInfo(); // Kembalikan warna normal jika stok cukup
                 }
 
                 const ingredient = allIngredients.find(ing => ing.id === selectedId);
@@ -509,7 +567,8 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({
-                            recipes: dataToSave
+                            recipes: dataToSave,
+                            _method: 'PUT' // Tambahkan ini karena route update biasanya PUT/PATCH
                         })
                     });
 
@@ -541,6 +600,23 @@
                     openRecipeModal(variantId, variantName);
                 }
             });
+
+            // Inisialisasi Select2 pada dropdown resep (karena diisi ulang secara dinamis)
+            $(document).ready(function() {
+                $('#recipe-ingredient-select').select2({
+                    dropdownParent: $('#recipe-form-ingredient'),
+                    placeholder: "-- Pilih Bahan Baku --",
+                    allowClear: true
+                });
+
+                // Panggil ulang Select2 setelah modal dibuka dan select diisi ulang
+                modal.addEventListener('transitionend', function() {
+                    if (modal.style.display === 'flex') {
+                        $('#recipe-ingredient-select').select2('open');
+                    }
+                });
+            });
+
         });
     </script>
 @endpush
