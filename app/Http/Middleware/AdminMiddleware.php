@@ -9,16 +9,22 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminMiddleware
 {
+    /**
+     * Handle an incoming request.
+     * Mengizinkan Owner dan Admin (Kasir/Supervisor) mengakses panel admin.
+     */
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
-        if (!Auth::user()->is_admin) {
-            abort(403, 'Unauthorized access');
+        $user = Auth::user();
+
+        if ($user->isOwner() || $user->isAdmin()) {
+            return $next($request);
         }
 
-        return $next($request);
+        abort(403, 'Anda tidak memiliki hak akses ke panel Administrator.');
     }
 }

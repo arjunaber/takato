@@ -1,5 +1,6 @@
 @php
     use Carbon\Carbon;
+    use Illuminate\Support\Facades\Auth; // Tambahkan ini jika Anda menggunakan Auth::user()->role di view
 @endphp
 
 @extends('layouts.admin')
@@ -416,6 +417,7 @@
         <h1>Dashboard</h1>
     </div>
 
+    {{-- KONTROL FILTER & BUTTONS (Dilihat oleh Owner dan Admin/Kasir) --}}
     <div class="dashboard-controls">
         <form action="{{ route('admin.dashboard') }}" method="GET" class="filter-form">
             <div class="filter-group">
@@ -444,6 +446,7 @@
         </form>
 
         <div class="action-buttons">
+            {{-- Tombol Permintaan Stok hanya untuk Admin/Owner (yang mengelola stok) --}}
             <button type="button" id="open-stock-request-btn" class="btn btn-secondary"
                 style="background-color: var(--secondary-light); color: var(--text-color);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -465,97 +468,111 @@
         </div>
     </div>
 
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-icon kpi-icon-sales">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
+    {{-- KONTEN UTAMA DASHBOARD (Hanya untuk Owner) --}}
+    @if ($isOwner)
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-sales">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <div class="kpi-card-content">
+                    <h3>Omzet Penjualan</h3>
+                    <div class="value">Rp {{ number_format($totalSales, 0, ',', '.') }}</div>
+                </div>
             </div>
-            <div class="kpi-card-content">
-                <h3>Omzet Penjualan</h3>
-                <div class="value">Rp {{ number_format($totalSales, 0, ',', '.') }}</div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-orders">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                </div>
+                <div class="kpi-card-content">
+                    <h3>Total Transaksi</h3>
+                    <div class="value">{{ $totalOrders }}</div>
+                </div>
             </div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon kpi-icon-orders">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                </svg>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-avg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <div class="kpi-card-content">
+                    <h3>Rata-rata/Transaksi</h3>
+                    <div class="value">Rp {{ number_format($avgOrderValue, 0, ',', '.') }}</div>
+                </div>
             </div>
-            <div class="kpi-card-content">
-                <h3>Total Transaksi</h3>
-                <div class="value">{{ $totalOrders }}</div>
-            </div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon kpi-icon-avg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
-            </div>
-            <div class="kpi-card-content">
-                <h3>Rata-rata/Transaksi</h3>
-                <div class="value">Rp {{ number_format($avgOrderValue, 0, ',', '.') }}</div>
-            </div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon kpi-icon-discount">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="15" y1="9" x2="9" y2="15"></line>
-                    <line x1="9" y1="9" x2="15" y2="15"></line>
-                </svg>
-            </div>
-            <div class="kpi-card-content">
-                <h3>Total Diskon</h3>
-                <div class="value">Rp {{ number_format($totalDiscountsGiven, 0, ',', '.') }}</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="dashboard-main-grid">
-        <div class="card">
-            <h3>Grafik Penjualan</h3>
-            <div class="chart-container">
-                <canvas id="salesChart"></canvas>
-            </div>
-        </div>
-
-        <div class="dashboard-sidebar">
-            <div class="card list-card">
-                <h3>Produk Terlaris</h3>
-                <ul>
-                    @forelse($topProducts as $product)
-                        <li>
-                            <span class="item-name">{{ Str::limit($product->item_name, 25) }}</span>
-                            <span class="item-value">{{ $product->total_sold }} <span
-                                    class="item-unit">terjual</span></span>
-                        </li>
-                    @empty
-                        <li><span class="item-unit">Belum ada penjualan.</span></li>
-                    @endforelse
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3>Penjualan per Kategori</h3>
-                <div class="chart-container" style="height: 300px;">
-                    <canvas id="categoryChart"></canvas>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-discount">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="kpi-card-content">
+                    <h3>Total Diskon</h3>
+                    <div class="value">Rp {{ number_format($totalDiscountsGiven, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
-    </div>
+
+        <div class="dashboard-main-grid">
+            <div class="card">
+                <h3>Grafik Penjualan</h3>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="dashboard-sidebar">
+                <div class="card list-card">
+                    <h3>Produk Terlaris</h3>
+                    <ul>
+                        @forelse($topProducts as $product)
+                            <li>
+                                <span class="item-name">{{ Str::limit($product->item_name, 25) }}</span>
+                                <span class="item-value">{{ $product->total_sold }} <span
+                                        class="item-unit">terjual</span></span>
+                            </li>
+                        @empty
+                            <li><span class="item-unit">Belum ada penjualan.</span></li>
+                        @endforelse
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>Penjualan per Kategori</h3>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @else
+        {{-- Pesan yang muncul untuk Admin (role='admin') dan peran lain yang diizinkan masuk --}}
+        <div class="alert alert-info p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <h4 class="font-bold text-lg mb-2">Akses Terbatas</h4>
+            <p>Anda login sebagai
+                {{ Auth::user()->role === 'admin' ? 'Admin (Kasir)' : ucfirst(Auth::user()->role) }}. Tampilan
+                data penjualan dan metrik sensitif dibatasi hanya untuk peran Owner.</p>
+            <p class="mt-2 text-sm text-gray-600">Anda masih dapat menggunakan fitur  Buka Kasir
+                dan Buat Permintaan Stok.</p>
+        </div>
+    @endif
 
     <div class="modal-overlay" id="stock-request-modal">
         <div class="modal-content">
@@ -634,106 +651,110 @@
         $(document).ready(function() {
             console.log('Dashboard loaded, jQuery version:', $.fn.jquery);
 
-            // GRAFIK LINE
-            const salesCtx = document.getElementById('salesChart');
-            if (salesCtx) {
-                const chartLabels = @json($chartLabels);
-                const chartData = @json($chartData);
-                const gradient = salesCtx.getContext('2d').createLinearGradient(0, 0, 0, 350);
-                gradient.addColorStop(0, 'rgba(0, 123, 255, 0.4)');
-                gradient.addColorStop(1, 'rgba(0, 123, 255, 0)');
-                new Chart(salesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [{
-                            label: 'Omzet Penjualan',
-                            data: chartData,
-                            backgroundColor: gradient,
-                            borderColor: 'rgba(0, 123, 255, 1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.3,
-                            pointBackgroundColor: 'rgba(0, 123, 255, 1)',
-                            pointRadius: 4,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: (value) => 'Rp ' + new Intl.NumberFormat('id-ID').format(
-                                        value)
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            }
+            // Periksa apakah user adalah Owner sebelum menginisialisasi chart
+            const isOwner = @json($isOwner);
+
+            if (isOwner) {
+                // GRAFIK LINE
+                const salesCtx = document.getElementById('salesChart');
+                if (salesCtx) {
+                    const chartLabels = @json($chartLabels);
+                    const chartData = @json($chartData);
+                    const gradient = salesCtx.getContext('2d').createLinearGradient(0, 0, 0, 350);
+                    gradient.addColorStop(0, 'rgba(0, 123, 255, 0.4)');
+                    gradient.addColorStop(1, 'rgba(0, 123, 255, 0)');
+                    new Chart(salesCtx, {
+                        type: 'line',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Omzet Penjualan',
+                                data: chartData,
+                                backgroundColor: gradient,
+                                borderColor: 'rgba(0, 123, 255, 1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3,
+                                pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+                                pointRadius: 4,
+                            }]
                         },
-                        plugins: {
-                            legend: {
-                                display: false
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: (value) => 'Rp ' + new Intl.NumberFormat('id-ID').format(
+                                            value)
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                }
                             },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `Omzet: ${formatRupiah(context.parsed.y)}`
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => `Omzet: ${formatRupiah(context.parsed.y)}`
+                                    }
                                 }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            // GRAFIK PIE
-            const categoryCtx = document.getElementById('categoryChart');
-            if (categoryCtx) {
-                const categoryLabels = @json($categoryChartLabels);
-                const categoryData = @json($categoryChartData);
-                new Chart(categoryCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: categoryLabels,
-                        datasets: [{
-                            label: 'Penjualan',
-                            data: categoryData,
-                            backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545',
-                                '#6c757d'
-                            ],
-                            borderWidth: 0,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'bottom',
-                                labels: {
-                                    boxWidth: 12,
-                                    padding: 15
-                                }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `${context.label}: ${formatRupiah(context.raw)}`
+                // GRAFIK PIE
+                const categoryCtx = document.getElementById('categoryChart');
+                if (categoryCtx) {
+                    const categoryLabels = @json($categoryChartLabels);
+                    const categoryData = @json($categoryChartData);
+                    new Chart(categoryCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: categoryLabels,
+                            datasets: [{
+                                label: 'Penjualan',
+                                data: categoryData,
+                                backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545',
+                                    '#6c757d'
+                                ],
+                                borderWidth: 0,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        padding: 15
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => `${context.label}: ${formatRupiah(context.raw)}`
+                                    }
                                 }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
+            } // END if (isOwner)
 
-            // MODAL STOCK
+            // MODAL STOCK LOGIC (DILIHAT OLEH SEMUA)
             const $modal = $('#stock-request-modal');
             const $tbody = $('#stock-request-tbody');
             const $amountInput = $('#stock-request-amount');
-            const $printArea = $('#print-surat-jalan');
             const $ingredientSelect = $('#ingredient-select');
 
             // Init Select2
@@ -839,11 +860,6 @@
 
                 const itemId = $(this).attr('data-item-id');
                 console.log('Remove clicked for ID:', itemId, 'type:', typeof itemId);
-                console.log('Before remove:', stockRequestItems);
-                console.log('Items IDs:', stockRequestItems.map(item => ({
-                    id: item.id,
-                    type: typeof item.id
-                })));
 
                 // Convert both to string for comparison
                 stockRequestItems = stockRequestItems.filter(item => String(item.id) !== String(itemId));

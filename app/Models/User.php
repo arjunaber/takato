@@ -17,8 +17,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
-        'is_admin'
+        'role', // <<< FOKUS PADA KOLOM 'role' STRING
     ];
 
     protected $hidden = [
@@ -35,13 +34,33 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
+    // ===================================
+    // PERBAIKAN DAN PENAMBAHAN HELPER ROLE
+    // ===================================
+
+    public function isOwner()
+    {
+        return $this->role === 'owner'; // TRUE jika Owner
+    }
+
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        // Admin (Supervisor/Manajer)
+        return $this->role === 'admin'; // TRUE jika Admin
     }
 
     public function isCustomer()
     {
-        return $this->role === 'customer';
+        // Customer (Pengguna umum/tanpa akses admin)
+        return $this->role === 'customer'; // TRUE jika Customer
+    }
+
+    /**
+     * Cek apakah user memiliki hak masuk ke panel admin (/admin/*).
+     * Owner dan Admin (Supervisor/Kasir) diizinkan, Customer tidak.
+     */
+    public function canAccessAdminPanel(): bool
+    {
+        return $this->isOwner() || $this->isAdmin();
     }
 }

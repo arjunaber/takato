@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // BARIS INI WAJIB ADA UNTUK INJEKSI $request
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
@@ -23,11 +23,14 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Redirect ke dashboard admin jika user adalah admin
-            if (Auth::user()->is_admin) {
+            $user = Auth::user();
+
+            // Cek apakah user adalah OWNER atau ADMIN.
+            if ($user->isOwner() || $user->isAdmin()) {
                 return redirect()->intended(route('admin.dashboard'));
             }
 
+            // Jika peran lain (yaitu 'customer'), redirect ke landing page umum.
             return redirect()->intended('/landing');
         }
 
@@ -36,11 +39,14 @@ class LoginController extends Controller
         ]);
     }
 
+    // Perbaikan: Request $request sudah ada di parameter
     public function logout(Request $request)
     {
         Auth::logout();
+        
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        
         return redirect('/');
     }
 }
