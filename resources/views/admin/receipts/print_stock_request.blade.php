@@ -182,7 +182,7 @@
         <div class="left">
             <p><strong>Nomor Dokumen:</strong>
                 SR-{{ $date->format('Ymd') }}-{{ str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT) }}</p>
-            <p><strong>Diajukan Oleh:</strong> {{ $user->name }} ({{ $user->role }})</p>
+            <p><strong>Diajukan Oleh:</strong> {{ $user->name }}</p>
         </div>
         <div class="right" style="text-align: right;">
             <p><strong>Tanggal Permintaan:</strong> {{ $date->format('d F Y') }}</p>
