@@ -13,27 +13,67 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap"
         rel="stylesheet">
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <style>
-        /* --- NEW CUSTOM PALETTE --- */
-        /* Palet Warna Baru: (#8F6E6D)(#B05520)(#C88A3B)(#DCE0DC)(#6E736A) */
+        /* --- NEW CUSTOM PALETTE (Deep Forest & Gold-Beige) --- */
         :root {
-            --color-primary-dark: #6E736A;
-            /* Dark Text/Secondary Text */
-            --color-primary-accent: #8F6E6D;
-            /* Main Brown/Primary Accent */
-            --color-secondary-accent: #B05520;
-            /* Strong Accent - Button BG */
-            --color-tertiary-accent: #C88A3B;
-            /* Button Hover/Gradient Highlight */
-            --color-light-bg: #DCE0DC;
-            /* Main Background/Subtle Border/Light Contrast */
+            --color-primary-dark: #3D4F42;
+            /* Dark Text/Secondary Text (Deep Forest) */
+            --color-primary-accent: #A8956F;
+            /* Main Accent (Gold-Beige) */
+            --color-secondary-accent: #887B57;
+            /* Strong Accent (Darker Gold) */
+            --color-tertiary-accent: #B8B097;
+            /* Button Hover/Highlight (Light Beige) */
+            --color-light-bg: #EAEAE4;
+            /* Main Background (Off-White/Light Beige) */
             --color-white-contrast: #ffffff;
-            /* White for Card/Pop-up Contrast */
             --color-black-contrast: #000000;
+
+            --color-start: #ffffff;
+            /* Warna Gold-Beige (Primary Accent) */
+            --color-middle: #3D4F42;
+            /* Warna Darker Gold (Secondary Accent) */
+            --color-end: #887B57;
+            /* Warna Light Beige (Tertiary Accent) */
+        }
+
+        .animated-gradient-text {
+            /* Ukuran Background yang besar untuk memungkinkan pergerakan */
+            background-size: 300% 300%;
+
+            /* Mendefinisikan Gradien DENGAN FOKUS WARNA TERANG YANG LEBIH LAMA */
+            background-image: linear-gradient(-45deg,
+                    var(--color-secondary-accent) 0%,
+                    /* Darker Gold (Mulai) */
+                    var(--color-white-contrast) 40%,
+                    /* Putih (Tampak lebih lama) */
+                    var(--color-tertiary-accent) 60%,
+                    /* Light Beige (Tengah) */
+                    var(--color-secondary-accent) 100%);
+            /* Darker Gold (Ulang) */
+
+            /* Menerapkan properti teks gradient */
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+
+            /* Menerapkan Animasi: 2s durasi, non-stop (infinite), dan bergerak ke satu arah */
+            animation: gradient-shift 2s linear infinite;
+        }
+
+        /* Keyframes tidak berubah, tetapi jika Anda ingin membuatnya terlihat lebih cepat dan berkelanjutan: */
+        @keyframes gradient-shift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
         }
 
         body {
@@ -59,16 +99,25 @@
 
         .card-elegant:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(143, 110, 109, 0.1);
+            box-shadow: 0 8px 30px rgba(61, 79, 66, 0.1);
         }
 
-        /* Gradient Text */
-        .gradient-text {
-            background: linear-gradient(45deg, var(--color-secondary-accent) 20%, var(--color-tertiary-accent) 80%);
+        /* Gradient Text (Untuk Latar Terang - Contoh: Photos) */
+        .gradient-text-dark {
+            background: linear-gradient(45deg, var(--color-secondary-accent) 20%, var(--color-primary-accent) 80%);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        /* Gradient Text (Untuk Latar Gelap - Contoh: Contact) */
+        .gradient-text-light {
+            background: linear-gradient(45deg, var(--color-tertiary-accent) 20%, var(--color-white-contrast) 80%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
 
         /* Button Style: Strong Accent */
         .btn-warm {
@@ -78,8 +127,8 @@
         }
 
         .btn-warm:hover {
-            background-color: var(--color-tertiary-accent);
-            box-shadow: 0 8px 15px rgba(176, 85, 32, 0.3);
+            background-color: var(--color-primary-accent);
+            box-shadow: 0 8px 15px rgba(136, 123, 87, 0.3);
             transform: translateY(-1px);
         }
 
@@ -87,6 +136,7 @@
         .btn-light-subtle {
             background-color: var(--color-light-bg);
             color: var(--color-primary-dark);
+            border: 1px solid var(--color-tertiary-accent);
             transition: all 0.3s;
         }
 
@@ -95,17 +145,17 @@
             color: white;
         }
 
-        /* Nav Link Style */
-        .nav-link-elegant {
-            color: var(--color-primary-dark);
-            position: relative;
-            padding-bottom: 5px;
-            font-weight: 500;
+        /* Nav Link Style DITINGKATKAN untuk visibilitas */
+        .nav-link-elegant.white-text {
+            color: var(--color-white-contrast);
+            /* Warna putih saat transparan */
         }
 
+        /* Di dalam nav-link-elegant.active */
         .nav-link-elegant.active {
-            color: var(--color-primary-accent);
-            border-bottom: 2px solid var(--color-primary-accent);
+            /* Tetap warna aksen agar terlihat bagus saat blur/scroll */
+            color: var(--color-secondary-accent);
+            border-bottom: 2px solid var(--color-secondary-accent);
             padding-bottom: 3px;
         }
 
@@ -152,6 +202,111 @@
             .md\:justify-start {
                 justify-content: center;
             }
+
+            .hero-content {
+                padding-top: 100px;
+                /* Memberi ruang di bagian atas Hero Content */
+            }
+
+            .hero-title-mobile {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* --- LOADING SCREEN STYLES (Water Fill Effect) --- */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-primary-dark);
+            /* Latar belakang Deep Forest gelap */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .water-fill-text {
+            /* Menggunakan font serif untuk konsistensi dengan TAKATO.id */
+            font-family: 'Playfair Display', serif;
+            font-size: 6rem;
+            /* Ukuran besar untuk fokus */
+            font-weight: 800;
+            position: relative;
+
+            /* Warna teks default (putih) dan Stroke Gold-Beige */
+            -webkit-text-fill-color: var(--color-white-contrast);
+            -webkit-text-stroke-width: 0;
+            -webkit-text-stroke-color: transparent;
+        }
+
+        .water-fill-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            height: 0%;
+            /* Dimulai dari 0% (tidak terisi) */
+            width: 100%;
+
+            color: #A8956F;
+            -webkit-text-fill-color: #A8956F;
+            -webkit-text-stroke-width: 0px;
+            -webkit-text-stroke-color: transparent;
+
+            animation: fill-up 2s ease-out forwards;
+            /* Durasi animasi diatur ke 3 detik */
+        }
+
+
+        @keyframes fill-up {
+            0% {
+                height: 0%;
+            }
+
+            100% {
+                height: 100%;
+            }
+        }
+
+        /* Penyesuaian mobile */
+        @media (max-width: 640px) {
+            .water-fill-text {
+                font-size: 3rem;
+                -webkit-text-stroke-width: 1px;
+            }
+        }
+
+        /* --- CSS untuk Efek Dribble Naik-Turun Calm --- */
+        @keyframes calm-dribble {
+            0% {
+                transform: translateY(0);
+                /* Posisi awal */
+            }
+
+            50% {
+                transform: translateY(-20px);
+                /* Bergerak ke atas sejauh 8px (efek drible/pantul) */
+                /* Pertahankan box-shadow untuk efek cahaya, tapi tambahkan transisi ke atas */
+                box-shadow: 0 5px 15px rgba(37, 211, 102, 0.5);
+            }
+
+            100% {
+                transform: translateY(0);
+                /* Kembali ke posisi awal */
+            }
+        }
+
+        .animated-whatsapp {
+            /* Ganti nama animasi dan pastikan properti yang diubah sudah benar */
+            animation: calm-dribble 1.5s ease-in-out infinite;
+            /* Mengurangi durasi menjadi 1.5s agar tidak terlalu lambat/calm, dan gunakan ease-in-out */
         }
     </style>
 </head>
@@ -166,6 +321,7 @@
             home: 'Beranda',
             villa: 'Villa',
             dining: 'Coffee & Kitchen',
+            diningNav: 'Restoran',
             event: 'Event',
             faq: 'FAQ',
             contact: 'Kontak',
@@ -224,10 +380,10 @@
             bookAirbnb: 'Pesan via AirBNB',
             availDesc: 'Tanyakan ketersediaan tanggal dan paket event spesifik Anda langsung kepada tim kami.',
             // Dining
-            diningTitle: 'Restaurant',
+            diningTitle: 'Coffe & Kitchen',
             diningDesc: 'Kafe taman keluarga yang nyaman menawarkan cita rasa Nusantara otentik.',
             storyAmbience: 'Kisah Kami & Suasana',
-            storyDesc: 'Takato Coffee & Kitchen adalah kafe taman ramah keluarga yang menawarkan suasana tenang dan menu unik yang terinspirasi oleh cita rasa masakan Indonesia yang kaya. Kafe ini dicetuskan dari kecintaan terhadap makanan enak dan keinginan untuk berbagi hidangan Nusantara terbaik.',
+            storyDesc: 'Takato Coffee & Kitchen adalah kafe taman ramah keluarga yang menawarkan suasana tenang dan menu unik yang terinspirasi oleh cita rasa masakan Indonesia yang kaya. Kafe ini dicetuskan dari kecintaan terhadap makanan enak dan keinginan untuk berbagi hidangan Nusantara terbaik dalam suasana taman yang ramah.',
             signatureMenu: 'Menu Unggulan',
             reserveTable: 'Pesan Meja',
             // Contact & Footer
@@ -263,7 +419,8 @@
             // General
             home: 'Home',
             villa: 'Villa',
-            dining: 'Restaurant',
+            dining: 'Coffee & Kitchen',
+            diningNav: 'Restaurant',
             event: 'Event',
             faq: 'FAQ',
             contact: 'Contact',
@@ -353,13 +510,37 @@
             faqQ8: 'Is there sufficient parking space for event guests?',
             faqA8: 'Yes, <strong>Takato House</strong> and the surrounding complex provide a <strong>large dedicated parking lot</strong> capable of accommodating many vehicles for both staying guests and event attendees.',
             faqQ9: 'What is the travel distance from Bogor or Jakarta?',
-            faqA9: 'We are conveniently located on Jalan Raya Puncak, Ciawi, offering easy access. Travel time is typically around <strong>30-45 minutes from Bogor</strong> and approximately <strong>1.5-2 hours from Jakarta</strong>, depending on traffic conditions.',
+            faqA9: 'We are conveniently located on Jalan Raya Puncak, Ciawi, offering easy access. Travel time is typically around <strong>30-45 minutes from Bogor</strong> and around <strong>1.5-2 hours from Jakarta</strong>, depending on traffic conditions.',
             faqQ10: 'Can Takato Coffee & Kitchen host small private dining events?',
             faqA10: 'Yes, our restaurant offers several semi-private areas perfect for birthday parties, arisan, or intimate corporate dinners (up to <strong>30 pax</strong>). Please contact us to reserve a section of our garden cafe.',
         }
     },
     t(key) {
         return this.translations[this.lang][key] || key;
+    },
+    setActiveLink() {
+        let current = 'home';
+        const scrollPos = window.scrollY + 150;
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link-elegant');
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+
+            if (scrollPos >= (sectionTop - 100) && scrollPos < (sectionTop + sectionHeight - 100)) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const targetId = link.getAttribute('href').substring(1);
+
+            if (targetId === current) {
+                link.classList.add('active');
+            }
+        });
     },
     // Modal functions (maintained)
     isModalOpen: false,
@@ -377,25 +558,40 @@
     }
 }"
     @scroll.window="isScrolled = (window.scrollY > 50)">
-
+    <div id="loading-screen">
+        <div class="water-fill-text" data-text="TAKATO">TAKATO</div>
+    </div>
     <nav id="fixed-nav"
-        class="fixed top-0 left-0 w-full z-50 flex justify-center items-center py-4 md:py-5 px-4 md:px-10 transition-all duration-300"
-        :class="{ 'bg-white/25 backdrop-blur-md shadow-md': isScrolled, 'bg-transparent': !isScrolled }">
+        class="fixed top-0 left-0 w-full z-50 flex justify-center items-center py-4 md:py-5 px-4 md:px-8 lg:px-16 transition-all duration-300"
+        :class="{ 'bg-white/25 backdrop-blur-md shadow-md': isScrolled, 'bg-transparent shadow-none': !isScrolled }">
         <div class="w-full flex flex-row justify-between items-center max-w-7xl">
             <a href="#home"
-                class="text-xl md:text-2xl font-extrabold font-serif text-[var(--color-black-contrast)] tracking-wider">Takato.id</a>
-            <div class="hidden md:flex gap-8 items-center" role="navigation">
-                <a href="#home" class="nav-link-elegant active" x-text="t('home')">Home</a>
-                <a href="#residence" class="nav-link-elegant" x-text="t('villa')">Villa</a>
-                <a href="#dining" class="nav-link-elegant" x-text="t('dining')">Coffee & Kitchen</a>
+                class="text-xl md:text-2xl font-extrabold font-serif tracking-wider transition-colors duration-300"
+                :class="{ 'text-[var(--color-primary-dark)]': isScrolled, 'text-[var(--color-white-contrast)]': !isScrolled }">
+                Takato.id
+            </a>
+
+            <div class="hidden md:flex md:gap-4 lg:gap-8 items-center" role="navigation">
+                <a href="#home" class="nav-link-elegant font-bold active md:text-sm" x-text="t('home')"
+                    :class="{
+                        'white-text': !isScrolled,
+                        '!text-[var(--color-secondary-accent)]': $el.classList.contains(
+                            'active') && isScrolled
+                    }">Home</a>
+                <a href="#residence" class="nav-link-elegant font-bold md:text-sm" x-text="t('villa')"
+                    :class="{ 'white-text': !isScrolled }">Villa</a>
+                <a href="#dining" class="nav-link-elegant font-bold md:text-sm" x-text="t('diningNav')"
+                    :class="{ 'white-text': !isScrolled }">Coffee & Kitchen</a>
 
                 <div class="relative" x-data="{ dropdownOpen: false }" @mouseenter="dropdownOpen = true"
                     @mouseleave="dropdownOpen = false">
-                    <a href="#experience" class="nav-link-elegant flex items-center gap-1"
-                        :class="{ 'active': $el.classList.contains('active') }" x-text="t('event')">
-                        Event <i class="fas fa-chevron-down text-xs ml-1 transition-transform"
+                    <a href="#experience" class="nav-link-elegant flex items-center gap-1 md:text-sm"
+                        :class="{ 'active': $el.classList.contains('active'), 'white-text': !isScrolled }">
+                        <span x-text="t('event')">Event</span>
+                        <i class="fas fa-chevron-down text-xs ml-1 transition-transform"
                             :class="{ 'rotate-180': dropdownOpen }"></i>
                     </a>
+
                     <div x-show="dropdownOpen" x-transition:enter="transition ease-out duration-100"
                         x-transition:enter-start="transform opacity-0 scale-95"
                         x-transition:enter-end="transform opacity-100 scale-100"
@@ -403,7 +599,8 @@
                         x-transition:leave-start="transform opacity-100 scale-100"
                         x-transition:leave-end="transform opacity-0 scale-95"
                         class="absolute right-0 mt-3 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 origin-top-right"
-                        role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                        role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1"
+                        style="display: none;">
                         <div class="py-1" role="none">
                             <a href="#experience"
                                 class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50 transition"
@@ -418,84 +615,114 @@
                     </div>
                 </div>
 
-                <a href="#faq" class="nav-link-elegant" x-text="t('faq')">FAQ</a>
-                <a href="#contact" class="nav-link-elegant" x-text="t('contact')">Contact</a>
+                <a href="#faq" class="nav-link-elegant font-bold md:text-sm" x-text="t('faq')"
+                    :class="{ 'white-text': !isScrolled }">FAQ</a>
+                <a href="#contact" class="nav-link-elegant font-bold md:text-sm" x-text="t('contact')"
+                    :class="{ 'white-text': !isScrolled }">Contact</a>
 
                 <div class="ml-4 flex items-center text-sm font-semibold border border-gray-300 rounded-full p-0.5">
                     <button @click="setLang('id')"
-                        :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'id', 'text-[var(--color-primary-dark)]': lang !== 'id' }"
+                        :class="{
+                            'bg-[var(--color-primary-accent)] text-white': lang === 'id',
+                            'text-[var(--color-primary-dark)]': lang !== 'id',
+                            'text-[var(--color-white-contrast)] !border-white/50': lang !== 'id' &&
+                                !isScrolled
+                        }"
                         class="px-3 py-1 rounded-full transition-colors duration-200">IN</button>
                     <button @click="setLang('en')"
-                        :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'en', 'text-[var(--color-primary-dark)]': lang !== 'en' }"
+                        :class="{
+                            'bg-[var(--color-primary-accent)] text-white': lang === 'en',
+                            'text-[var(--color-primary-dark)]': lang !== 'en',
+                            'text-[var(--color-white-contrast)] !border-white/50': lang !== 'en' &&
+                                !isScrolled
+                        }"
                         class="px-3 py-1 rounded-full transition-colors duration-200">EN</button>
                 </div>
             </div>
-            <button class="md:hidden text-[var(--color-primary-dark)] text-xl" id="mobile-menu-btn"
-                @click="$event.target.closest('body').querySelector('div[x-data]').__x.$data.open = true">
+
+            <button class="md:hidden text-xl transition-colors duration-300" id="mobile-menu-btn"
+                :class="{ 'text-[var(--color-primary-dark)]': isScrolled, 'text-[var(--color-white-contrast)]': !isScrolled }"
+                @click="$store.mobileMenu.open = true">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </nav>
 
-    <div x-data="{ open: false }" class="md:hidden">
-        <div x-show="open"
-            class="fixed inset-0 z-[60] bg-[var(--color-light-bg)]/95 backdrop-blur-lg transform transition-transform ease-in-out duration-300"
-            :class="{ 'translate-x-0': open, 'translate-x-full': !open }" style="display: none;">
-            <div class="p-6 flex flex-col h-full">
-                <div class="flex justify-between items-center mb-10">
-                    <div class="text-2xl font-extrabold font-serif text-[var(--color-primary-dark)] tracking-wider">
-                        Takato.id</div>
-                    <button @click="open = false" class="text-[var(--color-primary-dark)] text-3xl">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <nav class="flex flex-col gap-6 text-xl font-semibold">
-                    <a @click="open = false" href="#home"
-                        class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
-                        x-text="t('home')">Home</a>
-                    <a @click="open = false" href="#residence"
-                        class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
-                        x-text="t('villa')">Villa</a>
-                    <a @click="open = false" href="#dining"
-                        class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
-                        x-text="t('dining')">Coffee & Kitchen</a>
-                    <div x-data="{ subOpen: false }" class="py-3 border-b border-gray-200">
-                        <button @click="subOpen = !subOpen"
-                            class="w-full text-left flex justify-between items-center hover:text-[var(--color-primary-accent)] transition">
-                            <span x-text="t('event')">Event</span>
-                            <i class="fas fa-chevron-down text-xs ml-1 transition-transform"
-                                :class="{ 'rotate-180': subOpen }"></i>
-                        </button>
-                        <div x-show="subOpen" x-collapse class="pl-4 pt-2 space-y-2 text-lg font-normal">
-                            <a @click="open = false; subOpen = false" href="#experience"
-                                class="block py-1 hover:text-[var(--color-secondary-accent)]"
-                                x-text="t('wedding')">Wedding</a>
-                            <a @click="open = false; subOpen = false" href="#experience"
-                                class="block py-1 hover:text-[var(--color-secondary-accent)]"
-                                x-text="t('retreat')">Corporate Retreat</a>
-                            <a @click="open = false; subOpen = false" href="#experience"
-                                class="block py-1 hover:text-[var(--color-secondary-accent)]"
-                                x-text="t('gathering')">Family Gathering</a>
-                        </div>
-                    </div>
-                    <a @click="open = false" href="#faq"
-                        class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
-                        x-text="t('faq')">FAQ</a>
-                    <a @click="open = false" href="#contact"
-                        class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
-                        x-text="t('contact')">Contact</a>
+    <div x-data class="md:hidden" id="mobile-menu-container">
+        <div x-show="$store.mobileMenu.open" @click="$store.mobileMenu.open = false"
+            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" style="display: none;">
+        </div>
 
-                    <div
-                        class="mt-4 flex items-center justify-center text-lg font-semibold border border-gray-300 rounded-full p-0.5">
-                        <button @click="setLang('id')"
-                            :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'id', 'text-[var(--color-primary-dark)]': lang !== 'id' }"
-                            class="px-5 py-2 rounded-full transition-colors duration-200">IN</button>
-                        <button @click="setLang('en')"
-                            :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'en', 'text-[var(--color-primary-dark)]': lang !== 'en' }"
-                            class="px-5 py-2 rounded-full transition-colors duration-200">EN</button>
-                    </div>
-                </nav>
+        <div x-show="$store.mobileMenu.open" @click.outside="$store.mobileMenu.open = false"
+            x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 translate-x-full" x-transition:enter-end="opacity-100 translate-x-0"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 translate-x-full"
+            class="fixed top-0 right-0 z-[60] w-64 h-full bg-[var(--color-light-bg)] shadow-2xl p-6 overflow-y-auto"
+            style="display: none;">
+
+            <div class="flex justify-between items-center pb-6 border-b border-gray-200">
+                <a href="#home"
+                    class="text-xl font-extrabold font-serif tracking-wider text-[var(--color-primary-dark)]">
+                    Takato.id
+                </a>
+                <button @click="$store.mobileMenu.open = false"
+                    class="text-[var(--color-primary-dark)] text-3xl hover:text-[var(--color-secondary-accent)] transition">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+
+            <nav class="flex flex-col gap-2 text-xl font-semibold mt-6">
+                <a @click="$store.mobileMenu.open = false" href="#home"
+                    class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
+                    x-text="t('home')">Home</a>
+                <a @click="$store.mobileMenu.open = false" href="#residence"
+                    class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
+                    x-text="t('villa')">Villa</a>
+                <a @click="$store.mobileMenu.open = false" href="#dining"
+                    class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
+                    x-text="t('dining')">Coffee & Kitchen</a>
+                <div x-data="{ subOpen: false }" class="py-3 border-b border-gray-200">
+                    <button @click="subOpen = !subOpen"
+                        class="w-full text-left flex justify-between items-center hover:text-[var(--color-primary-accent)] transition">
+                        <span x-text="t('event')">Event</span>
+                        <i class="fas fa-chevron-down text-xs ml-1 transition-transform"
+                            :class="{ 'rotate-180': subOpen }"></i>
+                    </button>
+                    <div x-show="subOpen" x-collapse class="pl-4 pt-2 space-y-2 text-lg font-normal">
+                        <a @click="$store.mobileMenu.open = false; subOpen = false" href="#experience"
+                            class="block py-1 hover:text-[var(--color-secondary-accent)]"
+                            x-text="t('wedding')">Wedding</a>
+                        <a @click="$store.mobileMenu.open = false; subOpen = false" href="#experience"
+                            class="block py-1 hover:text-[var(--color-secondary-accent)]"
+                            x-text="t('retreat')">Corporate
+                            Retreat</a>
+                        <a @click="$store.mobileMenu.open = false; subOpen = false" href="#experience"
+                            class="block py-1 hover:text-[var(--color-secondary-accent)]"
+                            x-text="t('gathering')">Family
+                            Gathering</a>
+                    </div>
+                </div>
+                <a @click="$store.mobileMenu.open = false" href="#faq"
+                    class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
+                    x-text="t('faq')">FAQ</a>
+                <a @click="$store.mobileMenu.open = false" href="#contact"
+                    class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
+                    x-text="t('contact')">Contact</a>
+
+                <div
+                    class="mt-4 flex items-center justify-center text-lg font-semibold border border-gray-300 rounded-full p-0.5">
+                    <button @click="setLang('id')"
+                        :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'id', 'text-[var(--color-primary-dark)]': lang !== 'id' }"
+                        class="px-5 py-2 rounded-full transition-colors duration-200">IN</button>
+                    <button @click="setLang('en')"
+                        :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'en', 'text-[var(--color-primary-dark)]': lang !== 'en' }"
+                        class="px-5 py-2 rounded-full transition-colors duration-200">EN</button>
+                </div>
+            </nav>
         </div>
     </div>
 
@@ -539,19 +766,19 @@
         <div class="relative w-full overflow-hidden">
             <div class="w-full h-0 pb-[60%] hero-aspect-ratio relative">
                 <div class="image-container absolute inset-0">
-                    <img src="/1aab8845-00c7-46bd-92bb-767d70b7c128.avif"
+                    <img src="/img2.jpg"
                         alt="Luxury villa exterior with a large swimming pool and tropical greenery, suitable for a Takato House exterior view."
                         loading="lazy" class="w-full h-full object-cover">
                 </div>
             </div>
 
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black/35">
+            <div
+                class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black/35 pt-20 md:pt-0">
                 <div class="max-w-4xl mx-auto">
                     <h1
-                        class="font-serif text-4xl sm:text-6xl md:text-7xl font-bold text-white mb-6 md:mb-8 leading-tight hero-title-mobile">
-                        <span x-text="t('heroTitle1')">A Luxury Space</span> <br class="hidden sm:block" /> <span
-                            x-text="t('heroTitle2')">for Every
-                            Story</span>
+                        class="font-serif text-4xl sm:text-6xl md:text-7xl font-bold mb-6 md:mb-8 leading-tight hero-title-mobile animated-gradient-text">
+                        <span x-text="t('heroTitle1')">A Luxury Space</span> <br class="hidden sm:block" />
+                        <span x-text="t('heroTitle2')">for Every Story</span>
                     </h1>
 
                     <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
@@ -647,7 +874,7 @@
         <div class="w-full">
             <div class="text-center mb-10 md:mb-16">
                 <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
-                    Galeri <span class="gradient-text">Foto</span>
+                    Galeri <span class="gradient-text-dark">Foto</span>
                 </h2>
                 <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto">
                     Jelajahi keindahan dan suasana Takato House dalam bidikan terbaik.
@@ -681,7 +908,7 @@
         <div class="max-w-7xl mx-auto px-4 md:px-6">
             <div class="text-center mb-10 md:mb-16">
                 <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
-                    <span x-text="t('expSubtitle')">Kurasi</span> <span class="gradient-text"
+                    <span x-text="t('expSubtitle')">Kurasi</span> <span class="gradient-text-dark"
                         x-text="t('event')">Experiences</span>
                 </h2>
                 <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto" x-text="t('expDesc')">
@@ -756,24 +983,42 @@
                 </a>
             </div>
 
-            <div
-                class="mt-10 md:mt-16 card-elegant p-6 md:p-8 rounded-xl shadow-luxury border-l-4 border-[var(--color-secondary-accent)]">
-                <h3
-                    class="font-serif text-2xl md:text-3xl font-bold mb-4 flex items-center gap-3 text-[var(--color-primary-dark)]">
-                    <i class="fas fa-utensils text-[var(--color-primary-accent)]"></i> <span
-                        x-text="t('cateringTitle')">TAKATO Catering Services</span>
-                </h3>
-                <p class="text-base md:text-lg text-gray-700 max-w-4xl" x-text="t('cateringDesc')">
-                    Ensure your event is perfect with our in-house catering, offering bespoke menus from
-                    authentic
-                    Nusantara cuisine to international delights. Available for all events held at Takato
-                    House.
-                </p>
-                <a href="https://wa.me/+6281214831823" target="_blank"
-                    class="inline-block mt-4 px-6 py-3 btn-warm rounded-md font-semibold text-sm md:text-base"
-                    x-text="t('inquireCatering')">
-                    Inquire Catering Package
-                </a>
+            <div class="mt-10 md:mt-16 card-elegant rounded-xl shadow-luxury overflow-hidden group">
+
+                <div class="grid md:grid-cols-3 gap-0">
+
+                    <div class="md:col-span-1 relative h-64 md:h-96 overflow-hidden">
+                        <img src="https://catering.jagarasa.id/wp-content/uploads/2023/10/066367300_1540960488-shutterstock_500748421-1024x1024-1.webp"
+                            alt="Elegant outdoor swimming pool area, symbolizing a perfect event venue" loading="lazy"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-[var(--color-primary-dark)]/40 transition-colors"></div>
+                    </div>
+
+                    <div class="md:col-span-2 p-6 md:p-8 space-y-4 flex flex-col justify-between">
+                        <div>
+                            <h3
+                                class="font-serif text-2xl md:text-3xl font-bold mb-4 flex items-center gap-3 border-l-4 pl-3 border-[var(--color-secondary-accent)] text-[var(--color-primary-dark)]">
+                                <i class="fas fa-utensils text-[var(--color-secondary-accent)]"></i>
+                                <span x-text="t('cateringTitle')">TAKATO Catering Services</span>
+                            </h3>
+
+                            <p class="text-base md:text-lg text-gray-700 max-w-4xl" x-text="t('cateringDesc')">
+                                Ensure your event is perfect with our in-house catering, offering bespoke menus from
+                                authentic Nusantara cuisine to international delights. Available for all events held at
+                                Takato House.
+                            </p>
+                        </div>
+
+                        <a href="https://wa.me/+6281214831823" target="_blank"
+                            class="inline-flex items-center justify-center 
+                            mt-4 px-6 py-3 btn-warm rounded-md font-semibold text-sm md:text-base 
+                            max-w-xs mx-auto 
+                            transform transition duration-300 group-hover:scale-[1.02]">
+                            <span x-text="t('inquireCatering')">Inquire Catering Package</span>
+                            <i class="fas fa-chevron-right text-xs ml-2"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -782,7 +1027,7 @@
         <div class="max-w-7xl mx-auto px-4 md:px-6">
             <div class="text-center mb-10 md:mb-16">
                 <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-light-bg)]">
-                    TAKATO <span class="gradient-text" x-text="t('villa')">Residence</span>
+                    TAKATO <span class="gradient-text-light" x-text="t('villa')">Residence</span>
                 </h2>
                 <p class="text-base md:text-xl text-white mt-4 max-w-4xl mx-auto" x-text="t('residenceDesc')">
                     A versatile and elegant private villa space for stay and events.
@@ -798,7 +1043,7 @@
                     <div class="grid md:grid-cols-2 gap-6 md:gap-8">
 
                         <div class="card-elegant p-6 rounded-xl shadow-luxury">
-                            <p class="text-base uppercase text-[var(--color-light-bg)] font-semibold mb-2"
+                            <p class="text-base uppercase text-[var(--color-primary-dark)] font-semibold mb-2"
                                 x-text="t('landArea') + ' (5,600 m²)'">Land Area (5,600 m²)</p>
                             <div
                                 class="w-full h-48 md:h-64 rounded-lg overflow-hidden border-2 border-[var(--color-light-bg)]">
@@ -843,7 +1088,7 @@
                 <div class="lg:col-span-1 space-y-8 md:space-y-10">
 
                     <div class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury h-fit">
-                        <h3 class="font-serif text-2xl md:text-3xl font-bold mb-4 text-[var(--color-primary-dark)]"
+                        <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-primary-dark)]"
                             x-text="t('facilities')">Key Facilities</h3>
                         <ul class="space-y-3 md:space-y-4 text-sm md:text-lg">
                             <li class="flex items-center gap-3 text-gray-700">
@@ -875,7 +1120,7 @@
 
                     <div
                         class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury h-fit border-l-4 border-[var(--color-secondary-accent)]">
-                        <h3 class="font-serif text-xl font-bold mb-4 text-[var(--color-primary-dark)]"
+                        <h3 class="font-serif text-xl font-bold text-[var(--color-primary-dark)] mb-4"
                             x-text="t('reservations')">Reservations (TAKATO House)</h3>
                         <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('availDesc')">
                             Tanyakan ketersediaan tanggal dan paket event spesifik Anda langsung kepada tim
@@ -905,7 +1150,7 @@
         <div class="max-w-7xl mx-auto px-4 md:px-6">
             <div class="text-center mb-10 md:mb-16">
                 <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
-                    Takato <span class="gradient-text" x-text="t('dining')">Coffee & Kitchen</span>
+                    Takato <span class="gradient-text-dark" x-text="t('dining')">Coffee & Kitchen</span>
                 </h2>
                 <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto" x-text="t('diningDesc')">
                     A cozy family garden cafe offering authentic Nusantara flavors.
@@ -936,7 +1181,7 @@
 
                 <div
                     class="lg:order-2 card-elegant p-6 md:p-8 rounded-xl shadow-luxury border-l-4 border-[var(--color-secondary-accent)]">
-                    <h3 class="font-serif text-2xl md:text-3xl font-bold mb-6 text-[var(--color-primary-dark)]"
+                    <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-primary-dark)] mb-6"
                         x-text="t('signatureMenu')">Signature Menu</h3>
                     <ul class="space-y-3 md:space-y-4 text-base md:text-xl mb-6 md:mb-8">
                         <li class="flex items-center gap-3 font-semibold text-[var(--color-primary-dark)]">
@@ -980,8 +1225,8 @@
             <div class="text-center mb-10 md:mb-16">
                 <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
                     <span x-text="t('faq')">FAQ</span>
-                    <span class="gradient-text">/</span>
-                    <span class="gradient-text text-xl sm:text-3xl"
+                    <span class="gradient-text-dark">/</span>
+                    <span class="gradient-text-dark text-xl sm:text-3xl"
                         x-text="lang === 'id' ? 'Pertanyaan yang Sering Diajukan' : 'Frequently Asked Questions'">
                         Frequently Asked Questions
                     </span>
@@ -1225,7 +1470,7 @@
         <div class="max-w-xl md:max-w-4xl mx-auto px-4 md:px-6">
             <div class="text-center mb-8 md:mb-10">
                 <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-white">
-                    <span x-text="t('contact')">Contact</span> & <span class="gradient-text"
+                    <span x-text="t('contact')">Contact</span> & <span class="gradient-text-light"
                         x-text="t('locationTitle')">Location</span>
                 </h2>
             </div>
@@ -1277,7 +1522,7 @@
                 <div class="grid grid-cols-2 gap-6 md:col-span-2 md:grid-cols-2 md:gap-8">
                     <div>
                         <h2 class="mb-4 text-sm font-normal">
-                            <a class="tracking-widest font-secondary text-gradient" href="/">
+                            <a class="tracking-widest font-secondary text-gradient-light" href="/">
                                 LAYANAN
                             </a>
                         </h2>
@@ -1296,7 +1541,7 @@
 
                     <div>
                         <h2 class="mb-4 text-sm font-normal">
-                            <a class="tracking-widest font-secondary text-gradient" href="#">
+                            <a class="tracking-widest font-secondary text-gradient-light" href="#">
                                 EXPERIENCE
                             </a>
                         </h2>
@@ -1351,38 +1596,22 @@
 
     <div class="fixed bottom-6 right-4 md:bottom-8 md:right-6 z-[1008]">
         <a href="https://wa.me/+6281214831823" target="_blank" rel="noopener noreferrer"
-            class="group w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/50 hover:scale-110 transition-all duration-300">
+            class="group w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/50 hover:scale-110 transition-all duration-300 animated-whatsapp">
             <i class="fab fa-whatsapp text-2xl md:text-3xl text-white group-hover:scale-110 transition-transform"></i>
         </a>
     </div>
 
     <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('mobileMenu', {
+                open: false,
+            });
+        });
         document.addEventListener('DOMContentLoaded', () => {
             // --- Navigation Active State & Mobile Menu Logic (Unchanged) ---
             const sections = document.querySelectorAll('section[id]');
             const navLinks = document.querySelectorAll('.nav-link-elegant');
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-
-            if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', (event) => {
-                    const alpineDataElement = document.querySelector('body > div[x-data]:not(#fixed-nav)');
-                    if (alpineDataElement && alpineDataElement.__x && alpineDataElement.__x.$data) {
-                        alpineDataElement.__x.$data.open = true;
-                    }
-                    event.stopPropagation();
-                });
-            }
-
-            document.querySelectorAll('.md\\:hidden nav a').forEach(link => {
-                link.addEventListener('click', () => {
-                    const alpineDataElement = document.querySelector(
-                        'body > div[x-data]:not(#fixed-nav)');
-                    if (alpineDataElement && alpineDataElement.__x && alpineDataElement.__x.$data) {
-                        alpineDataElement.__x.$data.open = false;
-                    }
-                });
-            });
-
 
             function setActiveLink() {
                 let current = 'home';
@@ -1432,6 +1661,19 @@
                         spaceBetween: 0,
                     },
                 }
+            });
+
+            window.addEventListener('load', () => {
+                const loadingScreen = document.getElementById('loading-screen');
+                setTimeout(() => {
+                    loadingScreen.style.opacity = '0';
+                    loadingScreen.style.visibility = 'hidden';
+
+                    // Hapus elemen setelah transisi selesai
+                    setTimeout(() => {
+                        loadingScreen.remove();
+                    }, 500);
+                }, 2000); // TOTAL DELAY 3.5 detik
             });
         });
     </script>
