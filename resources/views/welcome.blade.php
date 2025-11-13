@@ -7,6 +7,7 @@
     <title>TAKATO.id - Luxury Residence, Premium Dining & Events</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -14,30 +15,31 @@
         rel="stylesheet">
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <style>
-        /* LUXURY WARM TONE PALETTE (Light Mode - Earth Tones) */
+        /* --- NEW CUSTOM PALETTE --- */
+        /* Palet Warna Baru: (#8F6E6D)(#B05520)(#C88A3B)(#DCE0DC)(#6E736A) */
         :root {
-            --color-light-bg: #fbf4e2;
-            /* Main Cream/Beige Background */
+            --color-primary-dark: #6E736A;
+            /* Dark Text/Secondary Text */
+            --color-primary-accent: #8F6E6D;
+            /* Main Brown/Primary Accent */
+            --color-secondary-accent: #B05520;
+            /* Strong Accent - Button BG */
+            --color-tertiary-accent: #C88A3B;
+            /* Button Hover/Gradient Highlight */
+            --color-light-bg: #DCE0DC;
+            /* Main Background/Subtle Border/Light Contrast */
             --color-white-contrast: #ffffff;
             /* White for Card/Pop-up Contrast */
-            --color-dark-text: #1c1a16;
-            /* Espresso Brown/Dark Text */
-            --color-primary-accent: #a87e5b;
-            /* Medium Warm Brown/Gold Accent */
-            --color-secondary-accent: #b08d6d;
-            /* Soft Brown Button/Highlight */
-            --color-button-bg: #b08d6d;
-            --color-hover-bg: #c9a686;
-            --color-border-subtle: #eae3d4;
-            /* Subtle Border Color */
+            --color-black-contrast: #000000;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--color-light-bg);
-            color: var(--color-dark-text);
+            color: var(--color-primary-dark);
         }
 
         .font-serif {
@@ -51,49 +53,51 @@
 
         .card-elegant {
             background-color: var(--color-white-contrast);
-            border: 1px solid var(--color-border-subtle);
+            border: 1px solid var(--color-light-bg);
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
 
         .card-elegant:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(168, 126, 91, 0.1);
+            box-shadow: 0 8px 30px rgba(143, 110, 109, 0.1);
         }
 
-        /* Gradient Text (Warm Brown) */
+        /* Gradient Text */
         .gradient-text {
-            background: linear-gradient(45deg, var(--color-primary-accent) 20%, #856149 80%);
+            background: linear-gradient(45deg, var(--color-secondary-accent) 20%, var(--color-tertiary-accent) 80%);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* Button Style */
+        /* Button Style: Strong Accent */
         .btn-warm {
-            background-color: var(--color-button-bg);
+            background-color: var(--color-secondary-accent);
             color: white;
             transition: all 0.3s;
         }
 
         .btn-warm:hover {
-            background-color: var(--color-hover-bg);
-            box-shadow: 0 8px 15px rgba(168, 126, 91, 0.3);
+            background-color: var(--color-tertiary-accent);
+            box-shadow: 0 8px 15px rgba(176, 85, 32, 0.3);
             transform: translateY(-1px);
         }
 
+        /* Button Style: Subtle Light Background */
         .btn-light-subtle {
-            background-color: var(--color-border-subtle);
-            color: var(--color-dark-text);
+            background-color: var(--color-light-bg);
+            color: var(--color-primary-dark);
             transition: all 0.3s;
         }
 
         .btn-light-subtle:hover {
-            background-color: #dfd8c9;
+            background-color: var(--color-primary-accent);
+            color: white;
         }
 
         /* Nav Link Style */
         .nav-link-elegant {
-            color: var(--color-dark-text);
+            color: var(--color-primary-dark);
             position: relative;
             padding-bottom: 5px;
             font-weight: 500;
@@ -103,19 +107,6 @@
             color: var(--color-primary-accent);
             border-bottom: 2px solid var(--color-primary-accent);
             padding-bottom: 3px;
-        }
-
-        /* Placeholder for Dummy Image (No longer needed, but keeping the class for reference) */
-        .dummy-img-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #888;
-            border: 2px dashed #ccc;
-            background-color: #f5f0e1;
-            padding: 1rem;
         }
 
         /* WhatsApp button style */
@@ -131,45 +122,33 @@
             transform: translateY(-1px);
         }
 
-        /* Image Placeholder Style to match the aspect ratio but use a real image */
-        .image-container {
-            position: absolute;
-            inset: 0;
-        }
-
-        .image-container img {
+        /* Custom Swiper Styles */
+        .swiper-slide img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        /* --- Custom Mobile Adjustments for a Tighter Look --- */
+        /* --- Custom Mobile Adjustments --- */
         @media (max-width: 640px) {
             .mobile-padding {
                 padding-left: 1.5rem;
                 padding-right: 1.5rem;
             }
 
-            /* Adjust Hero Title Size for small screens */
             .hero-title-mobile {
                 font-size: 2.5rem;
-                /* Equivalent to text-4xl */
             }
 
-            /* Adjust Hero Padding/Ratio */
             .hero-aspect-ratio {
                 padding-bottom: 80% !important;
-                /* Taller on mobile */
             }
 
-            /* Reduce Section Padding */
             .mobile-py-10 {
                 padding-top: 2.5rem !important;
-                /* py-10 instead of py-20 */
                 padding-bottom: 2.5rem !important;
             }
 
-            /* Center align Footer items on mobile */
             .md\:justify-start {
                 justify-content: center;
             }
@@ -177,39 +156,43 @@
     </style>
 </head>
 
-<body class="bg-[var(--color-light-bg)] text-[var(--color-dark-text)]" x-data="{
+<body class="bg-[var(--color-light-bg)] text-[var(--color-primary-dark)]" x-data="{
     lang: 'id', // 'id' or 'en'
     setLang(newLang) { this.lang = newLang; },
+    isScrolled: false,
     translations: {
         id: {
             // General
             home: 'Beranda',
-            exp: 'Pengalaman',
-            res: 'Residence',
-            dining: 'Kuliner',
-            contact: 'Kontak',
+            villa: 'Villa',
+            dining: 'Coffee & Kitchen',
+            event: 'Event',
             faq: 'FAQ',
+            contact: 'Kontak',
+            // Experience Dropdown
+            wedding: 'Wedding',
+            retreat: 'Corporate Retreat',
+            gathering: 'Family Gathering',
             // Hero
             heroTitle1: 'Sebuah Ruang Mewah',
             heroTitle2: 'untuk Setiap Kisah',
-            exploreHouse: 'Jelajahi Takato House',
-            visitResto: 'Kunjungi Restoran Takato',
+            exploreHouse: 'Jelajahi Villa',
+            visitResto: 'Kunjungi Restoran',
             // Home Cards
             houseTitle: 'Takato House',
             houseDesc: 'Sebuah vila serbaguna untuk pernikahan, pertemuan, dan retreat.',
-            restoTitle: 'Takato Restaurant',
+            restoTitle: 'Takato Coffee & Kitchen',
             restoDesc: 'Kafe taman keluarga yang nyaman dengan hidangan tradisional Indonesia.',
             viewMore: 'Lihat Detail',
             viewMenu: 'Lihat Menu',
             ourStoryTitle: 'Kisah Kami',
-            // *KOREKSI: 'hidasan' -> 'hidangan'
             ourStoryDesc: 'Takato Coffee & Kitchen dicetuskan dari kecintaan terhadap makanan enak dan keinginan untuk berbagi hidangan Nusantara terbaik dalam suasana taman yang ramah.',
             // Experience
-            expTitle: 'Pengalaman',
+            expTitle: 'Event',
             expSubtitle: 'Kurasi',
             expDesc: 'Selenggarakan momen paling berharga Anda di venue megah kami.',
             weddingTitle: 'Pernikahan',
-            weddingDesc: 'Tempat yang magis dan elegan untuk upacara dan resepsi pernikahan Anda yang tak terlupakan.',
+            weddingDesc: 'Tempat yang magis dan elegan untuk upacara dan resepsi pernikahan Anda yang tak terlupakan. Kapasitas hingga 300 pax.',
             retreatTitle: 'Corporate Retreat',
             retreatDesc: 'Ideal untuk team building, peluncuran produk, dan pertemuan perusahaan tingkat tinggi.',
             gatheringTitle: 'Family Gathering',
@@ -218,11 +201,10 @@
             getQuote: 'Dapatkan Penawaran',
             bookStay: 'Pesan Tempat Anda',
             cateringTitle: 'Layanan Katering TAKATO',
-            // *KOREKSI: 'hidasan' -> 'hidangan'
             cateringDesc: 'Pastikan acara Anda sempurna dengan katering internal kami, menawarkan menu khusus mulai dari masakan Nusantara otentik hingga hidangan internasional. Tersedia untuk semua acara di Takato House.',
             inquireCatering: 'Ajukan Paket Katering',
             // Residence
-            residenceTitle: 'Residence',
+            residenceTitle: 'Villa',
             residenceDesc: 'Sebuah ruang vila pribadi yang serbaguna dan elegan untuk menginap dan acara.',
             areaDesign: 'Area & Tinjauan Desain 3D',
             landArea: 'Area Tanah',
@@ -237,11 +219,12 @@
             bbq: 'Area BBQ & Gazebo',
             hall: 'Hall/Area Badminton Indoor',
             parking: 'Tempat Parkir Luas',
-            reservations: 'Reservasi (TAKATO.House)',
-            inquireAvail: 'Ajukan Ketersediaan via WhatsApp',
+            reservations: 'Reservasi (TAKATO House)',
+            inquireAvail: 'Pesan via WhatsApp',
+            bookAirbnb: 'Pesan via AirBNB',
             availDesc: 'Tanyakan ketersediaan tanggal dan paket event spesifik Anda langsung kepada tim kami.',
             // Dining
-            diningTitle: 'Kuliner',
+            diningTitle: 'Restaurant',
             diningDesc: 'Kafe taman keluarga yang nyaman menawarkan cita rasa Nusantara otentik.',
             storyAmbience: 'Kisah Kami & Suasana',
             storyDesc: 'Takato Coffee & Kitchen adalah kafe taman ramah keluarga yang menawarkan suasana tenang dan menu unik yang terinspirasi oleh cita rasa masakan Indonesia yang kaya. Kafe ini dicetuskan dari kecintaan terhadap makanan enak dan keinginan untuk berbagi hidangan Nusantara terbaik.',
@@ -254,7 +237,7 @@
             moreInfo: 'Butuh informasi lebih lanjut?',
             copy: 'Hak Cipta © 2024 Takato.id. Semua Hak Dilindungi.',
 
-            // FAQ Titles
+            // FAQ Titles - Using existing content for simplicity
             faqQ1: 'Apa perbedaan antara Takato House dan Takato Coffee & Kitchen?',
             faqA1: 'The <strong>Takato House</strong> adalah vila mewah pribadi yang digunakan untuk menginap eksklusif, pertemuan besar, dan acara (seperti pernikahan/retreat). <strong>Takato Coffee & Kitchen</strong> adalah kafe taman dan restoran yang terbuka untuk umum di properti yang sama, berfokus pada kuliner otentik Nusantara.',
             faqQ2: 'Bagaimana cara memeriksa ketersediaan untuk pemesanan seluruh Takato House?',
@@ -279,31 +262,35 @@
         en: {
             // General
             home: 'Home',
-            exp: 'Experience',
-            res: 'Residence',
-            dining: 'Dining',
-            contact: 'Contact',
+            villa: 'Villa',
+            dining: 'Restaurant',
+            event: 'Event',
             faq: 'FAQ',
+            contact: 'Contact',
+            // Experience Dropdown
+            wedding: 'Wedding',
+            retreat: 'Corporate Retreat',
+            gathering: 'Family Gathering',
             // Hero
             heroTitle1: 'A Luxury Space',
             heroTitle2: 'for Every Story',
-            exploreHouse: 'Explore Takato House',
-            visitResto: 'Visit Takato Restaurant',
+            exploreHouse: 'Explore Villa',
+            visitResto: 'Visit Restaurant',
             // Home Cards
             houseTitle: 'Takato House',
             houseDesc: 'A versatile villa venue for weddings, gatherings, and retreats.',
-            restoTitle: 'Takato Restaurant',
+            restoTitle: 'Takato Coffee & Kitchen',
             restoDesc: 'A cozy family garden cafe with traditional Indonesian dishes.',
             viewMore: 'View More',
             viewMenu: 'View Menu',
             ourStoryTitle: 'Our Story',
             ourStoryDesc: 'Takato Coffee & Kitchen was conceived out of a love for good food and a desire to share the best of Nusantara cuisine in a welcoming, garden setting.',
             // Experience
-            expTitle: 'Experiences',
+            expTitle: 'Event',
             expSubtitle: 'Curated',
             expDesc: 'Host your most cherished moments in our magnificent venue.',
             weddingTitle: 'Wedding',
-            weddingDesc: 'A magical and elegant setting for your unforgettable wedding ceremony and reception.',
+            weddingDesc: 'A magical and elegant setting for your unforgettable wedding ceremony and reception. Capacity up to 300 pax.',
             retreatTitle: 'Corporate Retreat',
             retreatDesc: 'Ideal for team building, product launches, and high-level corporate gatherings.',
             gatheringTitle: 'Family Gathering',
@@ -315,7 +302,7 @@
             cateringDesc: 'Ensure your event is perfect with our in-house catering, offering bespoke menus from authentic Nusantara cuisine to international delights. Available for all events held at Takato House.',
             inquireCatering: 'Inquire Catering Package',
             // Residence
-            residenceTitle: 'Residence',
+            residenceTitle: 'Villa',
             residenceDesc: 'A versatile and elegant private villa space for stay and events.',
             areaDesign: 'Area & 3D Design Overview',
             landArea: 'Land Area',
@@ -330,11 +317,12 @@
             bbq: 'BBQ & Gazebo Area',
             hall: 'Indoor Badminton/Hall',
             parking: 'Large Parking Lot',
-            reservations: 'Reservations (TAKATO.House)',
-            inquireAvail: 'Inquire Availability via WhatsApp',
+            reservations: 'Reservations (TAKATO House)',
+            inquireAvail: 'Book via WhatsApp',
+            bookAirbnb: 'Book via AirBNB',
             availDesc: 'Ask our team directly about specific dates and event packages.',
             // Dining
-            diningTitle: 'Dining',
+            diningTitle: 'Coffee & Kitchen',
             diningDesc: 'A cozy family garden cafe offering authentic Nusantara flavors.',
             storyAmbience: 'Our Story & Ambience',
             storyDesc: 'Takato Coffee & Kitchen is a family-friendly garden cafe offering a serene atmosphere and a unique menu inspired by the rich flavors of Indonesian cuisine. The cafe was conceived out of a love for good food and a desire to share the best of Nusantara cuisine.',
@@ -347,7 +335,7 @@
             moreInfo: 'Need more information?',
             copy: '© 2024 Takato.id. All Rights Reserved.',
 
-            // FAQ Titles
+            // FAQ Titles - Using existing content for simplicity
             faqQ1: 'What is the difference between Takato House and Takato Coffee & Kitchen?',
             faqA1: 'The <strong>Takato House</strong> is the private luxury villa used for exclusive stays, large gatherings, and events (like weddings/retreats). The <strong>Takato Coffee & Kitchen</strong> is a public-facing garden cafe and restaurant on the same property, focusing on authentic Nusantara dining.',
             faqQ2: 'How can I check the availability for booking the entire Takato House?',
@@ -379,44 +367,70 @@
     modalImage: '',
     modalContent: '',
     openModal(title, image, content_id_key, content_en_key, image_url) {
-        // Use image_url if provided, otherwise default to the event-specific placeholder image
-        const img = image_url || this.lang === 'id' ? image.id : image.en;
-
+        const img = image_url || image.id;
         this.modalTitle = this.lang === 'id' ? title.id : title.en;
         this.modalImage = img;
-
-        // Use dedicated content keys
         const content_id = this.translations.id[content_id_key] || '';
         const content_en = this.translations.en[content_en_key] || '';
-
         this.modalContent = this.lang === 'id' ? content_id : content_en;
         this.isModalOpen = true;
     }
-}">
+}"
+    @scroll.window="isScrolled = (window.scrollY > 50)">
 
     <nav id="fixed-nav"
-        class="fixed top-0 left-0 w-full z-50 flex justify-center items-center py-4 md:py-5 px-4 md:px-10 bg-white shadow-sm">
+        class="fixed top-0 left-0 w-full z-50 flex justify-center items-center py-4 md:py-5 px-4 md:px-10 transition-all duration-300"
+        :class="{ 'bg-white/25 backdrop-blur-md shadow-md': isScrolled, 'bg-transparent': !isScrolled }">
         <div class="w-full flex flex-row justify-between items-center max-w-7xl">
             <a href="#home"
-                class="text-xl md:text-2xl font-extrabold font-serif text-[var(--color-dark-text)] tracking-wider">Takato.id</a>
+                class="text-xl md:text-2xl font-extrabold font-serif text-[var(--color-black-contrast)] tracking-wider">Takato.id</a>
             <div class="hidden md:flex gap-8 items-center" role="navigation">
                 <a href="#home" class="nav-link-elegant active" x-text="t('home')">Home</a>
-                <a href="#experience" class="nav-link-elegant" x-text="t('exp')">Experience</a>
-                <a href="#residence" class="nav-link-elegant" x-text="t('res')">Residence</a>
-                <a href="#dining" class="nav-link-elegant" x-text="t('dining')">Dining</a>
+                <a href="#residence" class="nav-link-elegant" x-text="t('villa')">Villa</a>
+                <a href="#dining" class="nav-link-elegant" x-text="t('dining')">Coffee & Kitchen</a>
+
+                <div class="relative" x-data="{ dropdownOpen: false }" @mouseenter="dropdownOpen = true"
+                    @mouseleave="dropdownOpen = false">
+                    <a href="#experience" class="nav-link-elegant flex items-center gap-1"
+                        :class="{ 'active': $el.classList.contains('active') }" x-text="t('event')">
+                        Event <i class="fas fa-chevron-down text-xs ml-1 transition-transform"
+                            :class="{ 'rotate-180': dropdownOpen }"></i>
+                    </a>
+                    <div x-show="dropdownOpen" x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="transform opacity-100 scale-100"
+                        x-transition:leave-end="transform opacity-0 scale-95"
+                        class="absolute right-0 mt-3 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 origin-top-right"
+                        role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                        <div class="py-1" role="none">
+                            <a href="#experience"
+                                class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50 transition"
+                                x-text="t('wedding')">Wedding</a>
+                            <a href="#experience"
+                                class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50 transition"
+                                x-text="t('retreat')">Corporate Retreat</a>
+                            <a href="#experience"
+                                class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50 transition"
+                                x-text="t('gathering')">Family Gathering</a>
+                        </div>
+                    </div>
+                </div>
+
                 <a href="#faq" class="nav-link-elegant" x-text="t('faq')">FAQ</a>
                 <a href="#contact" class="nav-link-elegant" x-text="t('contact')">Contact</a>
 
                 <div class="ml-4 flex items-center text-sm font-semibold border border-gray-300 rounded-full p-0.5">
                     <button @click="setLang('id')"
-                        :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'id', 'text-[var(--color-dark-text)]': lang !== 'id' }"
+                        :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'id', 'text-[var(--color-primary-dark)]': lang !== 'id' }"
                         class="px-3 py-1 rounded-full transition-colors duration-200">IN</button>
                     <button @click="setLang('en')"
-                        :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'en', 'text-[var(--color-dark-text)]': lang !== 'en' }"
+                        :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'en', 'text-[var(--color-primary-dark)]': lang !== 'en' }"
                         class="px-3 py-1 rounded-full transition-colors duration-200">EN</button>
                 </div>
             </div>
-            <button class="md:hidden text-[var(--color-dark-text)] text-xl" id="mobile-menu-btn"
+            <button class="md:hidden text-[var(--color-primary-dark)] text-xl" id="mobile-menu-btn"
                 @click="$event.target.closest('body').querySelector('div[x-data]').__x.$data.open = true">
                 <i class="fas fa-bars"></i>
             </button>
@@ -429,9 +443,9 @@
             :class="{ 'translate-x-0': open, 'translate-x-full': !open }" style="display: none;">
             <div class="p-6 flex flex-col h-full">
                 <div class="flex justify-between items-center mb-10">
-                    <div class="text-2xl font-extrabold font-serif text-[var(--color-dark-text)] tracking-wider">
+                    <div class="text-2xl font-extrabold font-serif text-[var(--color-primary-dark)] tracking-wider">
                         Takato.id</div>
-                    <button @click="open = false" class="text-[var(--color-dark-text)] text-3xl">
+                    <button @click="open = false" class="text-[var(--color-primary-dark)] text-3xl">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -439,15 +453,31 @@
                     <a @click="open = false" href="#home"
                         class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
                         x-text="t('home')">Home</a>
-                    <a @click="open = false" href="#experience"
-                        class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
-                        x-text="t('exp')">Experience</a>
                     <a @click="open = false" href="#residence"
                         class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
-                        x-text="t('res')">Residence</a>
+                        x-text="t('villa')">Villa</a>
                     <a @click="open = false" href="#dining"
                         class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
-                        x-text="t('dining')">Dining</a>
+                        x-text="t('dining')">Coffee & Kitchen</a>
+                    <div x-data="{ subOpen: false }" class="py-3 border-b border-gray-200">
+                        <button @click="subOpen = !subOpen"
+                            class="w-full text-left flex justify-between items-center hover:text-[var(--color-primary-accent)] transition">
+                            <span x-text="t('event')">Event</span>
+                            <i class="fas fa-chevron-down text-xs ml-1 transition-transform"
+                                :class="{ 'rotate-180': subOpen }"></i>
+                        </button>
+                        <div x-show="subOpen" x-collapse class="pl-4 pt-2 space-y-2 text-lg font-normal">
+                            <a @click="open = false; subOpen = false" href="#experience"
+                                class="block py-1 hover:text-[var(--color-secondary-accent)]"
+                                x-text="t('wedding')">Wedding</a>
+                            <a @click="open = false; subOpen = false" href="#experience"
+                                class="block py-1 hover:text-[var(--color-secondary-accent)]"
+                                x-text="t('retreat')">Corporate Retreat</a>
+                            <a @click="open = false; subOpen = false" href="#experience"
+                                class="block py-1 hover:text-[var(--color-secondary-accent)]"
+                                x-text="t('gathering')">Family Gathering</a>
+                        </div>
+                    </div>
                     <a @click="open = false" href="#faq"
                         class="py-3 border-b border-gray-200 hover:text-[var(--color-primary-accent)] transition"
                         x-text="t('faq')">FAQ</a>
@@ -458,10 +488,10 @@
                     <div
                         class="mt-4 flex items-center justify-center text-lg font-semibold border border-gray-300 rounded-full p-0.5">
                         <button @click="setLang('id')"
-                            :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'id', 'text-[var(--color-dark-text)]': lang !== 'id' }"
+                            :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'id', 'text-[var(--color-primary-dark)]': lang !== 'id' }"
                             class="px-5 py-2 rounded-full transition-colors duration-200">IN</button>
                         <button @click="setLang('en')"
-                            :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'en', 'text-[var(--color-dark-text)]': lang !== 'en' }"
+                            :class="{ 'bg-[var(--color-primary-accent)] text-white': lang === 'en', 'text-[var(--color-primary-dark)]': lang !== 'en' }"
                             class="px-5 py-2 rounded-full transition-colors duration-200">EN</button>
                     </div>
                 </nav>
@@ -486,11 +516,11 @@
                 </div>
                 <div class="w-full md:w-1/2 p-6 md:p-8 relative">
                     <button @click="isModalOpen = false"
-                        class="absolute top-4 right-4 text-2xl text-[var(--color-dark-text)] hover:text-[var(--color-primary-accent)] transition">
+                        class="absolute top-4 right-4 text-2xl text-[var(--color-primary-dark)] hover:text-[var(--color-primary-accent)] transition">
                         <i class="fas fa-times"></i>
                     </button>
 
-                    <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-dark-text)] mb-4"
+                    <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-primary-dark)] mb-4"
                         x-text="modalTitle">
                     </h3>
                     <div class="text-gray-700 space-y-4 text-sm md:text-base" x-html="modalContent"></div>
@@ -504,18 +534,19 @@
             </div>
         </div>
     </div>
-    <section id="home" class="relative min-h-[90vh] flex flex-col justify-start pt-24 overflow-hidden">
-        <div class="w-full max-w-7xl mx-auto px-4 md:px-6">
-            <div class="relative w-full card-elegant rounded-xl shadow-luxury overflow-hidden">
-                <div class="w-full h-0 pb-[60%] hero-aspect-ratio relative">
-                    <div class="image-container">
-                        <img src="https://lifestyleretreats.com/wp-content/uploads/2023/02/Villa-Candani-Main-House-Overview-Nighttime.webp"
-                            alt="Luxury villa exterior with a large swimming pool and tropical greenery, suitable for a Takato House exterior view."
-                            loading="lazy">
-                    </div>
-                </div>
 
-                <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black/35">
+    <section id="home" class="relative min-h-[90vh] flex flex-col justify-start pt-0 overflow-hidden">
+        <div class="relative w-full overflow-hidden">
+            <div class="w-full h-0 pb-[60%] hero-aspect-ratio relative">
+                <div class="image-container absolute inset-0">
+                    <img src="/1aab8845-00c7-46bd-92bb-767d70b7c128.avif"
+                        alt="Luxury villa exterior with a large swimming pool and tropical greenery, suitable for a Takato House exterior view."
+                        loading="lazy" class="w-full h-full object-cover">
+                </div>
+            </div>
+
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black/35">
+                <div class="max-w-4xl mx-auto">
                     <h1
                         class="font-serif text-4xl sm:text-6xl md:text-7xl font-bold text-white mb-6 md:mb-8 leading-tight hero-title-mobile">
                         <span x-text="t('heroTitle1')">A Luxury Space</span> <br class="hidden sm:block" /> <span
@@ -532,49 +563,79 @@
                         <a href="#dining"
                             class="w-full sm:w-auto px-6 py-3 md:px-8 md:py-3.5 btn-light-subtle rounded-md font-semibold text-sm md:text-lg shadow-luxury"
                             x-text="t('visitResto')">
-                            Visit Takato Restaurant
+                            Visit Takato Coffee & Kitchen
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-16">
-            <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
+            <div class="grid md:grid-cols-3 gap-6 md:gap-8 items-stretch">
 
-                <div class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury space-y-3 md:space-y-4">
-                    <h2 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-dark-text)]"
-                        x-text="t('houseTitle')">
-                        Takato House</h2>
-                    <p class="text-base md:text-lg text-gray-700" x-text="t('houseDesc')">
-                        A versatile villa venue for weddings, gatherings, and retreats.
-                    </p>
-                    <a href="#residence"
-                        class="inline-block px-5 py-2 md:px-6 md:py-3 btn-light-subtle rounded-md font-semibold text-sm md:text-base"
-                        x-text="t('viewMore')">
-                        View More <i class="fas fa-arrow-right text-xs ml-2"></i>
-                    </a>
-                </div>
+                <a href="#residence"
+                    class="md:col-span-2 card-elegant rounded-xl shadow-luxury group overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01]">
+                    <div class="relative h-64 md:h-80 w-full overflow-hidden">
+                        <img src="/img1.jpg" alt="Luxury villa exterior view with pool" loading="lazy"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+                    </div>
 
-                <div class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury space-y-3 md:space-y-4">
-                    <h2 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-dark-text)]"
-                        x-text="t('restoTitle')">
-                        Takato Restaurant</h2>
-                    <p class="text-base md:text-lg text-gray-700" x-text="t('restoDesc')">
-                        A cozy family garden cafe with traditional Indonesian dishes.
-                    </p>
-                    <a href="#dining"
-                        class="inline-block px-5 py-2 md:px-6 md:py-3 btn-light-subtle rounded-md font-semibold text-sm md:text-base"
-                        x-text="t('viewMenu')">
-                        View Menu <i class="fas fa-arrow-right text-xs ml-2"></i>
-                    </a>
-                </div>
+                    <div class="p-6 md:p-8 space-y-4">
+                        <div class="flex items-center space-x-3 text-[var(--color-secondary-accent)]">
+                            <i class="fas fa-home text-2xl"></i>
+                            <h2 class="font-serif text-3xl font-bold text-[var(--color-primary-dark)]"
+                                x-text="t('houseTitle')">Takato House</h2>
+                        </div>
+                        <p class="text-base text-gray-700" x-text="t('houseDesc')">
+                            A versatile villa venue for weddings, gatherings, and retreats.
+                        </p>
+                        <span
+                            class="inline-flex items-center font-semibold text-sm md:text-base text-[var(--color-primary-accent)] group-hover:underline transition">
+                            <span x-text="t('viewMore')">View More</span>
+                            <i
+                                class="fas fa-arrow-right text-xs ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        </span>
+                    </div>
+                </a>
+
+                <a href="#dining"
+                    class="md:col-span-1 card-elegant rounded-xl shadow-luxury group overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-[var(--color-primary-accent)]/10">
+                    <div
+                        class="relative h-64 md:h-80 w-full overflow-hidden border-b-4 border-[var(--color-secondary-accent)]">
+                        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                            alt="Cozy garden cafe seating area" loading="lazy"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+                    </div>
+
+                    <div class="p-6 md:p-8 space-y-4">
+                        <div class="flex items-center space-x-3 text-[var(--color-secondary-accent)]">
+                            <i class="fas fa-utensils text-2xl"></i>
+                            <h3 class="font-serif text-2xl font-bold text-[var(--color-primary-dark)]"
+                                x-text="t('restoTitle')">Takato Coffee & Kitchen</h3>
+                        </div>
+                        <p class="text-base text-gray-700" x-text="t('restoDesc')">
+                            A cozy family garden cafe with traditional Indonesian dishes.
+                        </p>
+                        <span
+                            class="inline-flex items-center font-semibold text-sm md:text-base text-[var(--color-primary-accent)] group-hover:underline transition">
+                            <span x-text="t('viewMenu')">View Menu</span>
+                            <i
+                                class="fas fa-arrow-right text-xs ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        </span>
+                    </div>
+                </a>
             </div>
 
-            <div class="mt-10 md:mt-12 p-6 md:p-8 card-elegant rounded-xl shadow-luxury text-center">
-                <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-dark-text)] mb-3 md:mb-4"
-                    x-text="t('ourStoryTitle')">Our Story</h3>
-                <p class="text-base md:text-lg text-gray-700 max-w-4xl mx-auto" x-text="t('ourStoryDesc')">
+            <div class="mt-12 md:mt-16 card-elegant p-6 md:p-8 rounded-xl shadow-luxury">
+                <div class="flex items-center justify-center space-x-4 mb-4">
+                    <i class="fas fa-seedling text-2xl text-[var(--color-secondary-accent)]"></i>
+                    <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-primary-dark)]"
+                        x-text="t('ourStoryTitle')">Kisah Kami</h3>
+                    <i class="fas fa-seedling text-2xl text-[var(--color-secondary-accent)]"></i>
+                </div>
+                <p class="text-base md:text-lg text-gray-700 max-w-4xl mx-auto text-center"
+                    x-text="t('ourStoryDesc')">
                     Takato Coffee & Kitchen was conceived out of a love for good food and a desire
                     to share the best of Nusantara cuisine in a welcoming, garden setting.
                 </p>
@@ -582,85 +643,123 @@
         </div>
     </section>
 
-    <section id="experience" class="py-10 md:py-20 bg-white mobile-py-10">
-        <div class="max-w-7xl mx-auto px-4 md:px-6">
+    <section id="photos" class="py-10 md:py-20 mobile-py-10 bg-[var(--color-light-bg)]">
+        <div class="w-full">
             <div class="text-center mb-10 md:mb-16">
-                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-dark-text)]">
-                    <span x-text="t('expSubtitle')">Curated</span> <span class="gradient-text"
-                        x-text="t('expTitle')">Experiences</span>
+                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
+                    Galeri <span class="gradient-text">Foto</span>
                 </h2>
-                <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto" x-text="t('expDesc')">
-                    Host your most cherished moments in our magnificent venue.
+                <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto">
+                    Jelajahi keindahan dan suasana Takato House dalam bidikan terbaik.
                 </p>
             </div>
 
+            <div class="swiper mySwiper w-full mx-auto">
+                <div class="swiper-wrapper h-[300px] md:h-[400px]">
+                    <div class="swiper-slide overflow-hidden">
+                        <img src="/img1.jpg" alt="Interior living room with wooden accents" loading="lazy">
+                    </div>
+                    <div class="swiper-slide overflow-hidden">
+                        <img src="/img2.jpg" alt="Private outdoor swimming pool area" loading="lazy">
+                    </div>
+                    <div class="swiper-slide overflow-hidden">
+                        <img src="/img3.jpg" alt="Elegant dining setting for an event" loading="lazy">
+                    </div>
+                    <div class="swiper-slide overflow-hidden">
+                        <img src="/img4.jpg" alt="Spacious bedroom with natural light" loading="lazy">
+                    </div>
+                    <div class="swiper-slide overflow-hidden">
+                        <img src="/img5.jpg" alt="Beautiful garden cafe and seating area" loading="lazy">
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination mt-4 max-w-7xl mx-auto px-4 md:px-6"></div>
+        </div>
+    </section>
+
+    <section id="experience" class="py-10 md:py-20 mobile-py-10">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="text-center mb-10 md:mb-16">
+                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
+                    <span x-text="t('expSubtitle')">Kurasi</span> <span class="gradient-text"
+                        x-text="t('event')">Experiences</span>
+                </h2>
+                <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto" x-text="t('expDesc')">
+                    Selenggarakan momen paling berharga Anda di venue megah kami.
+                </p>
+            </div>
             <div class="grid md:grid-cols-3 gap-6 md:gap-8">
 
-                <div class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury space-y-4 cursor-pointer"
-                    @click="openModal(
-                            { id: t('weddingTitle'), en: t('weddingTitle') },
-                            { id: 'https://weddingmarket.com/storage/images/artikelidea/cd57df0724156a06e98469692ea39ddd1de675ee.webp', en: 'https://weddingmarket.com/storage/images/artikelidea/cd57df0724156a06e98469692ea39ddd1de675ee.webp' },
-                            'faqA4', // Reusing FAQ A4 text key for content
-                            'faqA4'
-                        )">
-                    <i class="fas fa-ring text-3xl md:text-4xl text-[var(--color-primary-accent)] mb-2"></i>
-                    <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-dark-text)]"
-                        x-text="t('weddingTitle')">Wedding</h3>
-                    <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('weddingDesc')">
-                        A magical and elegant setting for your unforgettable wedding ceremony and reception.
-                    </p>
-                    <a @click.stop href="https://wa.me/+6281214831823" target="_blank"
-                        class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
-                        x-text="t('seePackages')">
-                        See Packages <i class="fas fa-arrow-right text-xs ml-1"></i>
-                    </a>
-                </div>
+                <a href="/events/wedding"
+                    class="card-elegant rounded-xl shadow-luxury space-y-4 cursor-pointer group block" @click.stop>
+                    <div class="h-48 w-full overflow-hidden rounded-t-xl">
+                        <img src="/wedding.jpg" alt="Wedding event setup at Takato" loading="lazy"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                    </div>
 
-                <div class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury space-y-4 cursor-pointer"
-                    @click="openModal(
-                            { id: t('retreatTitle'), en: t('retreatTitle') },
-                            { id: 'https://julssharpleyevents.com/wp-content/uploads/2024/08/corporate-retreat-planning.jpg', en: 'https://julssharpleyevents.com/wp-content/uploads/2024/08/corporate-retreat-planning.jpg' },
-                            'retreatDesc', // Placeholder key for ID content
-                            'retreatDesc' // Placeholder key for EN content
-                        )">
-                    <i class="fas fa-users text-3xl md:text-4xl text-[var(--color-primary-accent)] mb-2"></i>
-                    <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-dark-text)]"
-                        x-text="t('retreatTitle')">Corporate Retreat</h3>
-                    <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('retreatDesc')">
-                        Ideal for team building, product launches, and high-level corporate gatherings.
-                    </p>
-                    <a @click.stop href="https://wa.me/+6281214831823" target="_blank"
-                        class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
-                        x-text="t('getQuote')">
-                        Get Quotation <i class="fas fa-arrow-right text-xs ml-1"></i>
-                    </a>
-                </div>
+                    <div class="p-6 md:p-8 space-y-4">
+                        <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-primary-dark)]"
+                            x-text="t('wedding')">Wedding</h3>
+                        <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('weddingDesc')">
+                            A magical and elegant setting for your unforgettable wedding ceremony and reception.
+                        </p>
+                        <span
+                            class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
+                            x-text="t('seePackages')">
+                            See Packages <i class="fas fa-arrow-right text-xs ml-1"></i>
+                        </span>
+                    </div>
+                </a>
 
-                <div class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury space-y-4 cursor-pointer"
-                    @click="openModal(
-                            { id: t('gatheringTitle'), en: t('gatheringTitle') },
-                            { id: 'https://images.stockcake.com/public/8/5/7/8570134f-7780-4b73-a459-59c5257e2615_large/family-dinner-gathering-stockcake.jpg', en: 'https://images.stockcake.com/public/8/5/7/8570134f-7780-4b73-a459-59c5257e2615_large/family-dinner-gathering-stockcake.jpg' },
-                            'gatheringDesc', // Placeholder key for ID content
-                            'gatheringDesc' // Placeholder key for EN content
-                        )">
-                    <i class="fas fa-caravan text-3xl md:text-4xl text-[var(--color-primary-accent)] mb-2"></i>
-                    <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-dark-text)]"
-                        x-text="t('gatheringTitle')">Family Gathering</h3>
-                    <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('gatheringDesc')">
-                        Spacious, comfortable private villa for large family events and reunions.
-                    </p>
-                    <a @click.stop href="https://wa.me/+6281214831823" target="_blank"
-                        class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
-                        x-text="t('bookStay')">
-                        Book Your Stay <i class="fas fa-arrow-right text-xs ml-1"></i>
-                    </a>
-                </div>
+                <a href="/events/retreat"
+                    class="card-elegant rounded-xl shadow-luxury space-y-4 cursor-pointer group block" @click.stop>
+                    <div class="h-48 w-full overflow-hidden rounded-t-xl">
+                        <img src="https://cdn.prod.website-files.com/61eb3f79cfe8dd4bf6350818/63ff7b38bcf6a055318acdfd_PACE-EmmaCrystalWorkshop-2-scaled.webp"
+                            alt="Corporate retreat setup" loading="lazy"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                    </div>
+
+                    <div class="p-6 md:p-8 space-y-4">
+                        <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-primary-dark)]"
+                            x-text="t('retreat')">Corporate Retreat</h3>
+                        <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('retreatDesc')">
+                            Ideal for team building, product launches, and high-level corporate gatherings.
+                        </p>
+                        <span
+                            class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
+                            x-text="t('getQuote')">
+                            Get Quotation <i class="fas fa-arrow-right text-xs ml-1"></i>
+                        </span>
+                    </div>
+                </a>
+
+                <a href="/events/gathering"
+                    class="card-elegant rounded-xl shadow-luxury space-y-4 cursor-pointer group block" @click.stop>
+                    <div class="h-48 w-full overflow-hidden rounded-t-xl">
+                        <img src="https://images.stockcake.com/public/8/5/7/8570134f-7780-4b73-a459-59c5257e2615_large/family-dinner-gathering-stockcake.jpg"
+                            alt="Family dinner gathering" loading="lazy"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                    </div>
+
+                    <div class="p-6 md:p-8 space-y-4">
+                        <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-primary-dark)]"
+                            x-text="t('gathering')">Family Gathering</h3>
+                        <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('gatheringDesc')">
+                            Spacious, comfortable private villa for large family events and reunions.
+                        </p>
+                        <span
+                            class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
+                            x-text="t('bookStay')">
+                            Book Your Stay <i class="fas fa-arrow-right text-xs ml-1"></i>
+                        </span>
+                    </div>
+                </a>
             </div>
 
             <div
-                class="mt-10 md:mt-16 card-elegant p-6 md:p-8 rounded-xl shadow-luxury border-l-4 border-[var(--color-button-bg)]">
+                class="mt-10 md:mt-16 card-elegant p-6 md:p-8 rounded-xl shadow-luxury border-l-4 border-[var(--color-secondary-accent)]">
                 <h3
-                    class="font-serif text-2xl md:text-3xl font-bold mb-4 flex items-center gap-3 text-[var(--color-dark-text)]">
+                    class="font-serif text-2xl md:text-3xl font-bold mb-4 flex items-center gap-3 text-[var(--color-primary-dark)]">
                     <i class="fas fa-utensils text-[var(--color-primary-accent)]"></i> <span
                         x-text="t('cateringTitle')">TAKATO Catering Services</span>
                 </h3>
@@ -679,13 +778,13 @@
         </div>
     </section>
 
-    <section id="residence" class="py-10 md:py-20 mobile-py-10">
+    <section id="residence" class="py-10 md:py-20 mobile-py-10 bg-[var(--color-primary-dark)]">
         <div class="max-w-7xl mx-auto px-4 md:px-6">
             <div class="text-center mb-10 md:mb-16">
-                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-dark-text)]">
-                    TAKATO <span class="gradient-text" x-text="t('res')">Residence</span>
+                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-light-bg)]">
+                    TAKATO <span class="gradient-text" x-text="t('villa')">Residence</span>
                 </h2>
-                <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto" x-text="t('residenceDesc')">
+                <p class="text-base md:text-xl text-white mt-4 max-w-4xl mx-auto" x-text="t('residenceDesc')">
                     A versatile and elegant private villa space for stay and events.
                 </p>
             </div>
@@ -693,17 +792,17 @@
             <div class="grid lg:grid-cols-3 gap-8 md:gap-12 items-stretch">
 
                 <div class="lg:col-span-2 space-y-6 md:space-y-8">
-                    <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-dark-text)] mb-4"
+                    <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-light-bg)] mb-4"
                         x-text="t('areaDesign')">Area & 3D Design Overview</h3>
 
                     <div class="grid md:grid-cols-2 gap-6 md:gap-8">
 
                         <div class="card-elegant p-6 rounded-xl shadow-luxury">
-                            <p class="text-base uppercase text-[var(--color-dark-text)] font-semibold mb-2"
+                            <p class="text-base uppercase text-[var(--color-light-bg)] font-semibold mb-2"
                                 x-text="t('landArea') + ' (5,600 m²)'">Land Area (5,600 m²)</p>
                             <div
-                                class="w-full h-48 md:h-64 rounded-lg overflow-hidden border-2 border-[var(--color-border-subtle)]">
-                                <img src="https://5.imimg.com/data5/GX/MY/MY-10901897/3d-design-and-consultation.jpg"
+                                class="w-full h-48 md:h-64 rounded-lg overflow-hidden border-2 border-[var(--color-light-bg)]">
+                                <img src="https://masterpiece.co.id/wp-content/uploads/2023/12/Denah-Lantai-Bawah.webp"
                                     alt="3D Design Rendering of Land Area" class="w-full h-full object-cover"
                                     loading="lazy">
                             </div>
@@ -715,11 +814,11 @@
                         </div>
 
                         <div class="card-elegant p-6 rounded-xl shadow-luxury">
-                            <p class="text-base uppercase text-[var(--color-dark-text)] font-semibold mb-2"
+                            <p class="text-base uppercase text-[var(--color-primary-dark)] font-semibold mb-2"
                                 x-text="t('buildingArea') + ' (1,000 m²)'">Building Area (1,000 m²)</p>
                             <div
-                                class="w-full h-48 md:h-64 rounded-lg overflow-hidden border-2 border-[var(--color-border-subtle)]">
-                                <img src="https://5.imimg.com/data5/GX/MY/MY-10901897/3d-design-and-consultation.jpg"
+                                class="w-full h-48 md:h-64 rounded-lg overflow-hidden border-2 border-[var(--color-light-bg)]">
+                                <img src="https://mir-s3-cdn-cf.behance.net/projects/404/b9ebab176956077.Y3JvcCwyNjAxLDIwMzQsMCwyNjM.jpg"
                                     alt="3D Design Rendering of Building Area" class="w-full h-full object-cover"
                                     loading="lazy">
                             </div>
@@ -733,7 +832,7 @@
                     </div>
 
                     <blockquote
-                        class="border-l-4 border-[var(--color-primary-accent)] pl-4 py-2 text-base md:text-lg italic text-gray-700"
+                        class="border-l-4 border-[var(--color-light-bg)] pl-4 py-2 text-base md:text-lg italic text-white"
                         x-text="t('designQuote')">
                         "Visualisasi desain 3D rinci telah tersedia untuk menyajikan gambaran imersif
                         mengenai potensi
@@ -744,7 +843,7 @@
                 <div class="lg:col-span-1 space-y-8 md:space-y-10">
 
                     <div class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury h-fit">
-                        <h3 class="font-serif text-2xl md:text-3xl font-bold mb-4 text-[var(--color-dark-text)]"
+                        <h3 class="font-serif text-2xl md:text-3xl font-bold mb-4 text-[var(--color-primary-dark)]"
                             x-text="t('facilities')">Key Facilities</h3>
                         <ul class="space-y-3 md:space-y-4 text-sm md:text-lg">
                             <li class="flex items-center gap-3 text-gray-700">
@@ -775,17 +874,25 @@
                     </div>
 
                     <div
-                        class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury h-fit border-l-4 border-[var(--color-button-bg)]">
-                        <h3 class="font-serif text-xl font-bold mb-4 text-[var(--color-dark-text)]"
-                            x-text="t('reservations')">Reservations (TAKATO.House)</h3>
+                        class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury h-fit border-l-4 border-[var(--color-secondary-accent)]">
+                        <h3 class="font-serif text-xl font-bold mb-4 text-[var(--color-primary-dark)]"
+                            x-text="t('reservations')">Reservations (TAKATO House)</h3>
                         <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('availDesc')">
                             Tanyakan ketersediaan tanggal dan paket event spesifik Anda langsung kepada tim
                             kami.
                         </p>
+                        <a href="https://www.airbnb.co.id/rooms/31336206?guests=1&adults=1&s=67&unique_share_id=8a460253-0073-4a62-a778-8c25c2f589f4"
+                            target="_blank"
+                            class="inline-flex items-center gap-2 w-full justify-center px-6 py-3 rounded-md font-semibold text-sm md:text-base mb-3
+           bg-red-600 text-white hover:bg-red-700 transition duration-300 shadow-md hover:shadow-lg">
+                            <i class="fab fa-airbnb ml-1 text-lg"></i>
+                            <span x-text="t('bookAirbnb')">Pesan via AirBNB</span>
+                        </a>
                         <a href="https://wa.me/+6281214831823" target="_blank"
-                            class="inline-flex items-center gap-2 w-full justify-center px-6 py-3 btn-warm rounded-md font-semibold text-sm md:text-base">
-                            <span x-text="t('inquireAvail')">Inquire Availability via WhatsApp</span> <i
-                                class="fab fa-whatsapp ml-1"></i>
+                            class="inline-flex items-center gap-2 w-full justify-center px-6 py-3 rounded-md font-semibold text-sm md:text-base
+           bg-green-600 text-white hover:bg-green-700 transition duration-300 shadow-md hover:shadow-lg">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                            <span x-text="t('inquireAvail')">Pesan via WhatsApp</span>
                         </a>
                     </div>
                 </div>
@@ -794,11 +901,11 @@
         </div>
     </section>
 
-    <section id="dining" class="py-10 md:py-20 bg-white mobile-py-10">
+    <section id="dining" class="py-10 md:py-20 bg-[var(--color-light-bg)] mobile-py-10">
         <div class="max-w-7xl mx-auto px-4 md:px-6">
             <div class="text-center mb-10 md:mb-16">
-                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-dark-text)]">
-                    Takato <span class="gradient-text" x-text="t('diningTitle')">Dining</span>
+                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
+                    Takato <span class="gradient-text" x-text="t('dining')">Coffee & Kitchen</span>
                 </h2>
                 <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto" x-text="t('diningDesc')">
                     A cozy family garden cafe offering authentic Nusantara flavors.
@@ -815,7 +922,7 @@
                             loading="lazy" class="w-full h-full object-cover">
                     </div>
 
-                    <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-dark-text)] pt-4"
+                    <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-primary-dark)] pt-4"
                         x-text="t('storyAmbience')">Our Story & Ambience
                     </h3>
                     <p class="text-sm md:text-lg text-gray-700" x-text="t('storyDesc')">
@@ -828,27 +935,27 @@
                 </div>
 
                 <div
-                    class="lg:order-2 card-elegant p-6 md:p-8 rounded-xl shadow-luxury border-l-4 border-[var(--color-button-bg)]">
-                    <h3 class="font-serif text-2xl md:text-3xl font-bold mb-6 text-[var(--color-dark-text)]"
+                    class="lg:order-2 card-elegant p-6 md:p-8 rounded-xl shadow-luxury border-l-4 border-[var(--color-secondary-accent)]">
+                    <h3 class="font-serif text-2xl md:text-3xl font-bold mb-6 text-[var(--color-primary-dark)]"
                         x-text="t('signatureMenu')">Signature Menu</h3>
                     <ul class="space-y-3 md:space-y-4 text-base md:text-xl mb-6 md:mb-8">
-                        <li class="flex items-center gap-3 font-semibold text-[var(--color-dark-text)]">
+                        <li class="flex items-center gap-3 font-semibold text-[var(--color-primary-dark)]">
                             <i class="fas fa-drumstick-bite text-[var(--color-primary-accent)]"></i> Nasi
                             Goreng
                         </li>
-                        <li class="flex items-center gap-3 font-semibold text-[var(--color-dark-text)]">
+                        <li class="flex items-center gap-3 font-semibold text-[var(--color-primary-dark)]">
                             <i class="fas fa-drumstick-bite text-[var(--color-primary-accent)]"></i> Gado
                             Gado
                         </li>
-                        <li class="flex items-center gap-3 font-semibold text-[var(--color-dark-text)]">
+                        <li class="flex items-center gap-3 font-semibold text-[var(--color-primary-dark)]">
                             <i class="fas fa-drumstick-bite text-[var(--color-primary-accent)]"></i> Soto
                             Ayam
                         </li>
-                        <li class="flex items-center gap-3 font-semibold text-[var(--color-dark-text)]">
+                        <li class="flex items-center gap-3 font-semibold text-[var(--color-primary-dark)]">
                             <i class="fas fa-drumstick-bite text-[var(--color-primary-accent)]"></i> Ikan
                             Bakar
                         </li>
-                        <li class="flex items-center gap-3 font-semibold text-[var(--color-dark-text)]">
+                        <li class="flex items-center gap-3 font-semibold text-[var(--color-primary-dark)]">
                             <i class="fas fa-coffee text-[var(--color-primary-accent)]"></i> Premium Bogor
                             Coffee
                         </li>
@@ -871,7 +978,7 @@
     <section id="faq" class="py-10 md:py-20 mobile-py-10">
         <div class="max-w-xl md:max-w-4xl mx-auto px-4 md:px-6">
             <div class="text-center mb-10 md:mb-16">
-                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-dark-text)]">
+                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
                     <span x-text="t('faq')">FAQ</span>
                     <span class="gradient-text">/</span>
                     <span class="gradient-text text-xl sm:text-3xl"
@@ -888,7 +995,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ1')">What is the difference between Takato House and Takato
                             Coffee &
                             Kitchen?</span>
@@ -912,7 +1019,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ2')">How can I check the availability for booking the entire
                             Takato
                             House?</span>
@@ -935,7 +1042,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ3')">Do you provide catering service for outside
                             events?</span>
                         <i class="fas fa-chevron-down transform transition-transform text-[var(--color-primary-accent)]"
@@ -956,7 +1063,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ4')">What is the maximum capacity for private events at Takato
                             House?</span>
                         <i class="fas fa-chevron-down transform transition-transform text-[var(--color-primary-accent)]"
@@ -978,7 +1085,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ5')">Is Takato Coffee & Kitchen open to the public?</span>
                         <i class="fas fa-chevron-down transform transition-transform text-[var(--color-primary-accent)]"
                             :class="{ 'rotate-180': open }"></i>
@@ -998,7 +1105,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ6')">Is the private pool accessible during restaurant
                             operating
                             hours?</span>
@@ -1021,7 +1128,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ7')">Can we bring our own outside catering for events at
                             Takato
                             House?</span>
@@ -1044,7 +1151,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ8')">Is there sufficient parking space for event
                             guests?</span>
                         <i class="fas fa-chevron-down transform transition-transform text-[var(--color-primary-accent)]"
@@ -1064,7 +1171,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ9')">What is the travel distance from Bogor or Jakarta?</span>
                         <i class="fas fa-chevron-down transform transition-transform text-[var(--color-primary-accent)]"
                             :class="{ 'rotate-180': open }"></i>
@@ -1084,7 +1191,7 @@
 
                 <div class="card-elegant rounded-lg shadow-luxury overflow-hidden" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-dark-text)] hover:bg-gray-50 transition">
+                        class="flex justify-between items-center w-full px-4 py-3 md:px-6 md:py-4 text-left font-semibold text-sm md:text-lg text-[var(--color-primary-dark)] hover:bg-gray-50 transition">
                         <span x-text="t('faqQ10')">Can Takato Coffee & Kitchen host small private dining
                             events?</span>
                         <i class="fas fa-chevron-down transform transition-transform text-[var(--color-primary-accent)]"
@@ -1107,17 +1214,17 @@
             <div class="text-center mt-8 md:mt-10">
                 <p class="text-gray-600 text-sm md:text-base" x-text="t('moreInfo')">Need more information? <a
                         href="https://wa.me/+6281214831823" target="_blank"
-                        class="font-bold text-[var(--color-primary-accent)] hover:text-[var(--color-dark-text)] transition"
+                        class="font-bold text-[var(--color-primary-accent)] hover:text-[var(--color-primary-dark)] transition"
                         x-text="t('chatSupport')">Chat
                         with our support.</a></p>
             </div>
         </div>
     </section>
 
-    <section id="contact" class="py-10 md:py-20 bg-white mobile-py-10">
+    <section id="contact" class="py-10 md:py-20 bg-[var(--color-primary-dark)] mobile-py-10 text-white">
         <div class="max-w-xl md:max-w-4xl mx-auto px-4 md:px-6">
             <div class="text-center mb-8 md:mb-10">
-                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-dark-text)]">
+                <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-white">
                     <span x-text="t('contact')">Contact</span> & <span class="gradient-text"
                         x-text="t('locationTitle')">Location</span>
                 </h2>
@@ -1133,7 +1240,7 @@
                     </div>
 
                     <div class="card-elegant p-4 md:p-6 rounded-xl shadow-luxury space-y-2 md:space-y-3">
-                        <p class="text-base md:text-xl font-medium text-[var(--color-dark-text)]">
+                        <p class="text-base md:text-xl font-serif font-bold text-[var(--color-primary-dark)]">
                             Jalan Raya Puncak, Blok Bendungan, Ciawi, Cijeruk, Bogor, Jawa Barat 16740
                         </p>
                         <p class="text-sm md:text-lg text-gray-700" x-text="t('opHours')">
@@ -1145,7 +1252,8 @@
                 <div class="card-elegant p-4 md:p-6 rounded-xl shadow-luxury">
                     <div class="flex justify-center mb-4 md:mb-6">
                         <a href="https://wa.me/+6281214831823" target="_blank"
-                            class="w-full sm:w-2/3 md:w-1/2 px-8 py-3.5 btn-chat rounded-md font-semibold text-sm md:text-lg flex items-center justify-center gap-2 hover:shadow-lg">
+                            class="w-full sm:w-2/3 md:w-1/2 px-8 py-3.5 rounded-md font-semibold text-sm md:text-lg flex items-center justify-center gap-2 hover:shadow-lg
+                                bg-green-600 text-white hover:bg-green-700 transition duration-300">
                             <i class="fab fa-whatsapp"></i> <span x-text="t('chatSupport')">Chat with
                                 us</span>
                         </a>
@@ -1169,24 +1277,19 @@
                 <div class="grid grid-cols-2 gap-6 md:col-span-2 md:grid-cols-2 md:gap-8">
                     <div>
                         <h2 class="mb-4 text-sm font-normal">
-                            <a class="tracking-widest font-secondary text-gradient"
-                                href="/">
+                            <a class="tracking-widest font-secondary text-gradient" href="/">
                                 LAYANAN
                             </a>
                         </h2>
                         <ul class="space-y-2 text-xs">
-                            <li><a href="/"
-                                    class="text-white transition-colors hover:text-accent">Manajemen
+                            <li><a href="/" class="text-white transition-colors hover:text-accent">Manajemen
                                     Properti</a></li>
-                            <li><a href="/"
-                                    class="text-white transition-colors hover:text-accent">Konstruksi &
+                            <li><a href="/" class="text-white transition-colors hover:text-accent">Konstruksi &
                                     Renovasi</a>
                             </li>
-                            <li><a href="/"
-                                    class="text-white transition-colors hover:text-accent">Desain
+                            <li><a href="/" class="text-white transition-colors hover:text-accent">Desain
                                     Interior</a></li>
-                            <li><a href="/"
-                                    class="text-white transition-colors hover:text-accent">**Takato
+                            <li><a href="/" class="text-white transition-colors hover:text-accent">**Takato
                                     Catering**</a></li>
                         </ul>
                     </div>
@@ -1198,15 +1301,13 @@
                             </a>
                         </h2>
                         <ul class="space-y-2 text-xs">
-                            <li><a href="/"
-                                    class="text-white transition-colors hover:text-accent">Wedding
-                                    </a></li>
-                            <li><a href="/"
-                                    class="text-white transition-colors hover:text-accent">Corporate
-                                    </a></li>
-                            <li><a href="/"
-                                    class="text-white transition-colors hover:text-accent">Family Gathering
-                                    </a>
+                            <li><a href="/" class="text-white transition-colors hover:text-accent">Wedding
+                                </a></li>
+                            <li><a href="/" class="text-white transition-colors hover:text-accent">Corporate
+                                </a></li>
+                            <li><a href="/" class="text-white transition-colors hover:text-accent">Family
+                                    Gathering
+                                </a>
                             </li>
                             <li><a href="/"
                                     class="text-white transition-colors hover:text-accent">Grandschedule</a>
@@ -1216,7 +1317,7 @@
                 </div>
                 <div class="md:col-span-1">
                     <h2 class="mb-4 text-sm font-normal tracking-widest text-white font-secondary text-center md:text-left"
-                        style="color: var(--color-accent);">Hubungi Kami</h2>
+                        style="color: var(--color-primary-accent);">Hubungi Kami</h2>
                     <div class="space-y-3 text-xs md:text-sm text-center md:text-left">
                         <div class="flex items-center justify-center md:justify-start space-x-2">
                             <a href="https://wa.me/628113809193?text=Halo%20Takato%20House"
@@ -1257,15 +1358,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Navigation Active State ---
+            // --- Navigation Active State & Mobile Menu Logic (Unchanged) ---
             const sections = document.querySelectorAll('section[id]');
             const navLinks = document.querySelectorAll('.nav-link-elegant');
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 
-            // Open mobile menu logic (Trigger Alpine.js)
             if (mobileMenuBtn) {
                 mobileMenuBtn.addEventListener('click', (event) => {
-                    const alpineDataElement = document.querySelector('div[x-data]:not(#fixed-nav)');
+                    const alpineDataElement = document.querySelector('body > div[x-data]:not(#fixed-nav)');
                     if (alpineDataElement && alpineDataElement.__x && alpineDataElement.__x.$data) {
                         alpineDataElement.__x.$data.open = true;
                     }
@@ -1273,10 +1373,10 @@
                 });
             }
 
-            // Also close mobile menu when clicking a link inside
             document.querySelectorAll('.md\\:hidden nav a').forEach(link => {
                 link.addEventListener('click', () => {
-                    const alpineDataElement = document.querySelector('div[x-data]:not(#fixed-nav)');
+                    const alpineDataElement = document.querySelector(
+                        'body > div[x-data]:not(#fixed-nav)');
                     if (alpineDataElement && alpineDataElement.__x && alpineDataElement.__x.$data) {
                         alpineDataElement.__x.$data.open = false;
                     }
@@ -1309,6 +1409,30 @@
 
             window.addEventListener('scroll', setActiveLink);
             setActiveLink();
+
+            // --- Swiper Initialization ---
+            const swiper = new Swiper(".mySwiper", {
+                slidesPerView: 1,
+                // PERUBAHAN 2: Mengubah spaceBetween dari 30 menjadi 0
+                spaceBetween: 0,
+                loop: true,
+                autoplay: {
+                    delay: 1000,
+                    disableOnInteraction: false,
+                },
+                breakpoints: {
+                    640: {
+                        slidesPerView: 2,
+                        // PERUBAHAN 2: Mengubah spaceBetween dari 20 menjadi 0
+                        spaceBetween: 0,
+                    },
+                    1024: {
+                        slidesPerView: 3,
+                        // PERUBAHAN 2: Mengubah spaceBetween dari 30 menjadi 0
+                        spaceBetween: 0,
+                    },
+                }
+            });
         });
     </script>
 </body>
