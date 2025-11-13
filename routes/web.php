@@ -25,6 +25,18 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/events/wedding', function () {
+    return view('wedding');
+});
+
+Route::get('/events/retreat', function () {
+    return view('retreat');
+});
+
+Route::get('/events/gathering', function () {
+    return view('gathering');
+});
+
 Route::get('/landing', function () {
     return view('auth.landing.index');
 });

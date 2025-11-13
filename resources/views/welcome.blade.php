@@ -602,13 +602,13 @@
                         role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1"
                         style="display: none;">
                         <div class="py-1" role="none">
-                            <a href="#experience"
+                            <a href="/events/wedding"
                                 class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50 transition"
                                 x-text="t('wedding')">Wedding</a>
-                            <a href="#experience"
+                            <a href="/events/retreat"
                                 class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50 transition"
                                 x-text="t('retreat')">Corporate Retreat</a>
-                            <a href="#experience"
+                            <a href="/events/gathering"
                                 class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50 transition"
                                 x-text="t('gathering')">Family Gathering</a>
                         </div>
