@@ -369,6 +369,11 @@
                         class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
                         Config Struk
                     </a>
+
+                    <a href="{{ route('admin.reports.gross_profit.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
+                        Report
+                    </a>
                 @endif
             @endauth
         </nav>

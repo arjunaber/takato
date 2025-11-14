@@ -212,9 +212,11 @@
                     <tr>
                         <th style="width: 5%;">ID</th>
                         <th>Nama Bahan Baku</th>
-                        <th>Stok Saat Ini</th>
-                        <th>Satuan</th>
-                        <th style="width: 20%;">Aksi</th>
+                        <th style="width: 15%;">Stok Saat Ini</th>
+                        <th style="width: 10%;">Satuan</th>
+                        {{-- BARU: Kolom Harga Satuan --}}
+                        <th style="width: 20%; text-align: right;">Harga Satuan (Rp)</th>
+                        <th style="width: 15%;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -222,8 +224,12 @@
                         <tr>
                             <td>{{ $ingredient->id }}</td>
                             <td><strong>{{ $ingredient->name }}</strong></td>
-                            <td>{{ $ingredient->stock }}</td>
+                            <td>{{ number_format($ingredient->stock, 2, ',', '.') }}</td>
                             <td>{{ $ingredient->unit }}</td>
+                            {{-- BARU: Tampilkan Harga Satuan --}}
+                            <td style="text-align: right;">
+                                Rp {{ number_format($ingredient->unit_price, 0, ',', '.') }}
+                            </td>
                             <td class="d-flex gap-2">
                                 <a href="{{ route('admin.ingredients.edit', $ingredient) }}"
                                     class="btn btn-secondary action-btn">
@@ -239,7 +245,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                            {{-- Colspan disesuaikan dari 5 menjadi 6 --}}
+                            <td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">
                                 Belum ada data bahan baku.
                             </td>
                         </tr>
@@ -256,7 +263,7 @@
 
 
     {{-- =================================== --}}
-    {{-- =  MODAL PENYESUAIAN STOK (BARU)  = --}}
+    {{-- =  MODAL PENYESUAIAN STOK (BARU)  = --}}
     {{-- =================================== --}}
     <div class="modal-overlay" id="stock-adjust-modal">
         <div class="modal-content">
@@ -275,7 +282,8 @@
                             @foreach ($allIngredients as $item)
                                 <option value="{{ $item->id }}" data-unit="{{ $item->unit }}"
                                     data-stock="{{ $item->stock }}">
-                                    {{ $item->name }} (Sisa: {{ $item->stock }} {{ $item->unit }})
+                                    {{ $item->name }} (Sisa: {{ number_format($item->stock, 2, ',', '.') }}
+                                    {{ $item->unit }})
                                 </option>
                             @endforeach
                         </select>

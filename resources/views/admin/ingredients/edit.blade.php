@@ -22,7 +22,8 @@
             </div>
 
             <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 2;">
+                {{-- KOREKSI: STOK DIBUAT FLEX: 1 --}}
+                <div class="form-group" style="flex: 1;">
                     <label for="stock">Stok Saat Ini</label>
                     <input type="number" step="0.01" name="stock" id="stock" class="form-control"
                         value="{{ old('stock', $ingredient->stock) }}" placeholder="cth: 1000">
@@ -30,6 +31,18 @@
                         <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
                     @enderror
                 </div>
+
+                {{-- BARU: INPUT HARGA SATUAN (HPP/Unit Price) --}}
+                <div class="form-group" style="flex: 1;">
+                    <label for="unit_price">Harga Satuan (HPP)</label>
+                    <input type="number" step="1" name="unit_price" id="unit_price" class="form-control"
+                        value="{{ old('unit_price', $ingredient->unit_price) }}" placeholder="cth: 5000">
+                    @error('unit_price')
+                        <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                {{-- KOREKSI: SATUAN DIBUAT FLEX: 1 --}}
                 <div class="form-group" style="flex: 1;">
                     <label for="unit">Satuan</label>
                     <select name="unit" id="unit" class="form-control">

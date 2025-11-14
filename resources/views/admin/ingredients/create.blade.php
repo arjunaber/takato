@@ -21,7 +21,8 @@
             </div>
 
             <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 2;">
+                {{-- KOREKSI: Stok Awal (Sekarang flex: 1) --}}
+                <div class="form-group" style="flex: 1;">
                     <label for="stock">Stok Awal</label>
                     <input type="number" step="0.01" name="stock" id="stock" class="form-control"
                         value="{{ old('stock', 0) }}" placeholder="cth: 1000">
@@ -29,6 +30,18 @@
                         <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
                     @enderror
                 </div>
+
+                {{-- BARU: Harga Satuan (HPP) (flex: 1) --}}
+                <div class="form-group" style="flex: 1;">
+                    <label for="unit_price">Harga Satuan (HPP)</label>
+                    <input type="number" step="1" name="unit_price" id="unit_price" class="form-control"
+                        value="{{ old('unit_price', 0) }}" placeholder="cth: 5000">
+                    @error('unit_price')
+                        <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                {{-- KOREKSI: Satuan (Sekarang flex: 1) --}}
                 <div class="form-group" style="flex: 1;">
                     <label for="unit">Satuan</label>
                     <select name="unit" id="unit" class="form-control">

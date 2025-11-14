@@ -17,13 +17,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'AdminMiddleware' => \App\Http\Middleware\AdminMiddleware::class,
             'owner' => \App\Http\Middleware\OwnerMiddleware::class,
             'admin_or_owner' => \App\Http\Middleware\AdminOrOwnerMiddleware::class,
+            'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+            'Pdf' => Barryvdh\DomPDF\Facade\Pdf::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
             'api/midtrans-webhook'
         ]);
-
-        
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

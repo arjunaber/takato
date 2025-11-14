@@ -13,6 +13,7 @@ class Ingredient extends Model
         'name',
         'unit',
         'stock',
+        'unit_price',
     ];
 
     public function variants()

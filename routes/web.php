@@ -21,6 +21,8 @@ use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Controllers\Admin\StockRequestController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\StrukConfigController;
+use App\Http\Controllers\Admin\ReportController;
+
 
 // Public routes
 Route::get('/', function () {
@@ -95,6 +97,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'owner'])->group(fun
     Route::prefix('config/struk')->name('config.struk.')->group(function () {
         Route::get('/', [StrukConfigController::class, 'edit'])->name('edit');
         Route::post('/', [StrukConfigController::class, 'update'])->name('update');
+    });
+
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('gross-profit', [ReportController::class, 'grossProfitIndex'])->name('gross_profit.index');
+        Route::get('gross-profit/export', [ReportController::class, 'exportGrossProfit'])->name('gross_profit.export'); // Untuk export
     });
 });
 
