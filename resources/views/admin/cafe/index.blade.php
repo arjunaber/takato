@@ -53,8 +53,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                    * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
-                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                    * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
+                                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
 
         .cart-actions-bottom {
             display: grid;
@@ -122,8 +122,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                    * MODAL OPEN BILLS
-                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                    * MODAL OPEN BILLS
+                                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
         #open-bills-modal-overlay .modal-content {
             max-width: 700px;
         }
@@ -156,8 +156,8 @@
 
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                    * MODAL SPLIT BILL (Dipertahankan)
-                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                    * MODAL SPLIT BILL (Dipertahankan)
+                                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
         #split-bill-modal-overlay .modal-content {
             max-width: 900px;
         }
@@ -1513,14 +1513,11 @@
             productArray.forEach(product => {
                 const productElement = document.createElement('div');
                 productElement.className = 'product-item';
-                productElement.onclick = () => openItemModal(product);
 
                 let minPrice = 0;
                 if (product.variants && product.variants.length > 0) {
-                    // Pastikan harga diambil dari varian yang harga dasarnya paling murah
                     minPrice = Math.min(...product.variants.map(v => parseFloat(v.price)));
                 } else if (product.base_price) {
-                    // Fallback jika tidak ada varian, menggunakan base_price produk (jika ada)
                     minPrice = parseFloat(product.base_price);
                 }
 
@@ -1533,8 +1530,54 @@
                         `<div style="height: 80px; width: 80px; background: var(--secondary-light); margin: 0 auto 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Image</div>`;
                 }
 
+                // PERBAIKAN: Cek limiting_stock dengan benar
+                const limitingStock = parseInt(product.limiting_stock) || 0;
+                let stockPriceDisplay = '';
+                let isSoldOut = false;
+                let stockText = '';
+
+                // Logika Penentuan Teks Stok (Fokus pada Angka Sisa)
+                if (isNaN(limitingStock) || limitingStock === 0) {
+                    // Stok Habis
+                    stockText = `<span style="color: #dc3545; font-weight: 700;">SOLD OUT</span>`;
+                    isSoldOut = true;
+                } else if (limitingStock < 10 && limitingStock !== 9999) {
+                    // Stok Kritis (1-9)
+                    stockText = `<span style="color: orange; font-weight: 600;">Sisa: ${limitingStock} unit</span>`;
+                    productElement.style.border = '2px solid orange';
+                } else if (limitingStock >= 9999) {
+                    // Stok tidak terhitung/unlimited (Limit di Controller 9999)
+                    stockText = `<span style="color: var(--text-muted);">Stock > 9999</span>`;
+                } else {
+                    // Stok Cukup (10 - 9998)
+                    // Tampilkan QTY-nya secara eksplisit
+                    stockText = `<span style="color: #28a745;">Sisa: ${limitingStock} unit</span>`;
+                }
+
+                // KOMBINASI: Harga di atas, Stok di bawah
+                stockPriceDisplay = `
+                    <div class="product-price" style="font-weight: 600; color: var(--text-color);">
+                        Mulai ${formatRupiah(minPrice)}
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                        ${stockText}
+                    </div>
+                `;
+
                 productElement.innerHTML =
-                    `${imageHtml}<div class="product-name">${product.name}</div><div class="product-price">Mulai ${formatRupiah(minPrice)}</div>`;
+                    `${imageHtml}<div class="product-name">${product.name}</div>${stockPriceDisplay}`;
+
+                // Atur onclick berdasarkan status stok
+                if (isSoldOut) {
+                    productElement.onclick = () => {
+                        showStatusModal('error', 'Stok Habis', 'Bahan baku untuk produk ini tidak mencukupi.');
+                    };
+                    productElement.style.opacity = 0.5;
+                    productElement.style.cursor = 'not-allowed';
+                } else {
+                    productElement.onclick = () => openItemModal(product); // Pasang kembali onclick normal
+                }
+
                 grid.appendChild(productElement);
             });
         }

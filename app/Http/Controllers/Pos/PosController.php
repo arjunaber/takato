@@ -19,16 +19,7 @@ use App\Models\CashierShift;
 
 class PosController extends Controller
 {
-    /**
-     * Inisialisasi konfigurasi Midtrans
-     */
-    public function __construct()
-    {
-        // Set konfigurasi Midtrans saat controller ini diinisialisasi
-        \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        \Midtrans\Config::$isProduction = config('midtrans.is_production');
-        \Midtrans\Config::$isSanitized = true;
-    }
+    // ... (Metode __construct() tidak berubah) ...
 
     /**
      * Menampilkan halaman POS dan memuat semua data awal.
@@ -36,8 +27,15 @@ class PosController extends Controller
     public function index()
     {
         $categories = Category::orderBy('name')->get();
-        $libraryProducts = Product::with(['variants', 'addons'])->orderBy('name')->get();
-        $favoriteProducts = Product::with(['variants', 'addons'])->where('is_favorite', true)->orderBy('name')->get();
+
+        // KRUSIAL FIX: Tambahkan 'variants.ingredients' untuk memuat data resep
+        $libraryProducts = Product::with(['variants.ingredients', 'addons'])->orderBy('name')->get();
+        $favoriteProducts = Product::with(['variants.ingredients', 'addons'])->where('is_favorite', true)->orderBy('name')->get();
+
+        // Panggil fungsi pembantu untuk menghitung stok pembatas
+        $libraryProducts = $this->calculateLimitingStock($libraryProducts);
+        $favoriteProducts = $this->calculateLimitingStock($favoriteProducts);
+
         $discounts = Discount::orderBy('name')->get();
         $orderTypes = OrderType::orderBy('id')->get();
 
@@ -51,14 +49,83 @@ class PosController extends Controller
     }
 
     /**
-     * Endpoint API (jika Anda membutuhkannya)
+     * Fungsi private untuk menghitung stok maksimum yang dapat diproduksi (Limiting Stock).
      */
+    private function calculateLimitingStock($products)
+    {
+        // Ambil semua stok bahan baku ke dalam map (id => stock) untuk lookup cepat
+        $ingredientStocks = Ingredient::pluck('stock', 'id')->map(fn($stock) => (float)$stock);
+
+        return $products->map(function ($product) use ($ingredientStocks) {
+            $minProductStock = INF;
+            $productHasAnyRecipe = false;
+
+            if ($product->variants->isEmpty()) {
+                $product->limiting_stock = 9999;
+                return $product;
+            }
+
+            foreach ($product->variants as $variant) {
+                $minVariantStock = INF;
+                $variantHasRecipe = false;
+
+                foreach ($variant->ingredients as $ingredient) {
+                    $variantHasRecipe = true;
+                    $productHasAnyRecipe = true;
+
+                    $ingredientId = $ingredient->id;
+                    $quantityUsed = (float)$ingredient->pivot->quantity_used;
+                    $currentStock = $ingredientStocks->get($ingredientId, 0.0);
+
+                    if ($quantityUsed > 0) {
+                        $possibleProduction = floor($currentStock / $quantityUsed);
+                        if ($possibleProduction < $minVariantStock) {
+                            $minVariantStock = $possibleProduction;
+                        }
+                    }
+                }
+
+                if ($variantHasRecipe) {
+                    $variant->max_production = ($minVariantStock === INF) ? 0 : (int)$minVariantStock;
+                } else {
+                    $variant->max_production = INF;
+                }
+
+                if ($variant->max_production < $minProductStock) {
+                    $minProductStock = $variant->max_production;
+                }
+            }
+
+            // Set limiting_stock produk
+            // Jika tidak ada resep sama sekali, set ke 9999 (Stok OK)
+            $product->limiting_stock = ($minProductStock === INF || !$productHasAnyRecipe) ? 9999 : (int)$minProductStock;
+
+            // Batasi tampilan ke 9999 jika stok terlalu tinggi (untuk menghindari angka INF di JSON)
+            if ($product->limiting_stock > 9999) {
+                $product->limiting_stock = 9999;
+            }
+
+            return $product;
+        });
+    }
+
+    // ... (metode lainnya di bawah ini, termasuk getDataForPos, completeOpenBill, store, dll.)
+
+    // Sisa metode lainnya harus tetap sama seperti yang Anda berikan.
+    // Pastikan Anda menyalin ulang metode getDataForPos() juga, dengan EAGER LOADING yang benar.
+
     public function getDataForPos()
     {
         try {
             $categories = Category::orderBy('name')->get();
-            $libraryProducts = Product::with(['variants', 'addons'])->orderBy('name')->get();
-            $favoriteProducts = Product::with(['variants', 'addons'])->where('is_favorite', true)->orderBy('name')->get();
+            // PERBAIKAN: Tambahkan variants.ingredients di sini juga
+            $libraryProducts = Product::with(['variants.ingredients', 'addons'])->orderBy('name')->get();
+            $favoriteProducts = Product::with(['variants.ingredients', 'addons'])->where('is_favorite', true)->orderBy('name')->get();
+
+            // Hitung stok sebelum dikirim ke API
+            $libraryProducts = $this->calculateLimitingStock($libraryProducts);
+            $favoriteProducts = $this->calculateLimitingStock($favoriteProducts);
+
             $discounts = Discount::orderBy('name')->get();
             $orderTypes = OrderType::orderBy('id')->get();
 
@@ -75,10 +142,8 @@ class PosController extends Controller
         }
     }
 
-    /**
-     * Menyelesaikan Open Bill yang sudah ada, mengurangi stok, tanpa membuat order baru.
-     * Dipanggil saat Bayar Penuh.
-     */
+    // ... (Sisa metode di bawah ini tidak berubah) ...
+
     public function completeOpenBill(Request $request, Order $order)
     {
         $request->validate([
