@@ -3,7 +3,9 @@
 <html lang="id">
 
 <head>
+    
     <meta charset="UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surat Permintaan Stok - {{ $date->format('d/m/Y') }}</title>
     <style>
@@ -86,6 +88,20 @@
             /* Memberi ruang untuk info kiri dan kanan */
         }
 
+        /* Tambahan Styling untuk Grand Total */
+        .document-info .grand-total {
+            background-color: #ffeccf;
+            /* Warna latar belakang kuning muda */
+            border: 2px solid #ffc107;
+            /* Garis kuning tua */
+            padding: 8px 15px;
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 10px;
+            display: inline-block;
+            float: right;
+        }
+
         .document-info p {
             margin: 5px 0;
         }
@@ -165,6 +181,12 @@
 </head>
 
 <body onload="window.print(); setTimeout(window.close, 1000);">
+    @php
+        // Hitung Grand Total
+        $grandTotal = collect($items)->sum(function ($item) {
+            return ($item['amount'] ?? 0) * ($item['unit_price'] ?? 0);
+        });
+    @endphp
 
     {{-- Kop Surat --}}
     <div class="header-kop">
@@ -173,8 +195,8 @@
             <h2>TAKATO</h2>
             <p>Jl. Babakan Palasari No. 1, Cihideung, Bogor</p>
             <p>Telp: 08123456789 | Email: info@takato.com</p>
+            </div>
         </div>
-    </div>
 
     <h1>SURAT PERMINTAAN STOK</h1>
 
@@ -183,38 +205,64 @@
             <p><strong>Nomor Dokumen:</strong>
                 SR-{{ $date->format('Ymd') }}-{{ str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT) }}</p>
             <p><strong>Diajukan Oleh:</strong> {{ $user->name }}</p>
-        </div>
-        <div class="right" style="text-align: right;">
+            </div>
+        <div class="right">
             <p><strong>Tanggal Permintaan:</strong> {{ $date->format('d F Y') }}</p>
             <p><strong>Waktu Permintaan:</strong> {{ $date->format('H:i') }} WIB</p>
+            {{-- Tampilkan Grand Total di sini --}}
+            <div class="grand-total">
+                TOTAL KESELURUHAN: Rp {{ number_format($grandTotal, 0, ',', '.') }}
+            </div>
+            
         </div>
-    </div>
+        </div>
 
     <table>
         <thead>
             <tr>
                 <th class="text-center" style="width: 5%;">No.</th>
                 <th>Nama Bahan Baku</th>
-                <th class="text-right" style="width: 15%;">Stok Saat Ini</th>
-                <th class="text-right" style="width: 15%;">Jumlah Permintaan</th>
-                <th class="text-center" style="width: 10%;">Satuan</th>
+                <th class="text-right" style="width: 10%;">Stok Saat Ini</th>
+                <th class="text-right" style="width: 10%;">Jumlah Permintaan</th>
+                <th class="text-center" style="width: 7%;">Satuan</th>
+                {{-- KOLOM BARU --}}
+                <th class="text-right" style="width: 15%;">Hrg Satuan (Rp)</th>
+                <th class="text-right" style="width: 18%;">Total Harga (Rp)</th>
+                
             </tr>
-        </thead>
+            </thead>
         <tbody>
             @forelse ($items as $index => $item)
+                @php
+                    $subtotal = ($item['amount'] ?? 0) * ($item['unit_price'] ?? 0);
+                @endphp
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>{{ $item['name'] }}</td>
                     <td class="text-right">{{ number_format($item['stock'], 2) }}</td>
                     <td class="text-right">{{ number_format($item['amount'], 2) }}</td>
                     <td class="text-center">{{ $item['unit'] }}</td>
+                    {{-- KOLOM BARU --}}
+                    <td class="text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($subtotal, 0, ',', '.') }}</td>
+                    
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center">Tidak ada item permintaan stok.</td>
-                </tr>
+                    <td colspan="7" class="text-center">Tidak ada item permintaan stok.</td>
+                    </tr>
             @endforelse
-        </tbody>
+            </tbody>
+        {{-- Total Row Opsional --}}
+        <tfoot>
+            <tr>
+                <td colspan="6" class="text-right"
+                    style="font-weight: bold; font-size: 10pt; background-color: #f2f2f2;">TOTAL KESELURUHAN</td>
+                <td class="text-right" style="font-weight: bold; font-size: 10pt; background-color: #f2f2f2;">Rp
+                    {{ number_format($grandTotal, 0, ',', '.') }}</td>
+            </tr>
+        </tfoot>
+        
     </table>
 
     <div class="footer-signatures">
@@ -222,18 +270,18 @@
             <p>Pengirim,</p>
             <span class="signature-line"></span>
             <p>({{ $user->name }})</p>
-        </div>
+            </div>
         <div class="signature-box">
             <p>Penerima,</p>
             <span class="signature-line"></span>
             <p>(____________)</p>
-        </div>
+            </div>
         <div class="signature-box">
             <p>Disetujui Oleh,</p>
             <span class="signature-line"></span>
             <p>(Manajer/Admin)</p>
+            </div>
         </div>
-    </div>
 
 </body>
 
