@@ -330,6 +330,8 @@
             wedding: 'Wedding',
             retreat: 'Corporate Retreat',
             gathering: 'Family Gathering',
+            galleryTitle: 'Gallery Kami',
+            galleryDesc: 'Foto-foto lingkungan yang ideal untuk team building dan rapat.',
 
             // --- GATHERING DETAIL KEYS (ID) ---
             gatheringDetailTitle: 'Family Gathering',
@@ -381,6 +383,8 @@
             wedding: 'Wedding',
             retreat: 'Corporate Retreat',
             gathering: 'Family Gathering',
+            galleryTitle: 'Our Gallery',
+            galleryDesc: 'Photos of the ideal environment for team building and meetings.',
 
             // --- GATHERING DETAIL KEYS (EN) ---
             gatheringDetailTitle: 'Family Gathering',
