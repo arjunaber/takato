@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Order; // <-- Import Model
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\StrukConfig;
 
 class OrderController extends Controller
 {
@@ -149,10 +150,14 @@ class OrderController extends Controller
 
     public function printReceipt(Order $order)
     {
-        // Pastikan kita mengambil semua data yang diperlukan untuk struk
-        $order->load('user', 'orderItems', 'orderItems.addons');
+        // Muat semua setting yang relevan
+        $settings = [
+            'wifi_ssid' => StrukConfig::getValue('wifi_ssid', 'TAKATO-Guest'),
+            'wifi_password' => StrukConfig::getValue('wifi_password', 'takato123'),
+            'footer_message' => StrukConfig::getValue('footer_message', 'Terima kasih atas kunjungan Anda!'),
+        ];
 
-        // Kita akan membuat view baru untuk ini
-        return view('admin.receipts.print', compact('order'));
+        $order->load('orderItems.addons');
+        return view('admin.receipts.print', compact('order', 'settings'));
     }
 }

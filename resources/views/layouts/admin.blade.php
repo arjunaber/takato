@@ -364,6 +364,11 @@
                         class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
                         Tipe Pesanan
                     </a>
+
+                    <a href="{{ route('admin.config.struk.edit') }}"
+                        class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
+                        Config Struk
+                    </a>
                 @endif
             @endauth
         </nav>

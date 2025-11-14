@@ -2,151 +2,226 @@
 <html lang="id">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{-- Hapus elemen <title> agar browser tidak mencetak judul halaman/struk --}}
-    <title></title>
+    <title>Struk Pembayaran - {{ $order->invoice_number }}</title>
     <style>
+        /* Pengaturan Umum untuk Struk 80mm */
         * {
             margin: 0;
             padding: 0;
-            font-family: 'monospace', 'Courier New', Courier;
-            font-size: 10pt;
-            line-height: 1.4;
+            /* Ukuran font lebih kecil untuk kertas 80mm, biasanya 8pt-10pt */
+            font-family: 'monospace', 'Courier New', Courier, sans-serif;
+            font-size: 9pt;
+            line-height: 1.3;
+            /* Mengurangi jarak antar baris */
+            box-sizing: border-box;
+            /* Pastikan padding tidak menambah lebar elemen */
         }
 
+        /* Batasi Body untuk memastikan tidak melebihi lebar kertas */
         body {
-            width: 80mm;
-            /* Lebar standar printer thermal */
+            /* Lebar kertas 80mm. Kami menggunakan lebar yang sedikit lebih kecil untuk margin printer. */
+            width: 78mm;
+            padding: 5px;
+            /* Padding aman untuk konten (menggantikan margin @page) */
             margin: 0 auto;
-            padding: 10px;
         }
 
-        .header,
-        .footer {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        /* CSS Tambahan untuk Logo */
+        /* === Elemen Header dan Info === */
         .logo-container {
+            text-align: center;
+            margin: 5px 0 5px;
+        }
+
+        .logo-container img {
+            max-width: 50mm;
+            /* Atur lebar maksimal logo */
+            height: auto;
+        }
+
+        .header {
             text-align: center;
             margin-bottom: 5px;
         }
 
-        .logo-container img {
-            max-width: 40mm;
-            /* Mengurangi lebar maksimal logo dari 50mm menjadi 40mm. */
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-
-        /* Akhir CSS Tambahan Logo */
-
         .header h1 {
-            font-size: 14pt;
-            margin: 0;
+            font-size: 12pt;
+            margin-bottom: 3px;
         }
 
         .header p {
-            font-size: 9pt;
-            margin: 0;
+            font-size: 8pt;
+            margin-bottom: 2px;
+        }
+
+        /* Pembatas Garis */
+        .separator {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+            height: 0;
+            overflow: hidden;
         }
 
         .info {
-            margin-bottom: 10px;
-            border-top: 1px dashed #000;
-            padding-top: 5px;
-        }
-
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 9pt;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead th {
-            text-align: left;
-            border-top: 1px dashed #000;
-            border-bottom: 1px dashed #000;
             padding: 5px 0;
-            font-size: 9pt;
+            margin-bottom: 5px;
         }
 
-        tbody td {
-            padding: 5px 0;
-        }
-
-        .item-row .item-name {
-            font-size: 9pt;
-        }
-
-        .item-row .item-addons {
-            font-size: 8pt;
-            padding-left: 10px;
-            display: block;
-        }
-
-        .item-qty,
-        .item-price,
-        .item-total {
-            text-align: right;
-            vertical-align: top;
-            white-space: nowrap;
-        }
-
-        .summary {
-            border-top: 1px dashed #000;
-            padding-top: 5px;
-            margin-top: 5px;
-        }
-
-        /* Tambahkan style untuk memisahkan Subtotal/Pajak dengan TOTAL */
-        .summary-total-separator {
-            border-top: 1px dashed #000;
-            margin: 5px 0;
-        }
-
-        /* Akhir penambahan style */
-
-
+        .info-item,
         .summary-item {
             display: flex;
             justify-content: space-between;
+            font-size: 9pt;
+            margin-bottom: 1px;
+        }
+
+        /* === Tabel Item === */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+            margin-bottom: 5px;
+        }
+
+        table thead tr {
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+        }
+
+        table th,
+        table td {
+            padding: 2px 0;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        /* Penjajaran untuk kolom tabel */
+        table th:nth-child(2),
+        table td:nth-child(2) {
+            /* Qty */
+            text-align: center;
+            width: 15%;
+        }
+
+        table th:nth-child(3),
+        table td:nth-child(3) {
+            /* Harga */
+            text-align: right;
+            width: 30%;
+        }
+
+        table th:nth-child(4),
+        table td:nth-child(4) {
+            /* Total */
+            text-align: right;
+            width: 25%;
+        }
+
+        table th:first-child,
+        table td:first-child {
+            /* Item Name */
+            width: 30%;
+        }
+
+        .item-row td {
+            padding-bottom: 0px;
+            /* Jarak antar item */
+        }
+
+        .item-name {
+            white-space: normal;
+            /* Biarkan nama item membungkus */
+        }
+
+        .item-addons,
+        .item-addons small {
+            display: block;
+            font-size: 7.5pt !important;
+            margin-top: 1px;
+            padding-left: 5px;
+        }
+
+        /* === Ringkasan Total === */
+        .summary {
+            padding: 5px 0;
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+            margin-bottom: 5px;
+        }
+
+        .summary-total-separator {
+            border-top: 1px solid #000;
+            margin: 3px 0;
+        }
+
+        .summary-item span:first-child {
+            font-weight: normal;
+        }
+
+        .summary-item:nth-child(4) span {
+            /* TOTAL */
+            font-size: 10pt;
             font-weight: bold;
         }
 
         .summary-item.space {
-            margin-top: 10px;
+            margin-top: 5px;
+        }
+
+        /* === Info Tambahan & Footer === */
+        .editable-info {
+            text-align: left;
+            /* PERUBAHAN DI SINI: Rata Kiri */
+            padding: 5px;
+            /* Tambahkan padding agar tidak terlalu mepet tepi */
         }
 
         .footer {
-            border-top: 1px dashed #000;
-            padding-top: 10px;
-            margin-top: 10px;
-            font-size: 9pt;
-        }
-
-        /* CSS Tambahan untuk Info Kaki Struk yang Bisa Diedit */
-        .editable-info {
-            margin-top: 10px;
             text-align: center;
-            font-size: 9pt;
+            /* Tetap di tengah */
+            padding: 5px 0;
         }
 
-        /* Akhir CSS Tambahan Info Kaki Struk */
+        .editable-info p,
+        .footer p {
+            font-size: 8.5pt;
+            line-height: 1.2;
+        }
 
-
-        /* Aturan untuk print */
+        /* === Print Media Queries === */
         @media print {
+
+            /* Hapus margin cetak default */
+            @page {
+                size: 80mm auto;
+                /* Tentukan lebar kertas 80mm dan tinggi otomatis */
+                margin: 0;
+                /* Hapus semua margin default printer */
+            }
+
+            html,
             body {
-                padding: 0;
+                width: 78mm;
+                /* Lebar pastikan 78mm atau 79mm untuk toleransi */
+                overflow: hidden;
+            }
+
+            body {
+                /* Padding aman untuk konten (menggantikan margin @page) */
+                padding: 5px;
+                margin: 0;
+            }
+
+            /* Hindari pemutusan elemen penting */
+            .info,
+            table,
+            .summary,
+            .editable-info,
+            .footer {
+                page-break-inside: avoid;
             }
         }
     </style>
@@ -159,7 +234,6 @@
     {{-- == 1. LOGO ATAS --}}
     {{-- =================================== --}}
     <div class="logo-container">
-        {{-- GANTI DENGAN PATH ASLI LOGO ANDA --}}
         <img src="{{ asset('/cafe.png') }}" alt="Logo Takato">
     </div>
 
@@ -186,6 +260,14 @@
             <span>Metode Bayar:</span>
             <span>{{ ucfirst($order->payment_method) }}</span>
         </div>
+        {{-- Tampilkan Shift ID jika ada --}}
+        @if ($order->cashier_shift_id)
+            <div class="info-item">
+                <span>Shift ID:</span>
+                <span>{{ $order->cashier_shift_id }}</span>
+            </div>
+        @endif
+
     </div>
 
     <table>
@@ -205,12 +287,26 @@
                         {{-- Tampilkan addons jika ada --}}
                         @if ($item->addons->isNotEmpty())
                             <small class="item-addons">
-                                + {{ $item->addons->pluck('name')->join(', ') }}
+                                + {{ $item->addons->pluck('addon_name')->join(', ') }}
                             </small>
                         @endif
+                        {{-- Tampilkan Catatan jika ada --}}
+                        @if ($item->notes)
+                            <small class="item-addons" style="color: #666; font-style: italic;">
+                                Catatan: {{ $item->notes }}
+                            </small>
+                        @endif
+                        {{-- Tampilkan Diskon Item jika ada --}}
+                        @if ($item->discount_amount > 0)
+                            <small class="item-addons" style="color: red;">
+                                Diskon: ({{ number_format($item->discount_amount, 0, ',', '.') }})
+                            </small>
+                        @endif
+
                     </td>
                     <td class="item-qty">{{ $item->quantity }}x</td>
-                    <td class="item-price">{{ number_format($item->unit_price_final, 0, ',', '.') }}</td>
+                    <td class="item-price">
+                        {{ number_format($item->unit_price_final, 0, ',', '.') }}</td>
                     <td class="item-total">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
@@ -253,26 +349,17 @@
     {{-- =================================== --}}
     <div class="editable-info">
         <p> INFO TAMBAHAN </p>
-        {{-- AREA INI MUDAH DIEDIT: Ubah teks di bawah ini --}}
-        <p><strong>Free Wi-Fi</strong>: TAKATO-Guest</p>
-        <p><strong>Pass</strong>: takato123</p>
+        {{-- AREA INI MENGGUNAKAN VARIABEL $settings --}}
+        <p><strong>Free Wi-Fi</strong>: {{ $settings['wifi_ssid'] }}</p>
+        <p><strong>Pass</strong>: {{ $settings['wifi_password'] }}</p>
         <p>Jangan lupa follow Instagram kami @takato.id</p>
         {{-- Akhir Area Edit --}}
     </div>
 
 
     <div class="footer">
-        <p>Terima kasih atas kunjungan Anda!</p>
+        <p>{{ $settings['footer_message'] }}</p>
     </div>
-
-    {{-- =================================== --}}
-    {{-- == 3. LOGO BAWAH --}}
-    {{-- =================================== --}}
-    <div class="logo-container">
-        {{-- GANTI DENGAN PATH ASLI LOGO ANDA --}}
-        <img src="{{ asset('/cafe.png') }}" alt="Logo Takato">
-    </div>
-
 </body>
 
 </html>

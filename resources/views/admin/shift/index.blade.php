@@ -401,17 +401,17 @@
                     // Catatan: \n digunakan di JS string literal, tetapi di message HTML (di showStatusModal) 
                     // kita sudah menggunakan white-space: pre-wrap untuk memprosesnya.
                     let message = `
-Rekonsiliasi Shift # ${shiftId}
--------------------------------------
-Kas Awal:         ${formatRupiah(result.report.initial_cash)}
-Penjualan Tunai:  ${formatRupiah(result.report.system_cash_sales)}
-Penjualan Non-Kas: ${formatRupiah(systemNonCash)}
--------------------------------------
-Total Kas Seharusnya: ${formatRupiah(result.report.initial_cash + result.report.system_cash_sales)}
-Kas Fisik Dihitung:  ${formatRupiah(result.report.closing_cash)}
--------------------------------------
-Selisih Kas:      ${formatRupiah(diff)}
-`;
+                    Rekonsiliasi Shift # ${shiftId}
+                    -------------------------------------
+                    Kas Awal:         ${formatRupiah(result.report.initial_cash)}
+                    Penjualan Tunai:  ${formatRupiah(result.report.system_cash_sales)}
+                    Penjualan Non-Kas: ${formatRupiah(systemNonCash)}
+                    -------------------------------------
+                    Total Kas Seharusnya: ${formatRupiah(result.report.initial_cash + result.report.system_cash_sales)}
+                    Kas Fisik Dihitung:  ${formatRupiah(result.report.closing_cash)}
+                    -------------------------------------
+                    Selisih Kas:      ${formatRupiah(diff)}
+                    `;
 
                     if (diff != 0) {
                         message += "\n\nHarap periksa selisih kas ini!";

@@ -20,6 +20,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Controllers\Admin\StockRequestController;
 use App\Http\Controllers\Admin\ShiftController;
+use App\Http\Controllers\Admin\StrukConfigController;
 
 // Public routes
 Route::get('/', function () {
@@ -90,6 +91,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'owner'])->group(fun
     Route::resource('addons', AddonController::class);
     Route::resource('discounts', DiscountController::class);
     Route::resource('order-types', OrderTypeController::class);
+
+    Route::prefix('config/struk')->name('config.struk.')->group(function () {
+        Route::get('/', [StrukConfigController::class, 'edit'])->name('edit');
+        Route::post('/', [StrukConfigController::class, 'update'])->name('update');
+    });
 });
 
 // Route::post('/midtrans-webhook', [WebhookController::class, 'webhook']);
