@@ -51,13 +51,22 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin_or_owner'])->
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/store', [PosController::class, 'store'])->name('pos.store');
     Route::get('/pos/data', [PosController::class, 'getDataForPos'])->name('pos.data');
+    Route::resource('orders', OrderController::class);
+    Route::get('/orders/{order}/receipt', [OrderController::class, 'printReceipt'])->name('orders.receipt');
+
+    Route::prefix('/pos')->name('pos.')->middleware(['auth'])->group(function () {
+        Route::get('/open-bills', [PosController::class, 'getOpenBills'])->name('open_bills');
+        Route::get('/load-bill/{order}', [PosController::class, 'loadBill'])->name('load_bill');
+        Route::post('/complete-old-bill/{order}', [PosController::class, 'updateBillAfterPayment'])->name('update_bill_status');
+        Route::post('/complete-open-bill/{order}', [PosController::class, 'completeOpenBill'])->name('complete_open_bill');
+    });
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'owner'])->group(function () {
 
     // Dashboard & Laporan (Akses: Owner Saja)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/orders/{order}/receipt', [OrderController::class, 'printReceipt'])->name('orders.receipt');
+
     Route::post('/ingredients/adjust-stock', [IngredientController::class, 'adjustStock'])->name('ingredients.adjust-stock');
     Route::get('/stock/request/print', [StockRequestController::class, 'printRequest'])->name('stock.request.print');
     Route::get('/variants/{variant}/recipe', [RecipeController::class, 'show'])->name('variants.recipe.show');
@@ -71,7 +80,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'owner'])->group(fun
     Route::resource('addons', AddonController::class);
     Route::resource('discounts', DiscountController::class);
     Route::resource('order-types', OrderTypeController::class);
-    Route::resource('orders', OrderController::class);
 });
 
 // Route::post('/midtrans-webhook', [WebhookController::class, 'webhook']);

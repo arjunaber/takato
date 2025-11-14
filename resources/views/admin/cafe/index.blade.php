@@ -9,9 +9,7 @@
 --}}
 @push('styles')
     <style>
-        /* ======================================================================
-                                                                                     * PERBAIKAN TINGGI KRITIS (FIX CUTOFF DENGAN MENGURANGI TINGGI HEADER)
-                                                                                     * ====================================================================== */
+        /* [ ... KODE CSS LAMA TIDAK BERUBAH ... ] */
         html,
         body {
             height: 100%;
@@ -28,10 +26,7 @@
 
         .pos-container {
             display: flex;
-            /* SOLUSI AMAN: Kurangi 55px (estimasi tinggi navbar/header admin).
-                                                                                           Jika masih terpotong, coba kurangi angkanya (misal: 50px).
-                                                                                           Jika ada footer, tambahkan pengurangan tinggi footer juga.
-                                                                                           Misalnya: height: calc(100vh - 55px - 40px); */
+            /* SOLUSI AMAN: Kurangi 55px (estimasi tinggi navbar/header admin). */
             height: calc(100vh - 55px);
             width: 100%;
         }
@@ -44,12 +39,10 @@
             flex-direction: column;
             box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05);
             height: 100%;
-            /* Memastikan cart mengambil tinggi penuh dari pos-container */
         }
 
         .product-list {
             height: 100%;
-            /* Memastikan product-list mengambil tinggi penuh dari pos-container */
             flex: 3;
             background-color: var(--body-bg);
             padding: 24px;
@@ -60,9 +53,27 @@
         }
 
         /* ======================================================================
-                                                                                     * MODIFIKASI MARGIN & PENGATURAN LAINNYA
-                                                                                     * ====================================================================== */
+                                                                                                                                                                                                                                                                        * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
+                                                                                                                                                                                                                                                                        * ====================================================================== */
 
+        .cart-actions-bottom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            /* Dua kolom utama: Open Bill/View Bill dan Bayar */
+            gap: 10px;
+            flex-shrink: 0;
+            margin-top: 25px;
+            margin-bottom: 100px;
+        }
+
+        /* Grup tombol kecil di kiri */
+        .cart-actions-left {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Tombol 'Bayar' Utama */
         .pay-button {
             flex-shrink: 0;
             width: 100%;
@@ -74,13 +85,116 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            /* Margin ditinggikan ke 25px */
-            margin-top: 25px;
-            margin-bottom: 100px;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
             transition: all 0.2s ease;
         }
 
-        /* ... (CSS Modal Pembayaran Anda) ... */
+        /* Tombol Sekunder (Open Bill & View Open Bills) */
+        .pay-button-secondary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 16px 10px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .pay-button-secondary:hover {
+            background-color: #5a6268;
+            box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+        }
+
+        .pay-button:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .cash-quick-input-buttons .btn-sm {
+            flex: 1;
+            font-weight: 600;
+            background-color: var(--secondary-light);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        /* ======================================================================
+                                                                                                                                                                                                                                                                        * MODAL OPEN BILLS
+                                                                                                                                                                                                                                                                        * ====================================================================== */
+        #open-bills-modal-overlay .modal-content {
+            max-width: 700px;
+        }
+
+        .open-bill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--secondary-light);
+        }
+
+        .open-bill-item div {
+            flex-grow: 1;
+        }
+
+        .open-bill-item .bill-info span {
+            display: block;
+            font-size: 14px;
+        }
+
+        .open-bill-item .bill-total {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--danger);
+        }
+
+
+        /* ======================================================================
+                                                                                                                                                                                                                                                                        * MODAL SPLIT BILL (Dipertahankan)
+                                                                                                                                                                                                                                                                        * ====================================================================== */
+        #split-bill-modal-overlay .modal-content {
+            max-width: 900px;
+        }
+
+        #split-bill-modal-overlay h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        #split-bill-modal-overlay .cart-item {
+            padding: 8px 0;
+            border: none;
+            border-bottom: 1px dashed var(--border-color);
+            margin-bottom: 0;
+            border-radius: 0;
+        }
+
+        #split-bill-modal-overlay .summary-row.total {
+            border-top: 2px solid var(--border-color);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        /* KRUSIAL: Atur Z-Index untuk Modal Flow */
+        #split-bill-modal-overlay {
+            z-index: 1000;
+        }
+
+        #payment-modal-overlay {
+            z-index: 1010;
+            /* Pastikan modal pembayaran selalu di atas split bill */
+        }
+
+        /* ... (CSS di bawah ini tidak diubah dari kode sebelumnya, hanya untuk kelengkapan) ... */
+
         .payment-total-display {
             font-size: 28px;
             font-weight: 700;
@@ -91,8 +205,6 @@
             display: flex;
             justify-content: space-between;
         }
-
-        /* ... (CSS di bawah ini tidak diubah dari kode sebelumnya, hanya untuk kelengkapan) ... */
 
         .payment-method-selector {
             display: grid;
@@ -183,6 +295,11 @@
             font-size: 22px;
             font-weight: 700;
             margin-bottom: 10px;
+        }
+
+        .modal-body h2 {
+            font-weight: 700;
+            margin-bottom: 15px;
         }
 
         #status-modal-message {
@@ -788,7 +905,6 @@
 
         .modal-save-btn:hover {
             background-color: #218838;
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         }
 
         @media (max-width: 1024px) {
@@ -831,15 +947,20 @@
             margin-bottom: 10px;
             border: 1px solid var(--border-color);
         }
+
+        /* KRUSIAL: Atur Z-Index untuk Modal Flow */
+        #split-bill-modal-overlay {
+            z-index: 1000;
+        }
+
+        #payment-modal-overlay {
+            z-index: 1010;
+            /* Pastikan modal pembayaran selalu di atas split bill */
+        }
     </style>
 @endpush
 
 
-{{-- 
-======================================================================
- KONTEN HTML POS ANDA
-======================================================================
---}}
 @section('content')
     <div class="pos-container">
         {{-- ... (Konten .product-list Anda) ... --}}
@@ -888,7 +1009,8 @@
 
         {{-- ... (Konten .cart Anda) ... --}}
         <div class="cart">
-            <h2>Pesanan Saat Ini</h2>
+            <h2>Pesanan Saat Ini <span id="current-order-id"
+                    style="font-size: 14px; font-weight: normal; color: var(--danger);"></span></h2>
             <div class="cart-items" id="cart-items-container"></div>
             <div class="cart-summary">
                 <div class="summary-row">
@@ -905,7 +1027,38 @@
                     <span id="summary-total">Rp 0</span>
                 </div>
             </div>
-            <button class="pay-button" id="pay-button" onclick="openPaymentModal()">Bayar</button>
+
+            {{-- ==== TOMBOL AKSI DISIMPLIFIKASI (Open Bill, View Open Bills, Bayar) ==== --}}
+            <div class="cart-actions-bottom">
+                <div class="cart-actions-left">
+                    <button class="pay-button-secondary" id="open-bill-button" onclick="openBill()">Open Bill</button>
+                    <button class="pay-button-secondary" id="view-bills-button" onclick="openOpenBillsModal()">View Open
+                        Bills</button>
+                </div>
+                <button class="pay-button" id="pay-button" onclick="openPaymentModal()">Bayar</button>
+            </div>
+            {{-- ================================================= --}}
+        </div>
+    </div>
+
+    {{-- ======================================= --}}
+    {{-- ==  HTML MODAL CONFIRM BILL ACTION (BARU) == --}}
+    {{-- ======================================= --}}
+    <div class="modal-overlay" id="confirm-bill-action-modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h2>Aksi Tagihan</h2>
+                <button class="modal-close-btn" onclick="closeConfirmBillActionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Pilih bagaimana Anda ingin melanjutkan dengan <strong id="bill-action-invoice-num">#INV-XXX</strong>:</p>
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 10px;">
+                <button type="button" class="btn btn-primary" id="btn-action-pay-full" style="padding: 12px 20px;">Bayar
+                    Penuh</button>
+                <button type="button" class="btn btn-secondary" id="btn-action-split" style="padding: 12px 20px;">Split
+                    Bill</button>
+            </div>
         </div>
     </div>
 
@@ -963,6 +1116,20 @@
                     </div>
                 </div>
                 <div id="cash-payment-section">
+
+                    {{-- TOMBOL UANG CEPAT (BARU) --}}
+                    <div class="cash-quick-input-buttons" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="quickCashInput(20000)">Rp
+                            20K</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="quickCashInput(50000)">Rp
+                            50K</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="quickCashInput(100000)">Rp
+                            100K</button>
+                        <button type="button" class="btn btn-secondary btn-sm"
+                            onclick="quickCashInput('clear')">Clear</button>
+                    </div>
+                    {{-- AKHIR TOMBOL UANG CEPAT --}}
+
                     <div class="form-group form-control-modern">
                         <label for="payment-cash-amount">Nominal Uang Diterima (Rp)</label>
                         <input type="number" id="payment-cash-amount" class="form-control" placeholder="cth: 100000">
@@ -983,9 +1150,67 @@
         </div>
     </div>
 
-    {{-- =================================== --}}
-    {{-- ==  HTML MODAL STATUS (BARU)     == --}}
-    {{-- =================================== --}}
+    {{-- ... (Modal View Open Bills Anda) ... --}}
+    <div class="modal-overlay" id="open-bills-modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Tagihan Terbuka (Open Bills)</h2>
+                <button class="modal-close-btn" onclick="closeOpenBillsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="open-bills-container">
+                    <p id="loading-open-bills">Memuat data...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeOpenBillsModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+
+    {{-- ... (Modal Split Bill Anda) ... --}}
+    <div class="modal-overlay" id="split-bill-modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>Split Bill Berdasarkan Menu</h2>
+                <button class="modal-close-btn" onclick="closeSplitBillModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; gap: 20px;">
+                    {{-- KIRI: Keranjang Utama (Source) --}}
+                    <div style="flex: 1; border-right: 1px solid var(--border-color); padding-right: 15px;">
+                        <h3>Keranjang Utama (Sisa: <span id="split-main-total">Rp 0</span>)</h3>
+                        <div id="split-main-cart-container" class="cart-items"
+                            style="max-height: 40vh; overflow-y: auto;">
+                        </div>
+                    </div>
+
+                    {{-- KANAN: Keranjang Split (Destination) --}}
+                    <div style="flex: 1; padding-left: 15px;">
+                        <h3>Keranjang Split (Bayar: <span id="split-split-total">Rp 0</span>)</h3>
+                        <div id="split-split-cart-container" class="cart-items"
+                            style="max-height: 40vh; overflow-y: auto;">
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <div class="summary-row total">
+                                <span>Total Split Bill</span>
+                                <span id="split-total-final">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button type="button" class="btn btn-secondary" onclick="closeSplitBillModal()">Batal</button>
+                <button type="button" class="modal-save-btn" id="split-confirm-btn" onclick="confirmSplitBill()">
+                    Bayar Split Bill (<span id="split-pay-amount">Rp 0</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ... (Modal Status Anda) ... --}}
     <div class="modal-overlay" id="status-modal-overlay">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-body">
@@ -1012,7 +1237,6 @@
                 <p id="status-modal-message"></p>
             </div>
 
-            {{-- ==== PERUBAHAN HTML DI SINI ==== --}}
             <div class="modal-footer" id="status-modal-footer">
                 {{-- Tombol Cetak (disembunyikan by default) --}}
                 <button type="button" id="status-modal-print-btn" class="btn btn-secondary"
@@ -1022,17 +1246,12 @@
                 {{-- Tombol OK (ganti ID) --}}
                 <button type="button" id="status-modal-ok-btn" class="btn btn-primary">OK</button>
             </div>
-            {{-- ==== AKHIR PERUBAHAN ==== --}}
 
         </div>
     </div>
 @endsection
 
-{{-- 
-======================================================================
- JAVASCRIPT POS ANDA + SCRIPT UNTUK TUTUP SIDEBAR
-======================================================================
---}}
+
 @push('scripts')
     {{-- =============================================== --}}
     {{-- ==  1. TAMBAHKAN SCRIPT SNAP.JS DARI MIDTRANS  == --}}
@@ -1043,7 +1262,7 @@
 
 
     <script>
-        // ... (Script Sidebar Toggle) ...
+        // Script Sidebar Toggle
         document.addEventListener('DOMContentLoaded', function() {
             const body = document.body;
             const storageKey = 'sidebarState';
@@ -1054,7 +1273,7 @@
         });
 
         // ===============================================
-        // == SCRIPT ASLI POS ANDA
+        // == DATA DARI CONTROLLER
         // ===============================================
         const allCategories = @json($categories ?? []);
         const allLibraryProducts = @json($libraryProducts ?? []);
@@ -1062,10 +1281,13 @@
         const allDiscounts = @json($discounts ?? []);
         const allOrderTypes = @json($orderTypes ?? []);
 
-        // Variabel global
+        // ===============================================
+        // == VARIABEL GLOBAL
+        // ===============================================
         let cartItems = [];
+        let splitCartItems = [];
         let currentEditingProduct = null;
-        let currentEditingIndex = -1; // -1 = Add baru, >= 0 = Index item yang diedit
+        let currentEditingIndex = -1;
         let currentTax = 0;
         let currentSubtotal = 0;
         let currentTotal = 0;
@@ -1074,10 +1296,25 @@
         let currentChange = 0;
         let isLastTransactionSuccess = false;
         let lastSuccessfulOrderId = null;
-
+        let activeOpenBillId = null;
+        let currentSelectedOpenBillId = null;
+        let currentSelectedOpenBillInvoice = null;
+        let remainingCartItems = [];
+        let paidItemIds = []; // Variabel global untuk menyimpan ID Order Item yang dibayar saat split
 
         // ===============================================
-        // == FUNGSI (TAB, KATEGORI, CUSTOM)
+        // == FUNGSI UTILITAS
+        // ===============================================
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
+
+        // ===============================================
+        // == FUNGSI TAB NAVIGATION
         // ===============================================
         function showTab(tabName, clickedButton) {
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
@@ -1085,12 +1322,22 @@
             document.getElementById(`tab-${tabName}`).classList.add('active');
             clickedButton.classList.add('active');
 
-            // Reset form custom item saat pindah tab
             if (tabName !== 'custom') {
                 resetCustomItemForm();
             }
+
+            if (tabName === 'favorit') {
+                renderFavoriteProducts();
+            }
+            if (tabName === 'library') {
+                // Pastikan tampilan kembali ke kategori jika pindah tab dari favorit/custom
+                showCategoryList();
+            }
         }
 
+        // ===============================================
+        // == FUNGSI CUSTOM ITEM
+        // ===============================================
         function resetCustomItemForm() {
             document.getElementById('custom-item-name').value = '';
             document.getElementById('custom-item-price').value = '';
@@ -1098,7 +1345,6 @@
             currentEditingIndex = -1;
         }
 
-        // Ganti nama fungsinya menjadi saveCustomItem() untuk mendukung ADD dan EDIT
         function saveCustomItem() {
             const nameInput = document.getElementById('custom-item-name');
             const priceInput = document.getElementById('custom-item-price');
@@ -1110,16 +1356,12 @@
                 return;
             }
 
-            // --- Logika EDIT atau ADD ---
             if (currentEditingIndex > -1) {
-                // Mode Edit: Update item yang sudah ada
                 cartItems[currentEditingIndex].name = name;
                 cartItems[currentEditingIndex].finalPrice = price;
-                // Kuantitas tidak diubah di sini, diatur di keranjang
             } else {
-                // Mode Add Baru
                 const cartItem = {
-                    id: 'custom-' + Date.now(), // ID unik untuk item custom baru
+                    id: 'custom-' + Date.now(),
                     name: name,
                     quantity: 1,
                     note: '',
@@ -1131,12 +1373,36 @@
 
             renderCart();
             updateSummary();
-            resetCustomItemForm(); // Bersihkan form setelah disimpan
+            resetCustomItemForm();
         }
 
+        function editCustomItem(index) {
+            const item = cartItems[index];
+            currentEditingIndex = index;
+            const customTabButton = document.querySelector('.nav-tab[onclick*="showTab(\'custom\')"]');
+            showTab('custom', customTabButton);
+
+            document.getElementById('custom-item-name').value = item.name;
+            document.getElementById('custom-item-price').value = item.finalPrice;
+            document.querySelector('.custom-item-btn').innerText = 'Simpan Perubahan';
+            document.getElementById('custom-item-name').focus();
+        }
+
+        // ===============================================
+        // == FUNGSI KATEGORI & PRODUK
+        // ===============================================
         function renderCategories() {
             const grid = document.getElementById('category-grid-container');
             grid.innerHTML = '';
+
+            if (allCategories.length === 0) {
+                document.getElementById('library-categories-view').style.display = 'none';
+                document.getElementById('library-products-view').style.display = 'block';
+                document.getElementById('library-category-name').innerText = 'Semua Produk';
+                renderProductsInGrid('library-product-grid', allLibraryProducts);
+                return;
+            }
+
             allCategories.forEach(cat => {
                 const categoryElement = document.createElement('div');
                 categoryElement.className = 'category-item';
@@ -1158,37 +1424,32 @@
         function showCategoryList() {
             document.getElementById('library-categories-view').style.display = 'block';
             document.getElementById('library-products-view').style.display = 'none';
-        }
-
-        // ===============================================
-        // == FUNGSI UTAMA (Sistem & Keranjang)
-        // ===============================================
-        function formatRupiah(number) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(number);
+            renderCategories();
         }
 
         function renderProductsInGrid(gridId, productArray) {
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
+
             if (!productArray || productArray.length === 0) {
                 grid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">Tidak ada produk.</p>';
                 return;
             }
+
             productArray.forEach(product => {
                 const productElement = document.createElement('div');
                 productElement.className = 'product-item';
-                // openItemModal disiapkan untuk Add baru (mode non-edit)
                 productElement.onclick = () => openItemModal(product);
+
                 let minPrice = 0;
                 if (product.variants && product.variants.length > 0) {
+                    // Pastikan harga diambil dari varian yang harga dasarnya paling murah
                     minPrice = Math.min(...product.variants.map(v => parseFloat(v.price)));
+                } else if (product.base_price) {
+                    // Fallback jika tidak ada varian, menggunakan base_price produk (jika ada)
+                    minPrice = parseFloat(product.base_price);
                 }
 
-                // --- KODE BARU UNTUK MENAMPILKAN GAMBAR ---
                 let imageHtml = '';
                 if (product.image_url) {
                     const imageUrl = `{{ asset('storage') }}/${product.image_url}`;
@@ -1197,7 +1458,6 @@
                     imageHtml =
                         `<div style="height: 80px; width: 80px; background: var(--secondary-light); margin: 0 auto 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Image</div>`;
                 }
-                // --- AKHIR KODE BARU ---
 
                 productElement.innerHTML =
                     `${imageHtml}<div class="product-name">${product.name}</div><div class="product-price">Mulai ${formatRupiah(minPrice)}</div>`;
@@ -1209,19 +1469,30 @@
             renderProductsInGrid('favorit-product-grid', allFavoriteProducts);
         }
 
+        // ===============================================
+        // == FUNGSI KERANJANG
+        // ===============================================
         function renderCart() {
             const cartContainer = document.getElementById('cart-items-container');
+            const orderIdDisplay = document.getElementById('current-order-id');
             cartContainer.innerHTML = '';
+
+            if (activeOpenBillId) {
+                orderIdDisplay.innerText = `(Order ID: #${activeOpenBillId})`;
+            } else {
+                orderIdDisplay.innerText = '';
+            }
+
             if (cartItems.length === 0) {
                 cartContainer.innerHTML = '<p class="cart-empty">Keranjang masih kosong.</p>';
                 return;
             }
+
             cartItems.forEach((item, index) => {
                 const cartItemElement = document.createElement('div');
                 cartItemElement.className = 'cart-item';
 
                 if (item.isCustom) {
-                    // =============== KODE CUSTOM DENGAN TOMBOL EDIT ===============
                     cartItemElement.innerHTML = `
                 <div class="cart-item-ordertype custom">Custom</div>
                 <div class="cart-item-header"><span class="cart-item-name">${item.name}</span><span class="cart-item-price">${formatRupiah(item.finalPrice)}</span></div>
@@ -1230,11 +1501,9 @@
                     <button class="remove-btn" onclick="editCustomItem(${index})" style="background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); margin-left: 12px; margin-right: 8px; width: auto; padding: 0 10px;">Edit</button>
                     <button class="remove-btn" onclick="removeCartItem(${index})" style="margin-left: 0;">Hapus</button>
                 </div>`;
-                    // ==============================================================
                 } else {
-                    // =============== KODE PRODUK DENGAN TOMBOL EDIT ===============
                     let addonsHtml = '<ul>';
-                    if (item.selectedAddons.length > 0) {
+                    if (item.selectedAddons && item.selectedAddons.length > 0) {
                         item.selectedAddons.forEach(addon => {
                             addonsHtml += `<li>${addon.name} (+${formatRupiah(addon.price)})</li>`;
                         });
@@ -1242,25 +1511,29 @@
                         addonsHtml += '<li>-</li>';
                     }
                     addonsHtml += '</ul>';
+
                     let discountHtml = '';
-                    if (item.discount.id > 1) {
+                    if (item.discount && item.discount.id > 1) {
                         discountHtml = `<div class="cart-item-discount">Diskon: ${item.discount.name}</div>`;
                     }
+
                     let noteHtml = '';
-                    if (item.note.trim() !== '') {
+                    if (item.note && item.note.trim() !== '') {
                         noteHtml = `<div class="cart-item-note">Catatan: ${item.note}</div>`;
                     }
-                    let orderTypeHtml = `<div class="cart-item-ordertype">${item.selectedOrderType.name}</div>`;
+
+                    let orderTypeHtml =
+                        `<div class="cart-item-ordertype">${item.selectedOrderType ? item.selectedOrderType.name : 'Dine In'}</div>`;
+
                     cartItemElement.innerHTML = `
                 ${orderTypeHtml}
-                <div class="cart-item-header"><span class="cart-item-name">${item.name} (${item.selectedVariant.name})</span><span class="cart-item-price">${formatRupiah(item.finalPrice)}</span></div>
+                <div class="cart-item-header"><span class="cart-item-name">${item.name} (${item.selectedVariant ? item.selectedVariant.name : 'N/A'})</span><span class="cart-item-price">${formatRupiah(item.finalPrice)}</span></div>
                 <div class="cart-item-details"><span class="detail-label">Add-ons:</span>${addonsHtml}${discountHtml}${noteHtml}</div>
                 <div class="cart-item-actions">
                     <button onclick="updateCartQuantity(${index}, -1)">-</button><span>${item.quantity}</span><button onclick="updateCartQuantity(${index}, 1)">+</button>
                     <button class="remove-btn" onclick="editProductItem(${index})" style="background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); margin-left: auto; margin-right: 8px; width: auto; padding: 0 10px;">Edit</button>
                     <button class="remove-btn" onclick="removeCartItem(${index})" style="margin-left: 0;">Hapus</button>
                 </div>`;
-                    // ==============================================================
                 }
                 cartContainer.appendChild(cartItemElement);
             });
@@ -1279,7 +1552,7 @@
             cartItems.splice(index, 1);
             renderCart();
             updateSummary();
-            resetCustomItemForm(); // Pastikan form custom bersih jika item custom yang dihapus sedang diedit
+            resetCustomItemForm();
         }
 
         function updateSummary() {
@@ -1287,183 +1560,76 @@
             cartItems.forEach(item => {
                 subtotal += item.finalPrice * item.quantity;
             });
+
             const taxRate = 0.10;
             const tax = subtotal * taxRate;
             const total = subtotal + tax;
+
             currentSubtotal = subtotal;
             currentTax = tax;
             currentTotal = total;
+
             document.getElementById('summary-subtotal').innerText = formatRupiah(subtotal);
             document.getElementById('summary-tax').innerText = formatRupiah(tax);
             document.getElementById('summary-total').innerText = formatRupiah(total);
-            document.getElementById('pay-button').disabled = cartItems.length === 0;
-        }
 
-        // ===============================================
-        // == FUNGSI EDIT ITEM (BARU)
-        // ===============================================
+            const isDisabled = cartItems.length === 0;
+            const payButton = document.getElementById('pay-button');
 
-        function editCustomItem(index) {
-            const item = cartItems[index];
-
-            // 1. Set mode editing
-            currentEditingIndex = index;
-
-            // 2. Pindah dan aktifkan tab Custom
-            const customTabButton = document.querySelector('.nav-tab[onclick*="showTab(\'custom\')"]');
-            showTab('custom', customTabButton);
-
-            // 3. Isi form dengan data item yang akan di-edit
-            document.getElementById('custom-item-name').value = item.name;
-            document.getElementById('custom-item-price').value = item.finalPrice;
-
-            // 4. Ubah teks tombol menjadi 'Simpan Perubahan'
-            document.querySelector('.custom-item-btn').innerText = 'Simpan Perubahan';
-
-            // 5. Beri fokus
-            document.getElementById('custom-item-name').focus();
-        }
-
-        function findOriginalProduct(itemId) {
-            // Cari di library dan favorit (asumsi ID produk non-custom adalah ID asli)
-            let product = allLibraryProducts.find(p => p.id == itemId);
-            if (!product) {
-                product = allFavoriteProducts.find(p => p.id == itemId);
+            if (activeOpenBillId) {
+                payButton.innerText = 'Selesaikan Tagihan';
+            } else {
+                payButton.innerText = 'Bayar';
             }
-            return product;
+
+            payButton.disabled = isDisabled;
+            document.getElementById('open-bill-button').disabled = isDisabled;
+            document.getElementById('view-bills-button').disabled = false;
         }
 
         function editProductItem(index) {
             const itemToEdit = cartItems[index];
-
-            // Cari produk asli (asumsi ID item keranjang non-custom adalah ID produk asli)
             const allProducts = [...allLibraryProducts, ...allFavoriteProducts];
-            const originalProduct = allProducts.find(p => p.id == itemToEdit.id);
+            // Temukan produk berdasarkan ID
+            const originalProduct = allProducts.find(p => p.id == itemToEdit
+                .product_id); // Gunakan product_id dari item cart
 
             if (!originalProduct) {
                 showStatusModal('error', 'Gagal Edit', 'Data produk asli tidak ditemukan.');
                 return;
             }
 
-            // Panggil openItemModal dalam mode EDIT (melewatkan index)
             openItemModal(originalProduct, index);
         }
 
-
         // ===============================================
-        // == Fungsi submitPayment (AJAX) - VERSI BARU
+        // == FUNGSI MODAL ITEM
         // ===============================================
-        async function submitPayment() {
-            const payButton = document.getElementById('payment-submit-btn');
-            payButton.disabled = true;
-            payButton.innerText = 'Memproses...';
-            isLastTransactionSuccess = false;
-            lastSuccessfulOrderId = null;
-
-            const dataToSend = {
-                cartItems: cartItems,
-                subtotal: currentSubtotal,
-                tax: currentTax,
-                total: currentTotal,
-                paymentMethod: currentPaymentMethod,
-                cashReceived: (currentPaymentMethod === 'cash') ? currentCashAmount : null,
-                cashChange: (currentPaymentMethod === 'cash') ? currentChange : null,
-            };
-
-            try {
-                const response = await fetch("{{ route('admin.pos.store') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-csrf-token"]').getAttribute(
-                            'content'),
-                        'Accept': 'application/json'
-                    },
-                    credentials: "include",
-                    body: JSON.stringify(dataToSend)
-                });
-
-                const result = await response.json();
-                if (!response.ok) {
-                    throw new Error(result.error || result.message || 'Terjadi kesalahan server');
-                }
-
-                // == INI LOGIKA BARU YANG ANDA BUTUHKAN ==
-                if (result.status === 'pending' && result.snap_token) {
-                    // --- 1. JIKA PAYMENT GATEWAY (PENDING) ---
-                    isLastTransactionSuccess = true;
-                    lastSuccessfulOrderId = result.order_id;
-                    closePaymentModal(); // Tutup modal pembayaran
-
-                    // Buka pop-up Midtrans
-                    snap.pay(result.snap_token, {
-                        onSuccess: function(trxResult) {
-                            showStatusModal('success', 'Pembayaran Berhasil', 'Order ID: ' + result
-                                .order_id + ' telah dibayar.');
-                        },
-                        onPending: function(trxResult) {
-                            showStatusModal('pending', 'Menunggu Pembayaran', 'Order ID: ' + result
-                                .order_id + '. Selesaikan pembayaran.');
-                        },
-                        onError: function(trxResult) {
-                            showStatusModal('error', 'Pembayaran Gagal', 'Order ID: ' + result.order_id +
-                                '. Coba lagi.');
-                        },
-                        onClose: function() {
-                            // Saat pop-up Midtrans ditutup, kita juga panggil closeStatusModal
-                            // agar keranjang di-reset
-                            closeStatusModal();
-                        }
-                    });
-
-                } else if (result.status === 'completed') {
-                    // --- 2. JIKA CASH (COMPLETED) ---
-                    isLastTransactionSuccess = true;
-                    lastSuccessfulOrderId = result.order_id;
-                    showStatusModal('success', 'Pesanan Berhasil', 'Order ID: ' + result.order_id + ' telah disimpan.');
-                }
-                // ======================================
-
-            } catch (error) {
-                console.error('Error submitting payment:', error);
-                isLastTransactionSuccess = false;
-                lastSuccessfulOrderId = null;
-                showStatusModal('error', 'Gagal Menyimpan', error.message);
-
-            } finally {
-                payButton.disabled = false;
-                payButton.innerText = 'Proses Pesanan';
-            }
-        }
-
-        // ===============================================
-        // == FUNGSI MODAL ITEM (Lama, tidak berubah)
-        // ===============================================
-        function openItemModal(product, indexInCart = -1) {
+        function openItemModal(product, editIndex = -1) {
             currentEditingProduct = product;
-            currentEditingIndex = indexInCart; // Set index edit
-            const isEditMode = indexInCart > -1;
-            let itemToEdit = isEditMode ? cartItems[indexInCart] : null;
+            currentEditingIndex = editIndex;
 
             document.getElementById('modal-item-name').innerText = product.name;
 
-            // --- 1. VARIAN ---
+            // Render Variants
             const variantsContainer = document.getElementById('modal-item-variants');
             variantsContainer.innerHTML = '';
             product.variants.forEach((variant, index) => {
                 let isChecked = index === 0;
-                if (isEditMode && itemToEdit.selectedVariant) {
-                    // Jika Edit Mode, cek apakah variant ini yang dipilih di keranjang
-                    isChecked = (variant.id === itemToEdit.selectedVariant.id);
+                if (editIndex > -1 && cartItems[editIndex].selectedVariant && cartItems[editIndex].selectedVariant
+                    .name === variant.name) {
+                    isChecked = true;
                 }
-
-                const checkedAttr = isChecked ? 'checked' : '';
                 const variantId = `variant-${product.id}-${index}`;
                 variantsContainer.innerHTML +=
-                    `<div class="option-item-wrapper"><input type="radio" id="${variantId}" name="variant-${product.id}" value="${index}" ${checkedAttr} onchange="updateModalPrice()"><label class="option-item" for="${variantId}"><span class="option-name">${variant.name}</span><span class="option-price">${formatRupiah(variant.price)}</span></label></div>`;
+                    `<div class="option-item-wrapper"><input type="radio" id="${variantId}" name="variant-${product.id}" value="${index}" ${isChecked ? 'checked' : ''} onchange="updateModalPrice()"><label class="option-item" for="${variantId}"><span class="option-name">${variant.name}</span><span class="option-price">${formatRupiah(variant.price)}</span></label></div>`;
             });
+            // Jika tidak ada yang terpilih, pilih varian pertama secara default
+            if (product.variants.length > 0 && !document.querySelector(`input[name="variant-${product.id}"]:checked`)) {
+                document.querySelector(`input[name="variant-${product.id}"][value="0"]`).checked = true;
+            }
 
-            // --- 2. ADD-ONS ---
+            // Render Addons
             const addonsContainer = document.getElementById('modal-item-addons');
             addonsContainer.innerHTML = '';
             if (!product.addons || product.addons.length === 0) {
@@ -1472,59 +1638,58 @@
             } else {
                 product.addons.forEach((addon, index) => {
                     let isChecked = false;
-                    if (isEditMode && itemToEdit.selectedAddons) {
-                        // Jika Edit Mode, cek apakah addon ini ada di selectedAddons
-                        isChecked = itemToEdit.selectedAddons.some(selected => selected.id === addon.id);
+                    if (editIndex > -1) {
+                        // Periksa berdasarkan ID Addon
+                        isChecked = cartItems[editIndex].selectedAddons.some(a => a.id === addon.id);
                     }
-
-                    const checkedAttr = isChecked ? 'checked' : '';
                     const addonId = `addon-${product.id}-${index}`;
                     addonsContainer.innerHTML +=
-                        `<div class="option-item-wrapper"><input type="checkbox" id="${addonId}" name="addon-${product.id}" value="${index}" ${checkedAttr} onchange="updateModalPrice()"><label class="option-item" for="${addonId}"><span class="option-name">${addon.name}</span><span class="option-price-addon">+ ${formatRupiah(addon.price)}</span></label></div>`;
+                        `<div class="option-item-wrapper"><input type="checkbox" id="${addonId}" name="addon-${product.id}" value="${index}" ${isChecked ? 'checked' : ''} onchange="updateModalPrice()"><label class="option-item" for="${addonId}"><span class="option-name">${addon.name}</span><span class="option-price-addon">+ ${formatRupiah(addon.price)}</span></label></div>`;
                 });
             }
 
-            // --- 3. TIPE PESANAN ---
+            // Render Order Types
             const orderTypesContainer = document.getElementById('modal-item-ordertypes');
             orderTypesContainer.innerHTML = '';
             allOrderTypes.forEach(type => {
                 let isChecked = type.id === 1;
-                if (isEditMode && itemToEdit.selectedOrderType) {
-                    isChecked = (type.id === itemToEdit.selectedOrderType.id);
+                if (editIndex > -1 && cartItems[editIndex].selectedOrderType && cartItems[editIndex]
+                    .selectedOrderType.id === type.id) {
+                    isChecked = true;
                 }
-                const checkedAttr = isChecked ? 'checked' : '';
                 const typeId = `ordertype-${type.id}`;
                 let priceText = '';
                 if (type.type === 'percentage') priceText = `+ ${parseFloat(type.value) * 100}%`;
                 else if (parseFloat(type.value) > 0) priceText = `+ ${formatRupiah(type.value)}`;
                 orderTypesContainer.innerHTML +=
-                    `<div class="option-item-wrapper"><input type="radio" id="${typeId}" name="ordertype" value="${type.id}" ${checkedAttr} onchange="updateModalPrice()"><label class="option-item" for="${typeId}"><span class="option-name">${type.name}</span><span class="option-price-ordertype">${priceText}</span></label></div>`;
+                    `<div class="option-item-wrapper"><input type="radio" id="${typeId}" name="ordertype" value="${type.id}" ${isChecked ? 'checked' : ''} onchange="updateModalPrice()"><label class="option-item" for="${typeId}"><span class="option-name">${type.name}</span><span class="option-price-ordertype">${priceText}</span></label></div>`;
             });
 
-            // --- 4. DISKON ---
+            // Render Discounts
             const discountsContainer = document.getElementById('modal-item-discounts');
             discountsContainer.innerHTML = '';
             allDiscounts.forEach(discount => {
                 let isChecked = discount.id === 1;
-                if (isEditMode && itemToEdit.discount) {
-                    isChecked = (discount.id === itemToEdit.discount.id);
+                if (editIndex > -1 && cartItems[editIndex].discount && cartItems[editIndex].discount.id === discount
+                    .id) {
+                    isChecked = true;
                 }
-                const checkedAttr = isChecked ? 'checked' : '';
                 const discountId = `discount-${discount.id}`;
                 let priceText = '';
                 if (discount.type === 'percentage') priceText = `${parseFloat(discount.value) * 100}%`;
                 else if (parseFloat(discount.value) > 0) priceText = `-${formatRupiah(discount.value)}`;
                 discountsContainer.innerHTML +=
-                    `<div class="option-item-wrapper"><input type="radio" id="${discountId}" name="discount" value="${discount.id}" ${checkedAttr} onchange="updateModalPrice()"><label class="option-item" for="${discountId}"><span class="option-name">${discount.name}</span><span class="option-price-discount">${priceText}</span></label></div>`;
+                    `<div class="option-item-wrapper"><input type="radio" id="${discountId}" name="discount" value="${discount.id}" ${isChecked ? 'checked' : ''} onchange="updateModalPrice()"><label class="option-item" for="${discountId}"><span class="option-name">${discount.name}</span><span class="option-price-discount">${priceText}</span></label></div>`;
             });
 
-            // --- 5. KUANTITAS & CATATAN ---
-            document.getElementById('modal-item-quantity').value = isEditMode ? itemToEdit.quantity : 1;
-            document.getElementById('modal-item-note').value = isEditMode ? itemToEdit.note : '';
-
-            // --- 6. TOMBOL FOOTER ---
-            document.querySelector('#item-modal-overlay .modal-save-btn').innerText = isEditMode ? 'Simpan Perubahan' :
-                'Simpan ke Keranjang';
+            // Set quantity and note
+            if (editIndex > -1) {
+                document.getElementById('modal-item-quantity').value = cartItems[editIndex].quantity;
+                document.getElementById('modal-item-note').value = cartItems[editIndex].note || '';
+            } else {
+                document.getElementById('modal-item-quantity').value = 1;
+                document.getElementById('modal-item-note').value = '';
+            }
 
             updateModalPrice();
             document.getElementById('item-modal-overlay').style.display = 'flex';
@@ -1533,22 +1698,30 @@
         function closeItemModal() {
             document.getElementById('item-modal-overlay').style.display = 'none';
             currentEditingProduct = null;
+            currentEditingIndex = -1;
         }
 
         function updateModalPrice() {
             if (!currentEditingProduct) return;
+
+            // Pastikan varian terpilih ada
             const selectedVariantRadio = document.querySelector(
                 `input[name="variant-${currentEditingProduct.id}"]:checked`);
-            if (!selectedVariantRadio) return; // safety check
+            if (!selectedVariantRadio) {
+                document.getElementById('modal-item-price').innerText = formatRupiah(0);
+                return;
+            }
             const selectedVariantIndex = selectedVariantRadio.value;
             const variant = currentEditingProduct.variants[selectedVariantIndex];
             let price = parseFloat(variant.price);
+
             const selectedAddonCheckboxes = document.querySelectorAll(
                 `input[name="addon-${currentEditingProduct.id}"]:checked`);
             selectedAddonCheckboxes.forEach(checkbox => {
                 const addon = currentEditingProduct.addons[checkbox.value];
                 price += parseFloat(addon.price);
             });
+
             const selectedOrderTypeRadio = document.querySelector('input[name="ordertype"]:checked');
             const selectedOrderTypeId = selectedOrderTypeRadio ? selectedOrderTypeRadio.value : 1;
             const selectedOrderType = allOrderTypes.find(t => t.id == selectedOrderTypeId);
@@ -1559,6 +1732,7 @@
                     price = price + parseFloat(selectedOrderType.value);
                 }
             }
+
             const selectedDiscountRadio = document.querySelector('input[name="discount"]:checked');
             const selectedDiscountId = selectedDiscountRadio ? selectedDiscountRadio.value : 1;
             const selectedDiscount = allDiscounts.find(d => d.id == selectedDiscountId);
@@ -1573,21 +1747,23 @@
                 if (priceAfterDiscount < 0) priceAfterDiscount = 0;
                 price = priceAfterDiscount;
             }
+
             const quantity = parseInt(document.getElementById('modal-item-quantity').value) || 1;
             const totalPrice = price * quantity;
             document.getElementById('modal-item-price').innerText = formatRupiah(totalPrice);
         }
 
         function saveItemToCart() {
-            const variantRadio = document.querySelector(`input[name="variant-${currentEditingProduct.id}"]:checked`);
-            if (!variantRadio) {
-                showStatusModal('error', 'Pilihan Wajib', 'Anda harus memilih salah satu varian.');
+            const selectedVariantRadio = document.querySelector(
+                `input[name="variant-${currentEditingProduct.id}"]:checked`);
+            if (!selectedVariantRadio) {
+                showStatusModal('error', 'Varian Belum Dipilih', 'Anda harus memilih satu varian produk.');
                 return;
             }
-            const variantIndex = variantRadio.value;
+
+            const variantIndex = selectedVariantRadio.value;
             const selectedVariant = currentEditingProduct.variants[variantIndex];
 
-            // Proses pengumpulan data item
             const selectedAddons = [];
             if (currentEditingProduct.addons && currentEditingProduct.addons.length > 0) {
                 const addonCheckboxes = document.querySelectorAll(
@@ -1596,36 +1772,49 @@
                     selectedAddons.push(currentEditingProduct.addons[checkbox.value]);
                 });
             }
+
             const selectedOrderTypeRadio = document.querySelector('input[name="ordertype"]:checked');
             const selectedOrderTypeId = selectedOrderTypeRadio ? selectedOrderTypeRadio.value : 1;
             const selectedOrderType = allOrderTypes.find(t => t.id == selectedOrderTypeId);
+
             const selectedDiscountRadio = document.querySelector('input[name="discount"]:checked');
             const selectedDiscountId = selectedDiscountRadio ? selectedDiscountRadio.value : 1;
             const selectedDiscount = allDiscounts.find(d => d.id == selectedDiscountId);
+
             const quantity = parseInt(document.getElementById('modal-item-quantity').value) || 1;
             const note = document.getElementById('modal-item-note').value;
 
-            // Perhitungan harga
-            let basePrice = parseFloat(selectedVariant.price);
+            // === Hitung Harga Final Per Item ===
+            let basePrice = parseFloat(selectedVariant.price); // Harga Varian
+
+            // Tambah Addons
             selectedAddons.forEach(addon => {
                 basePrice += parseFloat(addon.price);
             });
+
+            // Tambah Order Type Fee (Markup)
+            let priceAfterMarkup = basePrice;
             if (selectedOrderType.type === 'percentage') {
-                basePrice = basePrice * (1 + parseFloat(selectedOrderType.value));
+                priceAfterMarkup = basePrice * (1 + parseFloat(selectedOrderType.value));
             } else {
-                basePrice = basePrice + parseFloat(selectedOrderType.value);
+                priceAfterMarkup = basePrice + parseFloat(selectedOrderType.value);
             }
+
+            // Kurangi Diskon
             let discountAmount = 0;
             if (selectedDiscount.type === 'percentage') {
-                discountAmount = basePrice * parseFloat(selectedDiscount.value);
+                discountAmount = priceAfterMarkup * parseFloat(selectedDiscount.value);
             } else {
                 discountAmount = parseFloat(selectedDiscount.value);
             }
-            const finalPricePerItem = basePrice - discountAmount < 0 ? 0 : basePrice - discountAmount;
+            const finalPricePerItem = priceAfterMarkup - discountAmount < 0 ? 0 : priceAfterMarkup - discountAmount;
+            // ===================================
 
-            // Buat objek item baru/update
-            const newCartItem = {
+            const cartItem = {
+                // KRUSIAL: Jika ini item baru, id adalah ID produk. Jika edit item OpenBill, id adalah ID OrderItem.
+                // Saat menyimpan item baru, id adalah ID Produk.
                 id: currentEditingProduct.id,
+                product_id: currentEditingProduct.id, // Simpan ID produk asli
                 name: currentEditingProduct.name,
                 quantity: quantity,
                 note: note,
@@ -1637,111 +1826,656 @@
                 isCustom: false
             };
 
-            // Logika UPDATE atau ADD
-            if (currentEditingIndex > -1) {
-                // Mode Edit: Ganti item yang sudah ada
-                cartItems[currentEditingIndex] = newCartItem;
-            } else {
-                // Mode Add Baru: Tambahkan item ke keranjang
-                cartItems.push(newCartItem);
+            // Jika kita sedang mengedit Order Item dari Open Bill:
+            if (currentEditingIndex > -1 && activeOpenBillId) {
+                // Pertahankan ID Order Item lama (yang sudah ada di cartItems[currentEditingIndex].id)
+                cartItem.id = cartItems[currentEditingIndex].id;
             }
 
-            // Reset dan render
+            if (currentEditingIndex > -1) {
+                cartItems[currentEditingIndex] = cartItem;
+            } else {
+                cartItems.push(cartItem);
+            }
+
             renderCart();
             updateSummary();
             closeItemModal();
-            currentEditingIndex = -1; // Reset index
         }
 
         // ===============================================
-        // == SCRIPT MODAL PEMBAYARAN
+        // == FUNGSI OPEN BILL
         // ===============================================
-        const paymentModal = document.getElementById('payment-modal-overlay');
-        const paymentTotalEl = document.getElementById('payment-modal-total');
-        const cashSection = document.getElementById('cash-payment-section');
-        const cashAmountInput = document.getElementById('payment-cash-amount');
-        const cashChangeEl = document.getElementById('payment-cash-change');
-        const payBtnCash = document.getElementById('pay-btn-cash');
-        const payBtnGateway = document.getElementById('pay-btn-gateway');
-        const finalSubmitBtn = document.getElementById('payment-submit-btn');
+        async function openBill() {
+            if (cartItems.length === 0) {
+                showStatusModal('error', 'Keranjang Kosong', 'Tidak ada item untuk disimpan sebagai Open Bill.');
+                return;
+            }
 
-        function openPaymentModal() {
+            const openBillButton = document.getElementById('open-bill-button');
+            openBillButton.disabled = true;
+            openBillButton.innerText = 'Menyimpan...';
+
+            activeOpenBillId = null;
+
+            const dataToSend = {
+                cartItems: cartItems,
+                subtotal: currentSubtotal,
+                tax: currentTax,
+                total: currentTotal,
+                paymentMethod: 'openbill',
+                cashReceived: null,
+                cashChange: null,
+            };
+
+            try {
+                const response = await fetch("{{ route('admin.pos.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content'),
+                        'Accept': 'application/json'
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(dataToSend)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || result.status !== 'openbill') {
+                    throw new Error(result.error || result.message || 'Gagal menyimpan Open Bill.');
+                }
+
+                isLastTransactionSuccess = false;
+                lastSuccessfulOrderId = result.order_id;
+                showStatusModal('pending', 'Open Bill Berhasil', 'Order ID: ' + result.order_id +
+                    ' disimpan sebagai tagihan terbuka.');
+
+                cartItems = [];
+                activeOpenBillId = null;
+                renderCart();
+                updateSummary();
+
+            } catch (error) {
+                console.error('Error saving Open Bill:', error);
+                showStatusModal('error', 'Gagal Open Bill', error.message);
+            } finally {
+                openBillButton.disabled = false;
+                openBillButton.innerText = 'Open Bill';
+            }
+        }
+
+        function openOpenBillsModal() {
+            document.getElementById('open-bills-modal-overlay').style.display = 'flex';
+            loadOpenBills();
+        }
+
+        function closeOpenBillsModal() {
+            document.getElementById('open-bills-modal-overlay').style.display = 'none';
+        }
+
+        async function loadOpenBills() {
+            const container = document.getElementById('open-bills-container');
+            container.innerHTML = '<p id="loading-open-bills">Memuat data...</p>';
+
+            try {
+                const response = await fetch("{{ route('admin.pos.open_bills') }}");
+                const bills = await response.json();
+
+                container.innerHTML = '';
+
+                if (bills.length === 0) {
+                    container.innerHTML = '<p class="text-center text-muted">Tidak ada tagihan terbuka saat ini.</p>';
+                    return;
+                }
+
+                bills.forEach(bill => {
+                    const date = new Date(bill.created_at).toLocaleString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    container.innerHTML += `
+                <div class="open-bill-item">
+                    <div class="bill-info">
+                        <span style="font-weight: 600;">${bill.invoice_number}</span>
+                        <span style="color: var(--text-muted);">${date}</span>
+                    </div>
+                    <div class="bill-total">${formatRupiah(bill.total)}</div>
+                    <button class="btn btn-primary btn-sm" style="margin-left: 15px;" onclick="selectBillAction(${bill.id}, '${bill.invoice_number}')">Pilih</button>
+                </div>
+            `;
+                });
+
+            } catch (error) {
+                console.error('Error loading open bills:', error);
+                container.innerHTML =
+                    '<p class="text-center text-danger">Gagal memuat tagihan. Cek koneksi server.</p>';
+            }
+        }
+
+        function selectBillAction(orderId, invoiceNumber) {
+            const validOrderId = parseInt(orderId);
+
+            currentSelectedOpenBillId = validOrderId;
+            currentSelectedOpenBillInvoice = invoiceNumber;
+            document.getElementById('bill-action-invoice-num').innerText = `#${invoiceNumber}`;
+            document.getElementById('confirm-bill-action-modal-overlay').style.display = 'flex';
+            closeOpenBillsModal();
+
+            const btnPayFull = document.getElementById('btn-action-pay-full');
+            const btnSplit = document.getElementById('btn-action-split');
+            btnPayFull.onclick = null;
+            btnSplit.onclick = null;
+
+            if (!validOrderId || isNaN(validOrderId)) {
+                showStatusModal('error', 'Gagal Memuat', 'ID tagihan yang dipilih tidak valid. Coba refresh.');
+                return;
+            }
+
+            btnPayFull.onclick = () => {
+                closeConfirmBillActionModal();
+                loadBillToCart(validOrderId).then(() => {
+                    openPaymentModal();
+                }).catch(() => {});
+            };
+
+            btnSplit.onclick = () => {
+                closeConfirmBillActionModal();
+                loadBillToCart(validOrderId).then(() => {
+                    openSplitBillModal();
+                }).catch(() => {});
+            };
+        }
+
+        async function loadBillToCart(orderId) {
+            if (cartItems.length > 0 && activeOpenBillId === null) {
+                const confirmClear = confirm(
+                    "Keranjang saat ini masih berisi item. Apakah Anda yakin ingin memuat tagihan ini dan menghapus isi keranjang?"
+                );
+                if (!confirmClear) return Promise.reject(false);
+            }
+
+            if (!orderId || isNaN(orderId)) {
+                return Promise.reject(new Error("ID Order tidak valid (null/NaN)."));
+            }
+            activeOpenBillId = orderId;
+
+            try {
+                // Gunakan route helper dengan string replacement
+                const urlTemplate = "{{ route('admin.pos.load_bill', ['order' => 'ID_PLACEHOLDER'], false) }}";
+                const url = urlTemplate.replace('ID_PLACEHOLDER', orderId);
+
+                if (url.includes('ID_PLACEHOLDER')) {
+                    throw new Error("Gagal membentuk URL: Placeholder masih ada.");
+                }
+
+                const response = await fetch(url);
+
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const text = await response.text();
+                    console.error('Server returned HTML/Non-JSON response:', text);
+                    if (response.status === 404) {
+                        throw new Error(`Endpoint tidak ditemukan. Cek Route.`);
+                    }
+                    if (response.status === 403) {
+                        throw new Error(`Akses Ditolak (403). Cek Middleware/Peran Pengguna.`);
+                    }
+                    throw new Error(`Server Error (${response.status}). Cek Log Laravel.`);
+                }
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || result.message || 'Gagal memuat tagihan.');
+                }
+
+                cartItems = result.cartItems;
+                currentSubtotal = result.subtotal;
+                currentTax = result.tax;
+                currentTotal = result.total;
+                activeOpenBillId = result.order_id;
+
+                renderCart();
+                updateSummary();
+                return Promise.resolve(true);
+            } catch (error) {
+                console.error('Error loading bill to cart:', error);
+                showStatusModal('error', 'Gagal Memuat', error.message);
+                activeOpenBillId = null;
+                return Promise.reject(false);
+            }
+        }
+
+        // ===============================================
+        // == FUNGSI SPLIT BILL
+        // ===============================================
+        function openSplitBillModal() {
+            if (cartItems.length === 0) {
+                // Ini seharusnya tidak terjadi jika loadBillToCart berhasil
+                showStatusModal('error', 'Keranjang Kosong', 'Tidak ada item untuk dibagi.');
+                return;
+            }
+
+            if (!activeOpenBillId) {
+                // Ini seharusnya tidak terjadi setelah loadBillToCart
+                showStatusModal('error', 'Aksi Tidak Valid',
+                    'Split Bill hanya dapat dilakukan pada Tagihan Terbuka (Open Bill). Silakan pilih tagihan dari "View Open Bills" terlebih dahulu.'
+                );
+                return;
+            }
+
+            splitCartItems = [];
+            document.getElementById('split-bill-modal-overlay').style.display = 'flex';
+            renderSplitCart();
+        }
+
+        function closeSplitBillModal() {
+            if (splitCartItems.length > 0) {
+                cartItems.push(...splitCartItems);
+                splitCartItems = [];
+                renderCart();
+                updateSummary();
+            }
+            document.getElementById('split-bill-modal-overlay').style.display = 'none';
+        }
+
+        function closeConfirmBillActionModal() {
+            document.getElementById('confirm-bill-action-modal-overlay').style.display = 'none';
+            currentSelectedOpenBillId = null;
+            currentSelectedOpenBillInvoice = null;
+        }
+
+        function renderSplitCart() {
+            const mainContainer = document.getElementById('split-main-cart-container');
+            const splitContainer = document.getElementById('split-split-cart-container');
+            mainContainer.innerHTML = '';
+            splitContainer.innerHTML = '';
+
+            let mainSubtotal = cartItems.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+            const mainTotalWithTax = mainSubtotal * 1.1;
+
+            let splitSubtotal = splitCartItems.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+            const splitTotalWithTax = splitSubtotal * 1.1;
+
+            cartItems.forEach((item, index) => {
+                const itemHtml = renderSplitItem(item, index, 'main');
+                mainContainer.innerHTML += itemHtml;
+            });
+
+            splitCartItems.forEach((item, index) => {
+                const itemHtml = renderSplitItem(item, index, 'split');
+                splitContainer.innerHTML += itemHtml;
+            });
+
+            document.getElementById('split-main-total').innerText = formatRupiah(mainTotalWithTax);
+            document.getElementById('split-split-total').innerText = formatRupiah(splitSubtotal);
+            document.getElementById('split-total-final').innerText = formatRupiah(splitTotalWithTax);
+
+            document.getElementById('split-confirm-btn').disabled = splitSubtotal === 0;
+            document.getElementById('split-pay-amount').innerText = formatRupiah(splitTotalWithTax);
+        }
+
+        function renderSplitItem(item, index, type) {
+            const itemName = item.isCustom ? item.name :
+                `${item.name} (${item.selectedVariant ? item.selectedVariant.name : 'N/A'})`;
+            const isMain = type === 'main';
+            const btnText = isMain ? '→' : '←';
+            const btnAction = isMain ? `moveItemToSplit(${index})` : `moveItemToMain(${index})`;
+
+            return `
+        <div class="cart-item" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="flex-grow: 1;">
+                <span class="cart-item-name">${item.quantity}x ${itemName}</span>
+                <span class="cart-item-price" style="margin-left: 10px;">${formatRupiah(item.finalPrice * item.quantity)}</span>
+            </div>
+            <button class="btn btn-sm" style="background-color: var(--primary); color: white; border-radius: 4px; padding: 5px 10px;" 
+                    onclick="${btnAction}">${btnText}</button>
+        </div>
+    `;
+        }
+
+        function moveItemToSplit(mainIndex) {
+            const item = cartItems.splice(mainIndex, 1)[0];
+            splitCartItems.push(item);
+            renderSplitCart();
+        }
+
+        function moveItemToMain(splitIndex) {
+            const item = splitCartItems.splice(splitIndex, 1)[0];
+            cartItems.push(item);
+            renderSplitCart();
+        }
+
+        function confirmSplitBill() {
+            if (splitCartItems.length === 0) {
+                showStatusModal('error', 'Keranjang Split Kosong', 'Pilih item yang ingin dibayar pada Split Cart.');
+                return;
+            }
+
+            const splitSubtotalBeforeTax = splitCartItems.reduce((sum, item) => sum + item.finalPrice * item.quantity,
+                0);
+            const splitTaxRate = 0.10;
+            const splitTax = splitSubtotalBeforeTax * splitTaxRate;
+            const splitTotal = splitSubtotalBeforeTax + splitTax;
+
+            // 1. Simpan Item yang TERSISA dan ID item yang dibayar
+            const remainingCartItemsTemp = cartItems;
+            const itemsToPay = splitCartItems;
+            const paidItemIdsTemp = itemsToPay.map(item => item.id); // ID Order Item lama
+
+            // 2. Set variabel global untuk TRANSAKSI SPLIT BILL
+            currentSubtotal = splitSubtotalBeforeTax;
+            currentTax = splitTax;
+            currentTotal = splitTotal;
+
+            // 3. Atur ulang cartItems untuk transaksi baru, dan reset splitCartItems
+            cartItems = itemsToPay;
+            splitCartItems = [];
+
+            // 4. Buka Modal Pembayaran dengan flag isSplit=true
+            openPaymentModal(true, remainingCartItemsTemp, paidItemIdsTemp);
+        }
+
+        // ===============================================
+        // == FUNGSI PAYMENT MODAL
+        // ===============================================
+        function openPaymentModal(isSplit = false, remainingItems = [], itemIds = []) {
             if (cartItems.length === 0) {
                 showStatusModal('error', 'Keranjang Kosong', 'Anda belum menambahkan item apapun ke keranjang.');
                 return;
             }
+
+            const payButton = document.getElementById('payment-submit-btn');
+            payButton.dataset.isSplit = isSplit;
+
+            // Set global state dari parameter
+            remainingCartItems = remainingItems;
+            paidItemIds = itemIds;
+
+            const paymentTotalEl = document.getElementById('payment-modal-total');
             paymentTotalEl.innerText = formatRupiah(currentTotal);
+
             currentPaymentMethod = 'cash';
-            cashAmountInput.value = '';
-            cashChangeEl.innerText = 'Rp 0';
-            cashChangeEl.classList.remove('negative');
-            cashSection.style.display = 'block';
-            payBtnCash.classList.add('active');
-            payBtnGateway.classList.remove('active');
-            finalSubmitBtn.disabled = true;
-            paymentModal.style.display = 'flex';
+            document.getElementById('payment-cash-amount').value = '';
+            document.getElementById('payment-cash-change').innerText = 'Rp 0';
+            document.getElementById('payment-cash-change').classList.remove('negative');
+            document.getElementById('cash-payment-section').style.display = 'block';
+            document.getElementById('pay-btn-cash').classList.add('active');
+            document.getElementById('pay-btn-gateway').classList.remove('active');
+
+            document.getElementById('payment-submit-btn').disabled = true;
+
+            document.getElementById('payment-modal-overlay').style.display = 'flex';
+
+            calculateChange();
         }
 
         function closePaymentModal() {
-            paymentModal.style.display = 'none';
+            document.getElementById('payment-modal-overlay').style.display = 'none';
         }
-        payBtnCash.addEventListener('click', () => {
-            currentPaymentMethod = 'cash';
-            cashSection.style.display = 'block';
-            payBtnCash.classList.add('active');
-            payBtnGateway.classList.remove('active');
+
+        function quickCashInput(value) {
+            const input = document.getElementById('payment-cash-amount');
+
+            if (value === 'clear') {
+                input.value = '';
+            } else {
+                input.value = value;
+            }
             calculateChange();
-        });
-        payBtnGateway.addEventListener('click', () => {
-            currentPaymentMethod = 'gateway';
-            cashSection.style.display = 'none';
-            payBtnCash.classList.remove('active');
-            payBtnGateway.classList.add('active');
-            finalSubmitBtn.disabled = false;
-        });
-        cashAmountInput.addEventListener('input', calculateChange);
+        }
 
         function calculateChange() {
-            const cashAmount = parseFloat(cashAmountInput.value) || 0;
+            const cashAmount = parseFloat(document.getElementById('payment-cash-amount').value) || 0;
             currentCashAmount = cashAmount;
+
             if (cashAmount <= 0) {
-                cashChangeEl.innerText = 'Rp 0';
-                cashChangeEl.classList.remove('negative');
-                finalSubmitBtn.disabled = true;
+                document.getElementById('payment-cash-change').innerText = 'Rp 0';
+                document.getElementById('payment-cash-change').classList.remove('negative');
+                document.getElementById('payment-submit-btn').disabled = true;
                 return;
             }
+
             const change = cashAmount - currentTotal;
             currentChange = change;
+
             if (change < 0) {
-                cashChangeEl.innerText = `Uang Kurang: ${formatRupiah(change)}`;
-                cashChangeEl.classList.add('negative');
-                finalSubmitBtn.disabled = true;
+                document.getElementById('payment-cash-change').innerText = `Uang Kurang: ${formatRupiah(change)}`;
+                document.getElementById('payment-cash-change').classList.add('negative');
+                document.getElementById('payment-submit-btn').disabled = true;
             } else {
-                cashChangeEl.innerText = formatRupiah(change);
-                cashChangeEl.classList.remove('negative');
-                finalSubmitBtn.disabled = false;
+                document.getElementById('payment-cash-change').innerText = formatRupiah(change);
+                document.getElementById('payment-cash-change').classList.remove('negative');
+                document.getElementById('payment-submit-btn').disabled = false;
             }
         }
 
-        // ===============================================
-        // == SCRIPT MODAL STATUS (DIMODIFIKASI)
-        // ===============================================
-        const statusModal = document.getElementById('status-modal-overlay');
-        const statusModalContent = statusModal.querySelector('.modal-content');
-        const statusModalTitle = document.getElementById('status-modal-title');
-        const statusModalMessage = document.getElementById('status-modal-message');
-        const statusIconSuccess = statusModal.querySelector('.status-modal-icon-success');
-        const statusIconDanger = statusModal.querySelector('.status-modal-icon-danger');
-        const statusOkBtn = document.getElementById('status-modal-ok-btn');
-        const statusPrintBtn = document.getElementById('status-modal-print-btn');
+        async function submitPayment() {
+            const payButton = document.getElementById('payment-submit-btn');
+            payButton.disabled = true;
+            payButton.innerText = 'Memproses...';
+            isLastTransactionSuccess = false;
+            lastSuccessfulOrderId = null;
+
+            const isSplit = payButton.dataset.isSplit === 'true';
+
+            // === 1. Tentukan ENDPOINT dan LOGIKA ===
+            let endpointUrl;
+            let isUpdatingOldBill = false;
+            const oldOrderId = activeOpenBillId;
+
+            if (oldOrderId && !isSplit) {
+                // Logika: BAYAR PENUH (Update Order Lama, TIDAK buat Order Baru)
+                endpointUrl = `{{ route('admin.pos.complete_open_bill', ['order' => 'ORDER_ID_PLACEHOLDER'], false) }}`
+                    .replace('ORDER_ID_PLACEHOLDER', oldOrderId);
+                isUpdatingOldBill = true;
+            } else {
+                // Logika: TRANSAKSI NORMAL atau SPLIT BILL (membuat Order Baru)
+                endpointUrl = "{{ route('admin.pos.store') }}";
+            }
+
+            const dataToSend = {
+                cartItems: cartItems,
+                subtotal: currentSubtotal,
+                tax: currentTax,
+                total: currentTotal,
+                paymentMethod: currentPaymentMethod,
+                cashReceived: (currentPaymentMethod === 'cash') ? currentCashAmount : null,
+                cashChange: (currentPaymentMethod === 'cash') ? currentChange : null,
+                isSplit: isSplit
+            };
+
+            // Jika Bayar Penuh, dataToSend hanya berisi metode pembayaran, cash/change
+            let fullPayDataToSend = {};
+            if (isUpdatingOldBill) {
+                fullPayDataToSend = {
+                    paymentMethod: dataToSend.paymentMethod,
+                    cashReceived: dataToSend.cashReceived,
+                    cashChange: dataToSend.cashChange
+                };
+            }
+
+            try {
+                const response = await fetch(endpointUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content'),
+                        'Accept': 'application/json'
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(isUpdatingOldBill ? fullPayDataToSend : dataToSend)
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    // PENTING: Jika server mengembalikan error 500/403/404, pesan HTML akan ada di 'text'.
+                    if (response.headers.get("content-type") && !response.headers.get("content-type").includes(
+                            "application/json")) {
+                        const errorText = await response.text();
+                        console.error('Server HTML Error:', errorText);
+                        throw new Error(`Server Error (${response.status}). Cek Log Laravel.`);
+                    }
+                    throw new Error(result.error || result.message || 'Terjadi kesalahan server');
+                }
+
+                // === LOGIKA PENYELESAIAN SETELAH ORDER DIBUAT/DIPERBARUI ===
+
+                if (isUpdatingOldBill) {
+                    // KASUS 1: BAYAR PENUH (Order Lama di-update)
+                    isLastTransactionSuccess = true;
+                    lastSuccessfulOrderId = oldOrderId; // Order ID yang ditutup adalah Order Lama
+
+                    closePaymentModal();
+                    showStatusModal('success', 'Tagihan Selesai',
+                        `Order ID: ${oldOrderId} berhasil diselesaikan dan ditutup.`);
+
+                    activeOpenBillId = null;
+                    cartItems = [];
+                    renderCart();
+                    updateSummary();
+
+                } else if (result.status === 'completed') {
+                    // KASUS 2: TRANSAKSI NORMAL atau SPLIT CASH (Order Baru dibuat)
+                    isLastTransactionSuccess = true;
+                    lastSuccessfulOrderId = result.order_id;
+
+                    if (oldOrderId && isSplit) {
+                        // SUB-KASUS 2a: SPLIT BILL (Order Baru dibuat, kini update Order Lama)
+
+                        const newOrderId = result.order_id;
+                        const idsToMarkPaid = paidItemIds;
+
+                        const updateUrl =
+                            `{{ route('admin.pos.update_bill_status', ['order' => 'ORDER_ID_PLACEHOLDER'], false) }}`
+                            .replace('ORDER_ID_PLACEHOLDER', oldOrderId);
+
+                        const updateResponse = await fetch(updateUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                    'content'),
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                isSplit: true,
+                                paidItemIds: idsToMarkPaid,
+                                new_order_id: newOrderId
+                            })
+                        });
+
+                        const updateResult = await updateResponse.json();
+
+                        if (!updateResponse.ok) {
+                            throw new Error(updateResult.error || 'Gagal memperbarui status order lama setelah split.');
+                        }
+
+                        closePaymentModal(); // Tutup modal pembayaran setelah sukses membuat order split
+
+                        if (updateResult.old_order_status === 'completed') {
+                            // KRUSIAL FIX: Jika Order Lama selesai, langsung cleanup total
+                            showStatusModal('success', 'Tagihan Selesai',
+                                `Order utama ID: ${oldOrderId} telah ditutup. Pembayaran Split ID: ${newOrderId}.`);
+
+                            // TUTUP MODAL SPLIT BILL DI SINI SECARA PAKSA
+                            document.getElementById('split-bill-modal-overlay').style.display = 'none';
+
+                            activeOpenBillId = null;
+                            cartItems = [];
+                            renderCart();
+                            updateSummary();
+                        } else {
+                            // Masih ada sisa item. Muat kembali dan BUKA MODAL SPLIT.
+
+                            await loadBillToCart(oldOrderId); // Muat ulang sisa item ke cartItems
+
+                            openSplitBillModal(); // Buka modal split bill lagi
+
+                            showStatusModal('success', 'Pembayaran Split Berhasil',
+                                `Pembayaran ID: ${newOrderId} berhasil. Sisa tagihan: ${formatRupiah(updateResult.new_total)} dimuat. Silakan lanjutkan pembayaran.`
+                            );
+                        }
+
+                        remainingCartItems = [];
+                        paidItemIds = [];
+
+                    } else {
+                        // SUB-KASUS 2b: TRANSAKSI NORMAL
+                        closePaymentModal();
+                        showStatusModal('success', 'Pesanan Berhasil', 'Order ID: ' + result.order_id +
+                            ' telah disimpan.');
+                        activeOpenBillId = null;
+                        cartItems = [];
+                        renderCart();
+                        updateSummary();
+                    }
+
+                } else if (result.status === 'pending' && result.snap_token) {
+                    // KASUS 3: PEMBAYARAN GATEWAY PENDING (Order Baru dibuat)
+                    isLastTransactionSuccess = true;
+                    lastSuccessfulOrderId = result.order_id;
+
+                    snap.pay(result.snap_token, {
+                        onSuccess: function(trxResult) {
+                            /* ... */ },
+                        onPending: function(trxResult) {
+                            /* ... */ },
+                        onError: function(trxResult) {
+                            /* ... */ },
+                        onClose: function() {
+                            /* ... */ }
+                    });
+                }
+
+                // Final cleanup for split process
+                remainingCartItems = [];
+                paidItemIds = [];
+
+            } catch (error) {
+                console.error('Error submitting payment:', error);
+                isLastTransactionSuccess = false;
+                lastSuccessfulOrderId = null;
+
+                // Jika terjadi error, kembalikan item yang dicoba bayar ke splitCartItems
+                if (isSplit) {
+                    splitCartItems = cartItems;
+                    if (oldOrderId) {
+                        // Muat ulang cart utama dengan sisa item Order Lama dari DB
+                        loadBillToCart(oldOrderId);
+                    }
+                }
+
+                showStatusModal('error', 'Gagal Menyimpan', error.message);
+
+            } finally {
+                payButton.disabled = false;
+                payButton.innerText = 'Proses Pesanan';
+            }
+        }
+
+        // ... (Fungsi showStatusModal, closeStatusModal, printReceipt, dan Event Listeners lainnya)
 
         function showStatusModal(type, title, message) {
+            const statusModal = document.getElementById('status-modal-overlay');
+            const statusModalContent = statusModal.querySelector('.modal-content');
+            const statusModalTitle = document.getElementById('status-modal-title');
+            const statusModalMessage = document.getElementById('status-modal-message');
+            const statusIconSuccess = statusModal.querySelector('.status-modal-icon-success');
+            const statusIconDanger = statusModal.querySelector('.status-modal-icon-danger');
+            const statusPrintBtn = document.getElementById('status-modal-print-btn');
+
             statusModalTitle.innerText = title;
             statusModalMessage.innerText = message;
             statusPrintBtn.style.display = 'none';
             statusPrintBtn.onclick = null;
 
-            if (type === 'success' || type === 'pending') { // Izinkan print untuk sukses & pending
+            if (type === 'success' || type === 'pending') {
                 statusModalContent.classList.remove('error');
                 statusModalContent.classList.add('success');
                 statusIconSuccess.style.display = 'flex';
@@ -1751,83 +2485,58 @@
                     statusPrintBtn.style.display = 'block';
                     statusPrintBtn.onclick = () => printReceipt(lastSuccessfulOrderId);
                 }
-            } else { // 'error'
+            } else {
                 statusModalContent.classList.remove('success');
                 statusModalContent.classList.add('error');
                 statusIconSuccess.style.display = 'none';
                 statusIconDanger.style.display = 'flex';
             }
+
             statusModal.style.display = 'flex';
         }
 
-        function printReceipt(orderId) {
-            // == PASTIKAN RUTE INI ADA DI web.php ==
-            const url = `{{ url('admin/orders') }}/${orderId}/receipt`;
-            window.open(url, '_blank');
-        }
-
         function closeStatusModal() {
-            statusModal.style.display = 'none';
+            document.getElementById('status-modal-overlay').style.display = 'none';
             if (isLastTransactionSuccess) {
                 closePaymentModal();
-                cartItems = [];
-                renderCart();
-                updateSummary();
                 isLastTransactionSuccess = false;
                 lastSuccessfulOrderId = null;
             }
         }
-        statusOkBtn.addEventListener('click', closeStatusModal);
+
+        function printReceipt(orderId) {
+            const url = `{{ url('admin/orders') }}/${orderId}/receipt`;
+            window.open(url, '_blank');
+        }
+
+        document.getElementById('pay-btn-cash').addEventListener('click', () => {
+            currentPaymentMethod = 'cash';
+            document.getElementById('cash-payment-section').style.display = 'block';
+            document.getElementById('pay-btn-cash').classList.add('active');
+            document.getElementById('pay-btn-gateway').classList.remove('active');
+            calculateChange();
+        });
+
+        document.getElementById('pay-btn-gateway').addEventListener('click', () => {
+            currentPaymentMethod = 'gateway';
+            document.getElementById('cash-payment-section').style.display = 'none';
+            document.getElementById('pay-btn-cash').classList.remove('active');
+            document.getElementById('pay-btn-gateway').classList.add('active');
+            document.getElementById('payment-submit-btn').disabled = false;
+        });
+
+        document.getElementById('payment-cash-amount').addEventListener('input', calculateChange);
+        document.getElementById('status-modal-ok-btn').addEventListener('click', closeStatusModal);
 
         window.onload = () => {
-            renderProductsInGrid('favorit-product-grid', allFavoriteProducts);
+            renderFavoriteProducts();
             renderCategories();
             renderCart();
             updateSummary();
 
-            // Mengubah onclick addCustomItemToCart() menjadi saveCustomItem()
-            document.querySelector('.custom-item-btn').onclick = saveCustomItem;
-
-
             document.getElementById('item-modal-overlay').onclick = closeItemModal;
             document.getElementById('payment-modal-overlay').onclick = closePaymentModal;
             document.getElementById('status-modal-overlay').onclick = closeStatusModal;
-        };
-
-        function renderProductsInGrid(gridId, productArray) {
-            const grid = document.getElementById(gridId);
-            grid.innerHTML = '';
-            if (!productArray || productArray.length === 0) {
-                grid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">Tidak ada produk.</p>';
-                return;
-            }
-            productArray.forEach(product => {
-                const productElement = document.createElement('div');
-                productElement.className = 'product-item';
-                productElement.onclick = () => openItemModal(product);
-                let minPrice = 0;
-                if (product.variants && product.variants.length > 0) {
-                    minPrice = Math.min(...product.variants.map(v => parseFloat(v.price)));
-                }
-
-                // --- KODE BARU UNTUK MENAMPILKAN GAMBAR ---
-                let imageHtml = '';
-                if (product.image_url) {
-                    // Gunakan fungsi Blade asset() untuk mendapatkan URL publik
-                    // Perhatian: Karena ini di JS, kita gunakan cara string template
-                    const imageUrl = `{{ asset('storage') }}/${product.image_url}`;
-                    imageHtml = `<img src="${imageUrl}" alt="${product.name}" />`;
-                } else {
-                    // Placeholder jika tidak ada gambar (opsional)
-                    imageHtml =
-                        `<div style="height: 80px; width: 80px; background: var(--secondary-light); margin: 0 auto 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Image</div>`;
-                }
-                // --- AKHIR KODE BARU ---
-
-                productElement.innerHTML =
-                    `${imageHtml}<div class="product-name">${product.name}</div><div class="product-price">Mulai ${formatRupiah(minPrice)}</div>`; // <-- Masukkan imageHtml
-                grid.appendChild(productElement);
-            });
         }
     </script>
 @endpush

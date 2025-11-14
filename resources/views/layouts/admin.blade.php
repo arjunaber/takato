@@ -317,15 +317,14 @@
                         class="nav-link {{ request()->routeIs('admin.pos.index') ? 'active' : '' }}">
                         Kasir (POS)
                     </a>
-                @endif
-
-                {{-- 3. Histori Pesanan (Hanya Owner yang bisa lihat) --}}
-                @if (auth()->user()->role === 'owner')
                     <a href="{{ route('admin.orders.index') }}"
                         class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                         Histori Pesanan
                     </a>
+                @endif
 
+                {{-- 3. Histori Pesanan (Hanya Owner yang bisa lihat) --}}
+                @if (auth()->user()->role === 'owner')
                     {{-- 4. Produk (Hanya Owner yang bisa lihat) --}}
                     <a href="{{ route('admin.products.index') }}"
                         class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">

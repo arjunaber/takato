@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users');
 
             $table->string('invoice_number')->unique();
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'completed', 'cancelled', 'openbill'])->default('pending');
 
             // Total Kalkulasi
             $table->decimal('subtotal', 10, 2); // Total harga item

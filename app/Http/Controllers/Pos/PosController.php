@@ -27,7 +27,6 @@ class PosController extends Controller
         \Midtrans\Config::$serverKey = config('midtrans.server_key');
         \Midtrans\Config::$isProduction = config('midtrans.is_production');
         \Midtrans\Config::$isSanitized = true;
-        \Midtrans\Config::$is3ds = config('midtrans.is_3ds');
     }
 
     /**
@@ -41,7 +40,6 @@ class PosController extends Controller
         $discounts = Discount::orderBy('name')->get();
         $orderTypes = OrderType::orderBy('id')->get();
 
-        // Pastikan path view Anda benar (admin.pos.index atau admin.cafe.index)
         return view('admin.cafe.index', [
             'categories' => $categories,
             'libraryProducts' => $libraryProducts,
@@ -76,9 +74,215 @@ class PosController extends Controller
         }
     }
 
+    /**
+     * Menyelesaikan Open Bill yang sudah ada, mengurangi stok, tanpa membuat order baru.
+     * Dipanggil saat Bayar Penuh.
+     */
+    public function completeOpenBill(Request $request, Order $order)
+    {
+        $request->validate([
+            'paymentMethod' => 'required|string|in:cash,gateway', // Hanya terima metode bayar
+            'cashReceived' => 'nullable|numeric',
+            'cashChange' => 'nullable|numeric',
+        ]);
+
+        $paymentMethod = $request->input('paymentMethod');
+        $isCash = ($paymentMethod === 'cash');
+
+        $cashReceived = $request->input('cashReceived') ?? null;
+        $cashChange = $request->input('cashChange') ?? null;
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Update Status Order Lama (Bayar Penuh)
+            $order->status = 'completed';
+            $order->payment_status = 'paid';
+            $order->payment_method = $paymentMethod;
+            $order->cash_received = $cashReceived;
+            $order->cash_change = $cashChange;
+            $order->save();
+
+            // 2. Kurangi Stok berdasarkan OrderItems di Order lama
+            $order->load('orderItems.variant');
+            foreach ($order->orderItems as $item) {
+                // Hanya kurangi stok jika BUKAN custom item
+                if (!is_null($item->product_id) && $item->variant_id) {
+                    $this->reduceStock($item->variant_id, $item->quantity);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Tagihan berhasil diselesaikan!',
+                'order_id' => $order->id,
+                'status' => 'completed',
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal menyelesaikan Open Bill: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Gagal menyelesaikan tagihan.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function updateBillAfterPayment(Request $request, Order $order)
+    {
+        $request->validate([
+            'isSplit' => 'required|boolean',
+            'paidItemIds' => 'nullable|array', // Digunakan untuk Split Bill
+            'new_order_id' => 'required|numeric',
+        ]);
+
+        $isSplit = $request->input('isSplit');
+
+        try {
+            DB::beginTransaction();
+
+            if ($isSplit) {
+                // LOGIKA SPLIT BILL
+                $paidItemIds = $request->input('paidItemIds');
+
+                // 1. Hapus OrderItems yang sudah dibayar dari Order lama
+                $order->orderItems()->whereIn('id', $paidItemIds)->delete();
+
+                // 2. Hitung ulang total Order lama
+                $newSubtotal = $order->orderItems()->sum('subtotal');
+                $newTax = $newSubtotal * 0.10; // Asumsi Tax 10%
+                $newTotal = $newSubtotal + $newTax;
+
+                $order->subtotal = $newSubtotal;
+                $order->tax_amount = $newTax;
+                $order->total = $newTotal;
+
+                // 3. Cek apakah order lama sudah kosong
+                if ($order->orderItems()->count() === 0) {
+                    $order->status = 'completed'; // Order lama Selesai
+                    $order->payment_status = 'paid';
+                }
+
+                $order->save();
+
+                $message = $order->status === 'completed' ? 'Tagihan lama selesai.' : 'Order lama berhasil diperbarui.';
+            } else {
+                // Logika Bayar Penuh tidak dieksekusi di sini lagi
+                $message = 'Order lama berhasil diselesaikan.';
+            }
+
+            DB::commit();
+
+            // Kembalikan status baru order lama
+            return response()->json([
+                'message' => $message,
+                'old_order_status' => $order->status,
+                'new_total' => $order->total // Kirim total baru untuk pembaruan UI
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal memperbarui order lama: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal memperbarui order lama.'], 500);
+        }
+    }
 
     /**
-     * Menyimpan pesanan dari POS (Versi Final dengan Logika Midtrans)
+     * Endpoint BARU untuk memuat Open Bills (status 'openbill')
+     */
+    public function getOpenBills()
+    {
+        $openBills = Order::where('status', 'openbill')
+            ->select('id', 'invoice_number', 'total', 'created_at')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json($openBills);
+    }
+
+    /**
+     * Endpoint untuk memuat detail Open Bill tertentu.
+     */
+    public function loadBill(Order $order)
+    {
+        Log::info('Accessing loadBill for Order ID: ' . $order->id);
+
+        $order->load(['orderItems.addons', 'orderItems.variant', 'orderItems.orderType', 'orderItems.discount']);
+
+        $cartItems = [];
+        foreach ($order->orderItems as $item) {
+            $isCustom = is_null($item->product_id);
+
+            // KRUSIAL: Ambil ID Order Item yang Lama
+            $orderItemId = $item->id;
+
+            $productName = $item->item_name;
+
+            // Hanya coba cari Product jika BUKAN Custom dan punya product_id
+            if (!$isCustom && $item->product_id) {
+                $product = Product::find($item->product_id);
+                if ($product) {
+                    $productName = $product->name;
+                } else {
+                    $productName = $item->item_name . ' (Produk Dihapus)';
+                }
+            }
+
+            // Bersihkan nama produk dari varian/custom untuk tampilan di cart
+            if (!$isCustom) {
+                $productName = str_replace(' (Custom)', '', $productName);
+                if ($item->variant) {
+                    $productName = str_replace(' (' . $item->variant->name . ')', '', $productName);
+                }
+            } else {
+                $productName = str_replace(' (Custom)', '', $item->item_name);
+            }
+
+            // Re-format data agar sesuai dengan struktur cartItems di JS
+            $cartItems[] = [
+                // KRUSIAL: Gunakan ID OrderItem ($orderItemId) di field 'id' untuk pelacakan
+                'id' => $isCustom ? $item->id : $orderItemId,
+                'product_id' => $item->product_id, // KRUSIAL: Simpan ID produk asli di sini
+                'name' => $productName,
+                'quantity' => $item->quantity,
+                'note' => $item->notes,
+                'finalPrice' => (float)$item->unit_price_final,
+                'isCustom' => $isCustom,
+                'selectedVariant' => $isCustom ? null : [
+                    'id' => $item->variant->id ?? null,
+                    'name' => $item->variant->name ?? 'N/A',
+                    'price' => (float)$item->base_price,
+                ],
+                'selectedAddons' => $item->addons->map(fn($addon) => ['id' => $addon->id, 'name' => $addon->pivot->addon_name, 'price' => (float)$addon->pivot->addon_price])->all(),
+                'selectedOrderType' => [
+                    'id' => $item->orderType->id ?? 1,
+                    'name' => $item->orderType->name ?? 'Dine In',
+                    'type' => $item->orderType->type ?? 'fixed',
+                    'value' => $item->orderType->value ?? 0,
+                ],
+                'discount' => [
+                    'id' => $item->discount->id ?? 1,
+                    'name' => $item->discount->name ?? 'Tanpa Diskon',
+                    'type' => $item->discount->type ?? 'fixed',
+                    'value' => $item->discount->value ?? 0,
+                ]
+            ];
+        }
+
+        return response()->json([
+            'order_id' => $order->id,
+            'invoice_number' => $order->invoice_number,
+            'cartItems' => $cartItems,
+            'subtotal' => (float)$order->subtotal,
+            'tax' => (float)$order->tax_amount,
+            'total' => (float)$order->total,
+        ]);
+    }
+
+
+    /**
+     * Menyimpan pesanan dari POS (Hanya untuk Order Baru atau Order Split)
      */
     public function store(Request $request)
     {
@@ -88,35 +292,49 @@ class PosController extends Controller
             'total' => 'required|numeric',
             'tax' => 'required|numeric',
             'subtotal' => 'required|numeric',
-            'paymentMethod' => 'required|string|in:cash,gateway',
+            'paymentMethod' => 'required|string|in:cash,gateway,openbill',
             'cashReceived' => 'nullable|numeric',
             'cashChange' => 'nullable|numeric',
+            'isSplit' => 'nullable|boolean',
         ]);
 
         $snapToken = null;
         $order = null;
         $paymentMethod = $data['paymentMethod'];
         $isCash = ($paymentMethod === 'cash');
+        $isOpenBill = ($paymentMethod === 'openbill');
+        $isSplit = $data['isSplit'] ?? false;
+
+        $cashReceived = $data['cashReceived'] ?? null;
+        $cashChange = $data['cashChange'] ?? null;
 
         try {
             DB::beginTransaction();
 
-            // == INI LOGIKA KUNCINYA ==
-            $orderStatus = $isCash ? 'completed' : 'pending';
-            $paymentStatus = $isCash ? 'paid' : 'unpaid';
+            // == LOGIKA STATUS (KEY) ==
+            if ($isOpenBill) {
+                $orderStatus = 'openbill';
+                $paymentStatus = 'unpaid';
+            } elseif ($isCash || $isSplit) {
+                $orderStatus = 'completed';
+                $paymentStatus = 'paid';
+            } else { // Jika Gateway
+                $orderStatus = 'pending';
+                $paymentStatus = 'unpaid';
+            }
             // =========================
 
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'invoice_number' => 'INV-' . date('YmdHi') . '-' . strtoupper(Str::random(4)),
-                'status' => $orderStatus, // <-- Menggunakan status yang benar
-                'payment_status' => $paymentStatus, // <-- Menggunakan status yang benar
+                'status' => $orderStatus,
+                'payment_status' => $paymentStatus,
                 'subtotal' => $data['subtotal'],
                 'tax_amount' => $data['tax'],
                 'total' => $data['total'],
                 'payment_method' => $paymentMethod,
-                'cash_received' => $data['cashReceived'],
-                'cash_change' => $data['cashChange'],
+                'cash_received' => $cashReceived,
+                'cash_change' => $cashChange,
             ]);
 
             foreach ($data['cartItems'] as $item) {
@@ -148,9 +366,10 @@ class PosController extends Controller
                 }
 
                 $orderItem = $order->orderItems()->create([
-                    'product_id' => $item['isCustom'] ? null : $item['id'],
+                    // KRUSIAL FIX: Gunakan 'product_id' yang dikirim dari frontend, BUKAN 'id' item.
+                    'product_id' => $item['isCustom'] ? null : ($item['product_id'] ?? $item['id']),
                     'variant_id' => $item['isCustom'] ? null : $item['selectedVariant']['id'],
-                    'item_name' => $item['isCustom'] ? $item['name'] : $item['name'] . ' (' . $item['selectedVariant']['name'] . ')',
+                    'item_name' => $item['isCustom'] ? $item['name'] . ' (Custom)' : $item['name'] . ' (' . $item['selectedVariant']['name'] . ')',
                     'base_price' => $basePrice,
                     'quantity' => $item['quantity'],
                     'notes' => $item['note'] ?? null,
@@ -165,20 +384,19 @@ class PosController extends Controller
                 if (!$item['isCustom'] && !empty($item['selectedAddons'])) {
                     $addonsToSync = [];
                     foreach ($item['selectedAddons'] as $addon) {
-                        $addonsToSync[$addon['id']] = ['addon_name' => $addon['name'], 'addon_price' => $addon['price']];
+                        $addonsToSync[$addon['id']] = ['addon_name' => $addon['name'], 'addon_price' => (float)$addon['price']];
                     }
                     $orderItem->addons()->sync($addonsToSync);
                 }
 
-                // Kurangi Stok HANYA JIKA CASH
-                if (!$item['isCustom'] && $isCash) {
+                // Kurangi Stok HANYA JIKA COMPLETED (Cash atau Split)
+                if (!$item['isCustom'] && ($isCash || $isSplit)) {
                     $this->reduceStock($item['selectedVariant']['id'], $item['quantity']);
                 }
             }
 
-            // == INI LOGIKA KUNCINYA ==
-            // Buat Snap Token HANYA JIKA BUKAN CASH
-            if (!$isCash) {
+            // Buat Snap Token HANYA JIKA GATEWAY (dan bukan Open Bill)
+            if (!$isCash && !$isOpenBill) {
                 $params = [
                     'transaction_details' => [
                         'order_id' => $order->invoice_number,
@@ -191,15 +409,14 @@ class PosController extends Controller
                 ];
                 $snapToken = \Midtrans\Snap::getSnapToken($params);
             }
-            // =========================
 
             DB::commit();
 
             return response()->json([
                 'message' => 'Pesanan berhasil disimpan!',
                 'order_id' => $order->id,
-                'status' => $order->status, // Ini akan mengirim 'pending'
-                'snap_token' => $snapToken  // Ini akan mengirim token
+                'status' => $order->status,
+                'snap_token' => $snapToken
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
