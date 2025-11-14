@@ -15,6 +15,7 @@ use App\Models\OrderType;
 use App\Models\Ingredient;
 use App\Models\Variant;
 use App\Models\Order;
+use App\Models\CashierShift;
 
 class PosController extends Controller
 {
@@ -286,6 +287,14 @@ class PosController extends Controller
      */
     public function store(Request $request)
     {
+
+        $activeShift = CashierShift::where('user_id', Auth::id())
+            ->where('is_closed', false)
+            ->first();
+
+        if (!$activeShift && $request->input('paymentMethod') !== 'openbill') {
+            return response()->json(['error' => 'Harap buka shift kasir terlebih dahulu.'], 403);
+        }
         $data = $request->validate([
             'cartItems' => 'required|array|min:1',
             'cartItems.*' => 'required|array',
@@ -326,6 +335,7 @@ class PosController extends Controller
 
             $order = Order::create([
                 'user_id' => Auth::id(),
+                'cashier_shift_id' => $activeShift->id ?? null,
                 'invoice_number' => 'INV-' . date('YmdHi') . '-' . strtoupper(Str::random(4)),
                 'status' => $orderStatus,
                 'payment_status' => $paymentStatus,

@@ -321,6 +321,10 @@
                         class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                         Histori Pesanan
                     </a>
+                    <a href="{{ route('admin.shift.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.shift.index') ? 'active' : '' }}">
+                        Kelola Shift
+                    </a>
                 @endif
 
                 {{-- 3. Histori Pesanan (Hanya Owner yang bisa lihat) --}}

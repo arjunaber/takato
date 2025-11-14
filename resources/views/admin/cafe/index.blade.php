@@ -53,8 +53,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                        * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
-                                                                                                                                                                                                                                                                        * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                    * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
+                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
 
         .cart-actions-bottom {
             display: grid;
@@ -122,8 +122,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                        * MODAL OPEN BILLS
-                                                                                                                                                                                                                                                                        * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                    * MODAL OPEN BILLS
+                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
         #open-bills-modal-overlay .modal-content {
             max-width: 700px;
         }
@@ -156,8 +156,8 @@
 
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                        * MODAL SPLIT BILL (Dipertahankan)
-                                                                                                                                                                                                                                                                        * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                    * MODAL SPLIT BILL (Dipertahankan)
+                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
         #split-bill-modal-overlay .modal-content {
             max-width: 900px;
         }
@@ -1300,7 +1300,9 @@
         let currentSelectedOpenBillId = null;
         let currentSelectedOpenBillInvoice = null;
         let remainingCartItems = [];
-        let paidItemIds = []; // Variabel global untuk menyimpan ID Order Item yang dibayar saat split
+        let paidItemIds = [];
+        let activeShift = null;
+        let shouldRedirectToShift = false;
 
         // ===============================================
         // == FUNGSI UTILITAS
@@ -1312,7 +1314,74 @@
                 minimumFractionDigits: 0
             }).format(number);
         }
+        // ===============================================
+        // == FUNGSI KONTROL SHIFT
+        // ===============================================
 
+        async function checkActiveShift() {
+            try {
+                // Panggil endpoint untuk mendapatkan shift aktif
+                const response = await fetch("{{ route('admin.shift.active') }}");
+                const result = await response.json();
+
+                activeShift = result.shift;
+                updatePosControls();
+
+            } catch (error) {
+                console.error('Gagal memuat status shift aktif:', error);
+                activeShift = null;
+                updatePosControls();
+            }
+        }
+
+        function updatePosControls() {
+            const payButton = document.getElementById('pay-button');
+            const openBillButton = document.getElementById('open-bill-button');
+            const viewBillsButton = document.getElementById('view-bills-button');
+            const cartEmpty = cartItems.length === 0;
+
+            if (activeShift) {
+                // Shift AKTIF: Aktifkan fungsionalitas POS
+                payButton.disabled = cartEmpty;
+                openBillButton.disabled = cartEmpty;
+                viewBillsButton.disabled = false;
+
+                payButton.title = '';
+                openBillButton.title = '';
+                viewBillsButton.title = '';
+
+            } else {
+                // Shift TIDAK AKTIF: Nonaktifkan fungsionalitas transaksi
+                const statusMessage = 'Harap Buka Shift Kasir Terlebih Dahulu.';
+
+                payButton.disabled = true;
+                openBillButton.disabled = true;
+                viewBillsButton.disabled = true;
+
+                payButton.title = statusMessage;
+                openBillButton.title = statusMessage;
+                viewBillsButton.title = statusMessage;
+
+                // Tampilkan peringatan visual di keranjang
+                if (cartEmpty) {
+                    const container = document.getElementById('cart-items-container');
+                    container.innerHTML = `<p class="cart-empty text-danger">${statusMessage}</p>`;
+                }
+            }
+        }
+
+        function requireActiveShift() {
+            // 1. Set flag pengalihan
+            shouldRedirectToShift = true;
+
+            // 2. Tampilkan pesan
+            showStatusModal('error', 'Akses Ditolak',
+                'Harap buka sesi shift kasir Anda terlebih dahulu di halaman manajemen Shift sebelum melakukan transaksi.'
+            );
+
+            // Pastikan modal ditampilkan secara eksplisit (redundancy yang aman)
+            document.getElementById('status-modal-overlay').style.display = 'flex';
+        }
         // ===============================================
         // == FUNGSI TAB NAVIGATION
         // ===============================================
@@ -1346,6 +1415,11 @@
         }
 
         function saveCustomItem() {
+            if (!activeShift) {
+                requireActiveShift();
+                return;
+            }
+
             const nameInput = document.getElementById('custom-item-name');
             const priceInput = document.getElementById('custom-item-price');
             const name = nameInput.value.trim();
@@ -1582,9 +1656,10 @@
                 payButton.innerText = 'Bayar';
             }
 
-            payButton.disabled = isDisabled;
-            document.getElementById('open-bill-button').disabled = isDisabled;
-            document.getElementById('view-bills-button').disabled = false;
+            // payButton.disabled = isDisabled;
+            // document.getElementById('open-bill-button').disabled = isDisabled;
+            // document.getElementById('view-bills-button').disabled = false;
+            updatePosControls();
         }
 
         function editProductItem(index) {
@@ -1606,6 +1681,11 @@
         // == FUNGSI MODAL ITEM
         // ===============================================
         function openItemModal(product, editIndex = -1) {
+            // KRUSIAL: Blokir jika shift tidak aktif
+            if (!activeShift) {
+                requireActiveShift();
+                return;
+            }
             currentEditingProduct = product;
             currentEditingIndex = editIndex;
 
@@ -1847,6 +1927,11 @@
         // == FUNGSI OPEN BILL
         // ===============================================
         async function openBill() {
+
+            if (!activeShift) {
+                requireActiveShift();
+                return;
+            }
             if (cartItems.length === 0) {
                 showStatusModal('error', 'Keranjang Kosong', 'Tidak ada item untuk disimpan sebagai Open Bill.');
                 return;
@@ -1907,6 +1992,12 @@
         }
 
         function openOpenBillsModal() {
+
+            if (!activeShift) {
+                requireActiveShift();
+                return;
+            }
+
             document.getElementById('open-bills-modal-overlay').style.display = 'flex';
             loadOpenBills();
         }
@@ -2184,6 +2275,11 @@
         // == FUNGSI PAYMENT MODAL
         // ===============================================
         function openPaymentModal(isSplit = false, remainingItems = [], itemIds = []) {
+            if (!activeShift) {
+                requireActiveShift();
+                return;
+            }
+
             if (cartItems.length === 0) {
                 showStatusModal('error', 'Keranjang Kosong', 'Anda belum menambahkan item apapun ke keranjang.');
                 return;
@@ -2423,13 +2519,17 @@
 
                     snap.pay(result.snap_token, {
                         onSuccess: function(trxResult) {
-                            /* ... */ },
+                            /* ... */
+                        },
                         onPending: function(trxResult) {
-                            /* ... */ },
+                            /* ... */
+                        },
                         onError: function(trxResult) {
-                            /* ... */ },
+                            /* ... */
+                        },
                         onClose: function() {
-                            /* ... */ }
+                            /* ... */
+                        }
                     });
                 }
 
@@ -2497,6 +2597,14 @@
 
         function closeStatusModal() {
             document.getElementById('status-modal-overlay').style.display = 'none';
+
+            if (shouldRedirectToShift) {
+                // Jika flag pengalihan aktif, lakukan pengalihan dan reset flag
+                shouldRedirectToShift = false;
+                window.location.href = "{{ route('admin.shift.index') }}"; // Ganti dengan route yang benar
+                return;
+            }
+
             if (isLastTransactionSuccess) {
                 closePaymentModal();
                 isLastTransactionSuccess = false;
@@ -2533,6 +2641,7 @@
             renderCategories();
             renderCart();
             updateSummary();
+            checkActiveShift();
 
             document.getElementById('item-modal-overlay').onclick = closeItemModal;
             document.getElementById('payment-modal-overlay').onclick = closePaymentModal;

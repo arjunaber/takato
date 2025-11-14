@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\RecipeController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Controllers\Admin\StockRequestController;
+use App\Http\Controllers\Admin\ShiftController;
 
 // Public routes
 Route::get('/', function () {
@@ -53,6 +54,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin_or_owner'])->
     Route::get('/pos/data', [PosController::class, 'getDataForPos'])->name('pos.data');
     Route::resource('orders', OrderController::class);
     Route::get('/orders/{order}/receipt', [OrderController::class, 'printReceipt'])->name('orders.receipt');
+    Route::get('/shift', [ShiftController::class, 'index'])->name('shift.index');
+
+    // Rute API Manajemen Shift (DITEMPATKAN DI DALAM GRUP INI)
+    Route::prefix('/shift')->name('shift.')->group(function () {
+        Route::post('/open', [ShiftController::class, 'openShift'])->name('open');
+        Route::post('/close', [ShiftController::class, 'closeShift'])->name('close');
+        Route::get('/active', [ShiftController::class, 'getActiveShift'])->name('active');
+        Route::get('/history', [ShiftController::class, 'getShiftHistory'])->name('history'); // Opsional: Melihat riwayat
+    });
 
     Route::prefix('/pos')->name('pos.')->middleware(['auth'])->group(function () {
         Route::get('/open-bills', [PosController::class, 'getOpenBills'])->name('open_bills');
