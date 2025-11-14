@@ -10,8 +10,8 @@
 @push('styles')
     <style>
         /* ======================================================================
-                                             * PERBAIKAN TINGGI KRITIS (FIX CUTOFF DENGAN MENGURANGI TINGGI HEADER)
-                                             * ====================================================================== */
+                                                                                     * PERBAIKAN TINGGI KRITIS (FIX CUTOFF DENGAN MENGURANGI TINGGI HEADER)
+                                                                                     * ====================================================================== */
         html,
         body {
             height: 100%;
@@ -29,9 +29,9 @@
         .pos-container {
             display: flex;
             /* SOLUSI AMAN: Kurangi 55px (estimasi tinggi navbar/header admin).
-                                                   Jika masih terpotong, coba kurangi angkanya (misal: 50px).
-                                                   Jika ada footer, tambahkan pengurangan tinggi footer juga.
-                                                   Misalnya: height: calc(100vh - 55px - 40px); */
+                                                                                           Jika masih terpotong, coba kurangi angkanya (misal: 50px).
+                                                                                           Jika ada footer, tambahkan pengurangan tinggi footer juga.
+                                                                                           Misalnya: height: calc(100vh - 55px - 40px); */
             height: calc(100vh - 55px);
             width: 100%;
         }
@@ -60,8 +60,8 @@
         }
 
         /* ======================================================================
-                                             * MODIFIKASI MARGIN & PENGATURAN LAINNYA
-                                             * ====================================================================== */
+                                                                                     * MODIFIKASI MARGIN & PENGATURAN LAINNYA
+                                                                                     * ====================================================================== */
 
         .pay-button {
             flex-shrink: 0;
@@ -880,7 +880,7 @@
                             <label for="custom-item-price">Harga (Rp)</label>
                             <input type="number" id="custom-item-price" placeholder="cth: 50000" min="0">
                         </div>
-                        <button class="custom-item-btn" onclick="addCustomItemToCart()">Tambah ke Keranjang</button>
+                        <button class="custom-item-btn" onclick="saveCustomItem()">Tambah ke Keranjang</button>
                     </div>
                 </div>
             </div>
@@ -1054,7 +1054,7 @@
         });
 
         // ===============================================
-        // ==  SCRIPT ASLI POS ANDA
+        // == SCRIPT ASLI POS ANDA
         // ===============================================
         const allCategories = @json($categories ?? []);
         const allLibraryProducts = @json($libraryProducts ?? []);
@@ -1065,6 +1065,7 @@
         // Variabel global
         let cartItems = [];
         let currentEditingProduct = null;
+        let currentEditingIndex = -1; // -1 = Add baru, >= 0 = Index item yang diedit
         let currentTax = 0;
         let currentSubtotal = 0;
         let currentTotal = 0;
@@ -1076,43 +1077,64 @@
 
 
         // ===============================================
-        // ==  FUNGSI (TAB, KATEGORI, CUSTOM)
+        // == FUNGSI (TAB, KATEGORI, CUSTOM)
         // ===============================================
         function showTab(tabName, clickedButton) {
-            /* ... (kode tidak berubah) ... */
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(`tab-${tabName}`).classList.add('active');
             clickedButton.classList.add('active');
+
+            // Reset form custom item saat pindah tab
+            if (tabName !== 'custom') {
+                resetCustomItemForm();
+            }
         }
 
-        function addCustomItemToCart() {
-            /* ... (kode tidak berubah) ... */
+        function resetCustomItemForm() {
+            document.getElementById('custom-item-name').value = '';
+            document.getElementById('custom-item-price').value = '';
+            document.querySelector('.custom-item-btn').innerText = 'Tambah ke Keranjang';
+            currentEditingIndex = -1;
+        }
+
+        // Ganti nama fungsinya menjadi saveCustomItem() untuk mendukung ADD dan EDIT
+        function saveCustomItem() {
             const nameInput = document.getElementById('custom-item-name');
             const priceInput = document.getElementById('custom-item-price');
             const name = nameInput.value.trim();
             const price = parseFloat(priceInput.value) || 0;
+
             if (!name || price <= 0) {
                 showStatusModal('error', 'Input Tidak Valid', 'Nama item dan harga (lebih dari 0) harus diisi.');
                 return;
             }
-            const cartItem = {
-                id: 'custom-' + Date.now(),
-                name: name,
-                quantity: 1,
-                note: '',
-                finalPrice: price,
-                isCustom: true
-            };
-            cartItems.push(cartItem);
+
+            // --- Logika EDIT atau ADD ---
+            if (currentEditingIndex > -1) {
+                // Mode Edit: Update item yang sudah ada
+                cartItems[currentEditingIndex].name = name;
+                cartItems[currentEditingIndex].finalPrice = price;
+                // Kuantitas tidak diubah di sini, diatur di keranjang
+            } else {
+                // Mode Add Baru
+                const cartItem = {
+                    id: 'custom-' + Date.now(), // ID unik untuk item custom baru
+                    name: name,
+                    quantity: 1,
+                    note: '',
+                    finalPrice: price,
+                    isCustom: true
+                };
+                cartItems.push(cartItem);
+            }
+
             renderCart();
             updateSummary();
-            nameInput.value = '';
-            priceInput.value = '';
+            resetCustomItemForm(); // Bersihkan form setelah disimpan
         }
 
         function renderCategories() {
-            /* ... (kode tidak berubah) ... */
             const grid = document.getElementById('category-grid-container');
             grid.innerHTML = '';
             allCategories.forEach(cat => {
@@ -1126,7 +1148,6 @@
         }
 
         function showCategoryProducts(categoryId, categoryName) {
-            /* ... (kode tidak berubah) ... */
             document.getElementById('library-categories-view').style.display = 'none';
             document.getElementById('library-products-view').style.display = 'block';
             document.getElementById('library-category-name').innerText = categoryName;
@@ -1135,16 +1156,14 @@
         }
 
         function showCategoryList() {
-            /* ... (kode tidak berubah) ... */
             document.getElementById('library-categories-view').style.display = 'block';
             document.getElementById('library-products-view').style.display = 'none';
         }
 
         // ===============================================
-        // ==  FUNGSI UTAMA (Sistem & Keranjang)
+        // == FUNGSI UTAMA (Sistem & Keranjang)
         // ===============================================
         function formatRupiah(number) {
-            /* ... (kode tidak berubah) ... */
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
                 currency: 'IDR',
@@ -1153,7 +1172,6 @@
         }
 
         function renderProductsInGrid(gridId, productArray) {
-            /* ... (kode tidak berubah) ... */
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
             if (!productArray || productArray.length === 0) {
@@ -1163,24 +1181,35 @@
             productArray.forEach(product => {
                 const productElement = document.createElement('div');
                 productElement.className = 'product-item';
+                // openItemModal disiapkan untuk Add baru (mode non-edit)
                 productElement.onclick = () => openItemModal(product);
                 let minPrice = 0;
                 if (product.variants && product.variants.length > 0) {
                     minPrice = Math.min(...product.variants.map(v => parseFloat(v.price)));
                 }
+
+                // --- KODE BARU UNTUK MENAMPILKAN GAMBAR ---
+                let imageHtml = '';
+                if (product.image_url) {
+                    const imageUrl = `{{ asset('storage') }}/${product.image_url}`;
+                    imageHtml = `<img src="${imageUrl}" alt="${product.name}" />`;
+                } else {
+                    imageHtml =
+                        `<div style="height: 80px; width: 80px; background: var(--secondary-light); margin: 0 auto 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Image</div>`;
+                }
+                // --- AKHIR KODE BARU ---
+
                 productElement.innerHTML =
-                    `<div class="product-name">${product.name}</div><div class="product-price">Mulai ${formatRupiah(minPrice)}</div>`;
+                    `${imageHtml}<div class="product-name">${product.name}</div><div class="product-price">Mulai ${formatRupiah(minPrice)}</div>`;
                 grid.appendChild(productElement);
             });
         }
 
         function renderFavoriteProducts() {
-            /* ... (kode tidak berubah) ... */
             renderProductsInGrid('favorit-product-grid', allFavoriteProducts);
         }
 
         function renderCart() {
-            /* ... (kode tidak berubah) ... */
             const cartContainer = document.getElementById('cart-items-container');
             cartContainer.innerHTML = '';
             if (cartItems.length === 0) {
@@ -1190,15 +1219,20 @@
             cartItems.forEach((item, index) => {
                 const cartItemElement = document.createElement('div');
                 cartItemElement.className = 'cart-item';
+
                 if (item.isCustom) {
+                    // =============== KODE CUSTOM DENGAN TOMBOL EDIT ===============
                     cartItemElement.innerHTML = `
-                    <div class="cart-item-ordertype custom">Custom</div>
-                    <div class="cart-item-header"><span class="cart-item-name">${item.name}</span><span class="cart-item-price">${formatRupiah(item.finalPrice)}</span></div>
-                    <div class="cart-item-actions">
-                        <button onclick="updateCartQuantity(${index}, -1)">-</button><span>${item.quantity}</span><button onclick="updateCartQuantity(${index}, 1)">+</button>
-                        <button class="remove-btn" onclick="removeCartItem(${index})">Hapus</button>
-                    </div>`;
+                <div class="cart-item-ordertype custom">Custom</div>
+                <div class="cart-item-header"><span class="cart-item-name">${item.name}</span><span class="cart-item-price">${formatRupiah(item.finalPrice)}</span></div>
+                <div class="cart-item-actions">
+                    <button onclick="updateCartQuantity(${index}, -1)">-</button><span>${item.quantity}</span><button onclick="updateCartQuantity(${index}, 1)">+</button>
+                    <button class="remove-btn" onclick="editCustomItem(${index})" style="background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); margin-left: 12px; margin-right: 8px; width: auto; padding: 0 10px;">Edit</button>
+                    <button class="remove-btn" onclick="removeCartItem(${index})" style="margin-left: 0;">Hapus</button>
+                </div>`;
+                    // ==============================================================
                 } else {
+                    // =============== KODE PRODUK DENGAN TOMBOL EDIT ===============
                     let addonsHtml = '<ul>';
                     if (item.selectedAddons.length > 0) {
                         item.selectedAddons.forEach(addon => {
@@ -1218,20 +1252,21 @@
                     }
                     let orderTypeHtml = `<div class="cart-item-ordertype">${item.selectedOrderType.name}</div>`;
                     cartItemElement.innerHTML = `
-                    ${orderTypeHtml}
-                    <div class="cart-item-header"><span class="cart-item-name">${item.name} (${item.selectedVariant.name})</span><span class="cart-item-price">${formatRupiah(item.finalPrice)}</span></div>
-                    <div class="cart-item-details"><span class="detail-label">Add-ons:</span>${addonsHtml}${discountHtml}${noteHtml}</div>
-                    <div class="cart-item-actions">
-                        <button onclick="updateCartQuantity(${index}, -1)">-</button><span>${item.quantity}</span><button onclick="updateCartQuantity(${index}, 1)">+</button>
-                        <button class="remove-btn" onclick="removeCartItem(${index})">Hapus</button>
-                    </div>`;
+                ${orderTypeHtml}
+                <div class="cart-item-header"><span class="cart-item-name">${item.name} (${item.selectedVariant.name})</span><span class="cart-item-price">${formatRupiah(item.finalPrice)}</span></div>
+                <div class="cart-item-details"><span class="detail-label">Add-ons:</span>${addonsHtml}${discountHtml}${noteHtml}</div>
+                <div class="cart-item-actions">
+                    <button onclick="updateCartQuantity(${index}, -1)">-</button><span>${item.quantity}</span><button onclick="updateCartQuantity(${index}, 1)">+</button>
+                    <button class="remove-btn" onclick="editProductItem(${index})" style="background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); margin-left: auto; margin-right: 8px; width: auto; padding: 0 10px;">Edit</button>
+                    <button class="remove-btn" onclick="removeCartItem(${index})" style="margin-left: 0;">Hapus</button>
+                </div>`;
+                    // ==============================================================
                 }
                 cartContainer.appendChild(cartItemElement);
             });
         }
 
         function updateCartQuantity(index, change) {
-            /* ... (kode tidak berubah) ... */
             cartItems[index].quantity += change;
             if (cartItems[index].quantity <= 0) {
                 cartItems.splice(index, 1);
@@ -1241,14 +1276,13 @@
         }
 
         function removeCartItem(index) {
-            /* ... (kode tidak berubah) ... */
             cartItems.splice(index, 1);
             renderCart();
             updateSummary();
+            resetCustomItemForm(); // Pastikan form custom bersih jika item custom yang dihapus sedang diedit
         }
 
         function updateSummary() {
-            /* ... (kode tidak berubah) ... */
             let subtotal = 0;
             cartItems.forEach(item => {
                 subtotal += item.finalPrice * item.quantity;
@@ -1262,10 +1296,62 @@
             document.getElementById('summary-subtotal').innerText = formatRupiah(subtotal);
             document.getElementById('summary-tax').innerText = formatRupiah(tax);
             document.getElementById('summary-total').innerText = formatRupiah(total);
+            document.getElementById('pay-button').disabled = cartItems.length === 0;
         }
 
         // ===============================================
-        // ==  Fungsi submitPayment (AJAX) - VERSI BARU
+        // == FUNGSI EDIT ITEM (BARU)
+        // ===============================================
+
+        function editCustomItem(index) {
+            const item = cartItems[index];
+
+            // 1. Set mode editing
+            currentEditingIndex = index;
+
+            // 2. Pindah dan aktifkan tab Custom
+            const customTabButton = document.querySelector('.nav-tab[onclick*="showTab(\'custom\')"]');
+            showTab('custom', customTabButton);
+
+            // 3. Isi form dengan data item yang akan di-edit
+            document.getElementById('custom-item-name').value = item.name;
+            document.getElementById('custom-item-price').value = item.finalPrice;
+
+            // 4. Ubah teks tombol menjadi 'Simpan Perubahan'
+            document.querySelector('.custom-item-btn').innerText = 'Simpan Perubahan';
+
+            // 5. Beri fokus
+            document.getElementById('custom-item-name').focus();
+        }
+
+        function findOriginalProduct(itemId) {
+            // Cari di library dan favorit (asumsi ID produk non-custom adalah ID asli)
+            let product = allLibraryProducts.find(p => p.id == itemId);
+            if (!product) {
+                product = allFavoriteProducts.find(p => p.id == itemId);
+            }
+            return product;
+        }
+
+        function editProductItem(index) {
+            const itemToEdit = cartItems[index];
+
+            // Cari produk asli (asumsi ID item keranjang non-custom adalah ID produk asli)
+            const allProducts = [...allLibraryProducts, ...allFavoriteProducts];
+            const originalProduct = allProducts.find(p => p.id == itemToEdit.id);
+
+            if (!originalProduct) {
+                showStatusModal('error', 'Gagal Edit', 'Data produk asli tidak ditemukan.');
+                return;
+            }
+
+            // Panggil openItemModal dalam mode EDIT (melewatkan index)
+            openItemModal(originalProduct, index);
+        }
+
+
+        // ===============================================
+        // == Fungsi submitPayment (AJAX) - VERSI BARU
         // ===============================================
         async function submitPayment() {
             const payButton = document.getElementById('payment-submit-btn');
@@ -1289,7 +1375,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-csrf-token"]').getAttribute(
                             'content'),
                         'Accept': 'application/json'
                     },
@@ -1351,20 +1437,33 @@
         }
 
         // ===============================================
-        // ==  FUNGSI MODAL ITEM (Lama, tidak berubah)
+        // == FUNGSI MODAL ITEM (Lama, tidak berubah)
         // ===============================================
-        function openItemModal(product) {
-            /* ... (kode tidak berubah) ... */
+        function openItemModal(product, indexInCart = -1) {
             currentEditingProduct = product;
+            currentEditingIndex = indexInCart; // Set index edit
+            const isEditMode = indexInCart > -1;
+            let itemToEdit = isEditMode ? cartItems[indexInCart] : null;
+
             document.getElementById('modal-item-name').innerText = product.name;
+
+            // --- 1. VARIAN ---
             const variantsContainer = document.getElementById('modal-item-variants');
             variantsContainer.innerHTML = '';
             product.variants.forEach((variant, index) => {
-                const isChecked = index === 0 ? 'checked' : '';
+                let isChecked = index === 0;
+                if (isEditMode && itemToEdit.selectedVariant) {
+                    // Jika Edit Mode, cek apakah variant ini yang dipilih di keranjang
+                    isChecked = (variant.id === itemToEdit.selectedVariant.id);
+                }
+
+                const checkedAttr = isChecked ? 'checked' : '';
                 const variantId = `variant-${product.id}-${index}`;
                 variantsContainer.innerHTML +=
-                    `<div class="option-item-wrapper"><input type="radio" id="${variantId}" name="variant-${product.id}" value="${index}" ${isChecked} onchange="updateModalPrice()"><label class="option-item" for="${variantId}"><span class="option-name">${variant.name}</span><span class="option-price">${formatRupiah(variant.price)}</span></label></div>`;
+                    `<div class="option-item-wrapper"><input type="radio" id="${variantId}" name="variant-${product.id}" value="${index}" ${checkedAttr} onchange="updateModalPrice()"><label class="option-item" for="${variantId}"><span class="option-name">${variant.name}</span><span class="option-price">${formatRupiah(variant.price)}</span></label></div>`;
             });
+
+            // --- 2. ADD-ONS ---
             const addonsContainer = document.getElementById('modal-item-addons');
             addonsContainer.innerHTML = '';
             if (!product.addons || product.addons.length === 0) {
@@ -1372,50 +1471,76 @@
                     '<p style="font-size: 14px; color: var(--text-muted);">Tidak ada add-on untuk item ini.</p>';
             } else {
                 product.addons.forEach((addon, index) => {
+                    let isChecked = false;
+                    if (isEditMode && itemToEdit.selectedAddons) {
+                        // Jika Edit Mode, cek apakah addon ini ada di selectedAddons
+                        isChecked = itemToEdit.selectedAddons.some(selected => selected.id === addon.id);
+                    }
+
+                    const checkedAttr = isChecked ? 'checked' : '';
                     const addonId = `addon-${product.id}-${index}`;
                     addonsContainer.innerHTML +=
-                        `<div class="option-item-wrapper"><input type="checkbox" id="${addonId}" name="addon-${product.id}" value="${index}" onchange="updateModalPrice()"><label class="option-item" for="${addonId}"><span class="option-name">${addon.name}</span><span class="option-price-addon">+ ${formatRupiah(addon.price)}</span></label></div>`;
+                        `<div class="option-item-wrapper"><input type="checkbox" id="${addonId}" name="addon-${product.id}" value="${index}" ${checkedAttr} onchange="updateModalPrice()"><label class="option-item" for="${addonId}"><span class="option-name">${addon.name}</span><span class="option-price-addon">+ ${formatRupiah(addon.price)}</span></label></div>`;
                 });
             }
+
+            // --- 3. TIPE PESANAN ---
             const orderTypesContainer = document.getElementById('modal-item-ordertypes');
             orderTypesContainer.innerHTML = '';
             allOrderTypes.forEach(type => {
-                const isChecked = type.id === 1 ? 'checked' : '';
+                let isChecked = type.id === 1;
+                if (isEditMode && itemToEdit.selectedOrderType) {
+                    isChecked = (type.id === itemToEdit.selectedOrderType.id);
+                }
+                const checkedAttr = isChecked ? 'checked' : '';
                 const typeId = `ordertype-${type.id}`;
                 let priceText = '';
                 if (type.type === 'percentage') priceText = `+ ${parseFloat(type.value) * 100}%`;
                 else if (parseFloat(type.value) > 0) priceText = `+ ${formatRupiah(type.value)}`;
                 orderTypesContainer.innerHTML +=
-                    `<div class="option-item-wrapper"><input type="radio" id="${typeId}" name="ordertype" value="${type.id}" ${isChecked} onchange="updateModalPrice()"><label class="option-item" for="${typeId}"><span class="option-name">${type.name}</span><span class="option-price-ordertype">${priceText}</span></label></div>`;
+                    `<div class="option-item-wrapper"><input type="radio" id="${typeId}" name="ordertype" value="${type.id}" ${checkedAttr} onchange="updateModalPrice()"><label class="option-item" for="${typeId}"><span class="option-name">${type.name}</span><span class="option-price-ordertype">${priceText}</span></label></div>`;
             });
+
+            // --- 4. DISKON ---
             const discountsContainer = document.getElementById('modal-item-discounts');
             discountsContainer.innerHTML = '';
             allDiscounts.forEach(discount => {
-                const isChecked = discount.id === 1 ? 'checked' : '';
+                let isChecked = discount.id === 1;
+                if (isEditMode && itemToEdit.discount) {
+                    isChecked = (discount.id === itemToEdit.discount.id);
+                }
+                const checkedAttr = isChecked ? 'checked' : '';
                 const discountId = `discount-${discount.id}`;
                 let priceText = '';
                 if (discount.type === 'percentage') priceText = `${parseFloat(discount.value) * 100}%`;
                 else if (parseFloat(discount.value) > 0) priceText = `-${formatRupiah(discount.value)}`;
                 discountsContainer.innerHTML +=
-                    `<div class="option-item-wrapper"><input type="radio" id="${discountId}" name="discount" value="${discount.id}" ${isChecked} onchange="updateModalPrice()"><label class="option-item" for="${discountId}"><span class="option-name">${discount.name}</span><span class="option-price-discount">${priceText}</span></label></div>`;
+                    `<div class="option-item-wrapper"><input type="radio" id="${discountId}" name="discount" value="${discount.id}" ${checkedAttr} onchange="updateModalPrice()"><label class="option-item" for="${discountId}"><span class="option-name">${discount.name}</span><span class="option-price-discount">${priceText}</span></label></div>`;
             });
-            document.getElementById('modal-item-quantity').value = 1;
-            document.getElementById('modal-item-note').value = '';
+
+            // --- 5. KUANTITAS & CATATAN ---
+            document.getElementById('modal-item-quantity').value = isEditMode ? itemToEdit.quantity : 1;
+            document.getElementById('modal-item-note').value = isEditMode ? itemToEdit.note : '';
+
+            // --- 6. TOMBOL FOOTER ---
+            document.querySelector('#item-modal-overlay .modal-save-btn').innerText = isEditMode ? 'Simpan Perubahan' :
+                'Simpan ke Keranjang';
+
             updateModalPrice();
             document.getElementById('item-modal-overlay').style.display = 'flex';
         }
 
         function closeItemModal() {
-            /* ... (kode tidak berubah) ... */
             document.getElementById('item-modal-overlay').style.display = 'none';
             currentEditingProduct = null;
         }
 
         function updateModalPrice() {
-            /* ... (kode tidak berubah) ... */
             if (!currentEditingProduct) return;
-            const selectedVariantIndex = document.querySelector(`input[name="variant-${currentEditingProduct.id}"]:checked`)
-                .value;
+            const selectedVariantRadio = document.querySelector(
+                `input[name="variant-${currentEditingProduct.id}"]:checked`);
+            if (!selectedVariantRadio) return; // safety check
+            const selectedVariantIndex = selectedVariantRadio.value;
             const variant = currentEditingProduct.variants[selectedVariantIndex];
             let price = parseFloat(variant.price);
             const selectedAddonCheckboxes = document.querySelectorAll(
@@ -1454,9 +1579,15 @@
         }
 
         function saveItemToCart() {
-            /* ... (kode tidak berubah) ... */
-            const variantIndex = document.querySelector(`input[name="variant-${currentEditingProduct.id}"]:checked`).value;
+            const variantRadio = document.querySelector(`input[name="variant-${currentEditingProduct.id}"]:checked`);
+            if (!variantRadio) {
+                showStatusModal('error', 'Pilihan Wajib', 'Anda harus memilih salah satu varian.');
+                return;
+            }
+            const variantIndex = variantRadio.value;
             const selectedVariant = currentEditingProduct.variants[variantIndex];
+
+            // Proses pengumpulan data item
             const selectedAddons = [];
             if (currentEditingProduct.addons && currentEditingProduct.addons.length > 0) {
                 const addonCheckboxes = document.querySelectorAll(
@@ -1473,6 +1604,8 @@
             const selectedDiscount = allDiscounts.find(d => d.id == selectedDiscountId);
             const quantity = parseInt(document.getElementById('modal-item-quantity').value) || 1;
             const note = document.getElementById('modal-item-note').value;
+
+            // Perhitungan harga
             let basePrice = parseFloat(selectedVariant.price);
             selectedAddons.forEach(addon => {
                 basePrice += parseFloat(addon.price);
@@ -1489,7 +1622,9 @@
                 discountAmount = parseFloat(selectedDiscount.value);
             }
             const finalPricePerItem = basePrice - discountAmount < 0 ? 0 : basePrice - discountAmount;
-            const cartItem = {
+
+            // Buat objek item baru/update
+            const newCartItem = {
                 id: currentEditingProduct.id,
                 name: currentEditingProduct.name,
                 quantity: quantity,
@@ -1501,14 +1636,25 @@
                 finalPrice: finalPricePerItem,
                 isCustom: false
             };
-            cartItems.push(cartItem);
+
+            // Logika UPDATE atau ADD
+            if (currentEditingIndex > -1) {
+                // Mode Edit: Ganti item yang sudah ada
+                cartItems[currentEditingIndex] = newCartItem;
+            } else {
+                // Mode Add Baru: Tambahkan item ke keranjang
+                cartItems.push(newCartItem);
+            }
+
+            // Reset dan render
             renderCart();
             updateSummary();
             closeItemModal();
+            currentEditingIndex = -1; // Reset index
         }
 
         // ===============================================
-        // ==  SCRIPT MODAL PEMBAYARAN
+        // == SCRIPT MODAL PEMBAYARAN
         // ===============================================
         const paymentModal = document.getElementById('payment-modal-overlay');
         const paymentTotalEl = document.getElementById('payment-modal-total');
@@ -1537,11 +1683,9 @@
         }
 
         function closePaymentModal() {
-            /* ... (kode tidak berubah) ... */
             paymentModal.style.display = 'none';
         }
         payBtnCash.addEventListener('click', () => {
-            /* ... (kode tidak berubah) ... */
             currentPaymentMethod = 'cash';
             cashSection.style.display = 'block';
             payBtnCash.classList.add('active');
@@ -1549,7 +1693,6 @@
             calculateChange();
         });
         payBtnGateway.addEventListener('click', () => {
-            /* ... (kode tidak berubah) ... */
             currentPaymentMethod = 'gateway';
             cashSection.style.display = 'none';
             payBtnCash.classList.remove('active');
@@ -1559,7 +1702,6 @@
         cashAmountInput.addEventListener('input', calculateChange);
 
         function calculateChange() {
-            /* ... (kode tidak berubah) ... */
             const cashAmount = parseFloat(cashAmountInput.value) || 0;
             currentCashAmount = cashAmount;
             if (cashAmount <= 0) {
@@ -1582,7 +1724,7 @@
         }
 
         // ===============================================
-        // ==  SCRIPT MODAL STATUS (DIMODIFIKASI)
+        // == SCRIPT MODAL STATUS (DIMODIFIKASI)
         // ===============================================
         const statusModal = document.getElementById('status-modal-overlay');
         const statusModalContent = statusModal.querySelector('.modal-content');
@@ -1643,13 +1785,16 @@
             renderCart();
             updateSummary();
 
+            // Mengubah onclick addCustomItemToCart() menjadi saveCustomItem()
+            document.querySelector('.custom-item-btn').onclick = saveCustomItem;
+
+
             document.getElementById('item-modal-overlay').onclick = closeItemModal;
             document.getElementById('payment-modal-overlay').onclick = closePaymentModal;
             document.getElementById('status-modal-overlay').onclick = closeStatusModal;
         };
 
         function renderProductsInGrid(gridId, productArray) {
-            /* ... (kode tidak berubah) ... */
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
             if (!productArray || productArray.length === 0) {

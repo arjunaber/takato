@@ -37,16 +37,7 @@ Route::get('/events/gathering', function () {
     return view('gathering');
 });
 
-Route::get('/landing', function () {
-    return view('auth.landing.index');
-});
 
-Route::get('/grandschedule', function () {
-    return view('auth.grandschedule.index');
-});
-Route::post('/grand-schedules/book', [GrandScheduleController::class, 'book'])->name('grand-schedules.book');
-
-Route::get('/grand-schedules/calendar-data', [GrandScheduleController::class, 'getCalendarData']);
 // Authentication Routes
 Route::controller(LoginController::class)->group(function () {
     Route::get('/login', 'showLoginForm')->name('login');
@@ -54,45 +45,26 @@ Route::controller(LoginController::class)->group(function () {
     Route::post('/logout', 'logout')->name('logout');
 });
 
-// Admin routes group
-Route::prefix('admin')->name('admin.')->middleware(['auth', AdminMiddleware::class])->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Grand Schedule Management
-    Route::prefix('grand-schedules')->name('grand-schedules.')->controller(GrandScheduleController::class)->group(function () {
-        // List View
-        Route::get('/', 'index')->name('index'); // Full route name: admin.grand-schedules.index
-
-        // Calendar View
-        Route::get('/calendar', 'calendar')->name('calendar');
-
-        // Create Schedule
-        Route::post('/', 'store')->name('store');
-
-        // Update Schedule
-        Route::put('/{grandSchedule}', 'update')->name('update');
-
-        // Bulk Update Status
-        Route::post('/bulk-update', 'bulkUpdate')->name('bulk-update');
-
-        // Bulk Store (Create multiple schedules) - TAMBAHKAN INI
-        Route::post('/bulk-store', 'bulkStore')->name('bulk-store');
-
-        // Get Calendar Data (JSON)
-        Route::get('/calendar-data', 'getCalendarData')->name('calendar-data');
-    });
-
-
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin_or_owner'])->group(function () {
+    // POS (Akses: Owner & Admin)
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/store', [PosController::class, 'store'])->name('pos.store');
     Route::get('/pos/data', [PosController::class, 'getDataForPos'])->name('pos.data');
-    Route::get('/variants/{variant}/recipe', [RecipeController::class, 'show'])->name('variants.recipe.show');
-    Route::post('/variants/{variant}/recipe', [RecipeController::class, 'update'])->name('variants.recipe.update');
+});
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'owner'])->group(function () {
+
+    // Dashboard & Laporan (Akses: Owner Saja)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/orders/{order}/receipt', [OrderController::class, 'printReceipt'])->name('orders.receipt');
     Route::post('/ingredients/adjust-stock', [IngredientController::class, 'adjustStock'])->name('ingredients.adjust-stock');
     Route::get('/stock/request/print', [StockRequestController::class, 'printRequest'])->name('stock.request.print');
+    Route::get('/variants/{variant}/recipe', [RecipeController::class, 'show'])->name('variants.recipe.show');
+    Route::post('/variants/{variant}/recipe', [RecipeController::class, 'update'])->name('variants.recipe.update');
 
+
+    // Resource Routes (Akses: Owner Saja)
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
     Route::resource('ingredients', IngredientController::class);

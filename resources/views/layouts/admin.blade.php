@@ -302,43 +302,67 @@
             Takato POS
         </div>
         <nav class="sidebar-nav">
-            <a href="{{ route('admin.dashboard') }}"
-                class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                Dashboard
-            </a>
-            <a href="{{ route('admin.pos.index') }}"
-                class="nav-link {{ request()->routeIs('admin.pos.index') ? 'active' : '' }}">
-                {{-- Perbaikan: Ganti jadi 'admin.pos.index' --}}
-                Kasir (POS)
-            </a>
-            <a href="{{ route('admin.orders.index') }}"
-                class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                Histori Pesanan
-            </a>
-            <a href="{{ route('admin.products.index') }}"
-                class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                Produk
-            </a>
-            <a href="{{ route('admin.categories.index') }}"
-                class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                Kategori
-            </a>
-            <a href="{{ route('admin.addons.index') }}"
-                class="nav-link {{ request()->routeIs('admin.addons.*') ? 'active' : '' }}">
-                Add-Ons
-            </a>
-            <a href="{{ route('admin.ingredients.index') }}"
-                class="nav-link {{ request()->routeIs('admin.ingredients.*') ? 'active' : '' }}">
-                Bahan Baku (Stok)
-            </a>
-            <a href="{{ route('admin.discounts.index') }}"
-                class="nav-link {{ request()->routeIs('admin.discounts.*') ? 'active' : '' }}">
-                Diskon
-            </a>
-            <a href="{{ route('admin.order-types.index') }}"
-                class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
-                Tipe Pesanan
-            </a>
+            @auth
+                {{-- 1. Dashboard (Hanya Owner yang bisa lihat) --}}
+                @if (auth()->user()->role === 'owner')
+                    <a href="{{ route('admin.dashboard') }}"
+                        class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        Dashboard
+                    </a>
+                @endif
+
+                {{-- 2. Kasir (POS) (Owner & Admin bisa lihat) --}}
+                @if (in_array(auth()->user()->role, ['owner', 'admin']))
+                    <a href="{{ route('admin.pos.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.pos.index') ? 'active' : '' }}">
+                        Kasir (POS)
+                    </a>
+                @endif
+
+                {{-- 3. Histori Pesanan (Hanya Owner yang bisa lihat) --}}
+                @if (auth()->user()->role === 'owner')
+                    <a href="{{ route('admin.orders.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                        Histori Pesanan
+                    </a>
+
+                    {{-- 4. Produk (Hanya Owner yang bisa lihat) --}}
+                    <a href="{{ route('admin.products.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                        Produk
+                    </a>
+
+                    {{-- 5. Kategori (Hanya Owner yang bisa lihat) --}}
+                    <a href="{{ route('admin.categories.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                        Kategori
+                    </a>
+
+                    {{-- 6. Add-Ons (Hanya Owner yang bisa lihat) --}}
+                    <a href="{{ route('admin.addons.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.addons.*') ? 'active' : '' }}">
+                        Add-Ons
+                    </a>
+
+                    {{-- 7. Bahan Baku (Stok) (Hanya Owner yang bisa lihat) --}}
+                    <a href="{{ route('admin.ingredients.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.ingredients.*') ? 'active' : '' }}">
+                        Bahan Baku (Stok)
+                    </a>
+
+                    {{-- 8. Diskon (Hanya Owner yang bisa lihat) --}}
+                    <a href="{{ route('admin.discounts.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.discounts.*') ? 'active' : '' }}">
+                        Diskon
+                    </a>
+
+                    {{-- 9. Tipe Pesanan (Hanya Owner yang bisa lihat) --}}
+                    <a href="{{ route('admin.order-types.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
+                        Tipe Pesanan
+                    </a>
+                @endif
+            @endauth
         </nav>
     </aside>
 
@@ -351,11 +375,13 @@
 
             {{-- ITEM NAVBAR SEBELAH KANAN --}}
             <div class="navbar-right">
-                <span class="username">Halo, {{ auth()->user()->name }}</span>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="logout-btn">Logout</button>
-                </form>
+                @auth
+                    <span class="username">Halo, {{ auth()->user()->name }}</span>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                @endauth
             </div>
         </nav>
 

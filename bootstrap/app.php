@@ -15,11 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'AdminMiddleware' => \App\Http\Middleware\AdminMiddleware::class,
+            'owner' => \App\Http\Middleware\OwnerMiddleware::class,
+            'admin_or_owner' => \App\Http\Middleware\AdminOrOwnerMiddleware::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
             'api/midtrans-webhook'
         ]);
+
+        
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
