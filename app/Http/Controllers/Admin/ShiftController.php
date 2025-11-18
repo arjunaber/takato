@@ -122,10 +122,25 @@ class ShiftController extends Controller
      */
     public function getActiveShift()
     {
-        $shift = CashierShift::where('user_id', Auth::id())
+        $shift = CashierShift::with('user') // <<< KRUSIAL: Tambahkan eager loading untuk relasi user
+            ->where('user_id', Auth::id())
             ->where('is_closed', false)
             ->first();
 
-        return response()->json(['shift' => $shift]);
+        if ($shift) {
+            // Kita kembalikan data yang dibutuhkan oleh frontend: ID shift dan Nama User
+            return response()->json([
+                'shift' => [
+                    'id' => $shift->id,
+                    // Menggunakan nama dari relasi User (asumsi relasi User sudah di-setup)
+                    'user_name' => $shift->user->name ?? 'N/A',
+                    // Tambahkan properti lain jika dibutuhkan di frontend
+                    'start_time' => $shift->start_time,
+                ]
+            ]);
+        }
+
+        // Jika tidak ada shift aktif, kembalikan null
+        return response()->json(['shift' => null]);
     }
 }

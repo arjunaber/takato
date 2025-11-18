@@ -109,10 +109,6 @@ class PosController extends Controller
         });
     }
 
-    // ... (metode lainnya di bawah ini, termasuk getDataForPos, completeOpenBill, store, dll.)
-
-    // Sisa metode lainnya harus tetap sama seperti yang Anda berikan.
-    // Pastikan Anda menyalin ulang metode getDataForPos() juga, dengan EAGER LOADING yang benar.
 
     public function getDataForPos()
     {

@@ -318,8 +318,16 @@
                         Kasir (POS)
                     </a>
                     <a href="{{ route('admin.orders.index') }}"
-                        class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                        class="nav-link {{ request()->routeIs('admin.orders.*') && !request()->routeIs('admin.orders.online') ? 'active' : '' }}">
                         Histori Pesanan
+                    </a>
+                    <a href="{{ route('admin.orders.online') }}"
+                        class="nav-link {{ request()->routeIs('admin.orders.online') ? 'active' : '' }}">
+                        Pesanan Online
+                    </a>
+                    <a href="{{ route('admin.tables.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.tables.*') ? 'active' : '' }}">
+                        Monitoring Meja
                     </a>
                     <a href="{{ route('admin.shift.index') }}"
                         class="nav-link {{ request()->routeIs('admin.shift.index') ? 'active' : '' }}">

@@ -54,6 +54,43 @@ class OrderController extends Controller
         ]);
     }
 
+    public function index2(Request $request)
+    {
+        // === KRUSIAL: Filter HANYA pesanan online ===
+        $query = Order::with('user')
+            ->where('is_online_order', true)
+            ->latest();
+
+        // == Filter dan Pencarian tetap berlaku (jika diperlukan) ==
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('id', $searchTerm)
+                    ->orWhere('invoice_number', 'LIKE', '%' . $searchTerm . '%') // Online order pakai invoice number
+                    ->orWhere('table_number', 'LIKE', '%' . $searchTerm . '%'); // Biasanya online order punya table number
+            });
+        }
+
+        // Filter Tanggal
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Ambil data. Mungkin perlu limit yang lebih kecil untuk monitor real-time
+        $orders = $query->paginate(10);
+
+        // Tampilkan di view yang sama atau view baru (disarankan view baru: admin.orders.online_index)
+        return view('admin.orders.online_index', [
+            'orders' => $orders,
+            'filters' => $request->only(['search', 'date', 'status']), // Kirim filter ke view
+            'is_online_mode' => true // Flag untuk membedakan tampilan
+        ]);
+    }
     /**
      * Admin tidak membuat pesanan dari sini, jadi method ini bisa kosong
      */
@@ -99,52 +136,97 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        // Data order sudah otomatis diambil
+        $request->validate([
+            'status' => 'required|in:pending,completed,cancelled',
+            'cashier_shift_id' => 'required|exists:cashier_shifts,id',
+        ]);
 
-        // Contoh update status
-        $request->validate(['status' => 'required|in:pending,completed,cancelled']);
-        $order->update(['status' => $request->status]);
+        $redirectRoute = $order->is_online_order ? 'admin.orders.online' : 'admin.orders.index';
+        $oldStatus = $order->status;
 
-        return back()->with('success', 'Status pesanan berhasil diupdate.');
+        try {
+            DB::beginTransaction();
+
+            $dataToUpdate = [
+                'status' => $request->status,
+                'cashier_shift_id' => $request->cashier_shift_id,
+            ];
+
+            // Logika Khusus Pembatalan
+            if ($request->status === 'cancelled') {
+                $dataToUpdate['payment_status'] = 'failed';
+
+                // 1. Kembalikan stok jika sebelumnya sudah completed
+                if ($oldStatus === 'completed') {
+                    $order->returnStock();
+                }
+            }
+
+            // Logika Khusus Penyelesaian (Completed)
+            if ($request->status === 'completed' && $oldStatus !== 'completed') {
+                // 2. Lakukan pengurangan stok jika ini adalah aksi "Selesaikan"
+                // Asumsi: Logika pengurangan stok ada di sini
+                // $order->reduceStock();
+            }
+
+            $order->update($dataToUpdate);
+            DB::commit();
+
+            return redirect()->route($redirectRoute)->with('success', 'Status pesanan berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Gagal update status Order ID {$order->id}: " . $e->getMessage());
+            return redirect()->route($redirectRoute)->with('error', 'Gagal memproses aksi. Terjadi error.');
+        }
     }
 
     /**
      * Menghapus data pesanan
      * PERBAIKAN: Menggunakan Route Model Binding (Order $order)
      */
-    public function destroy(Order $order)
+    public function destroy(Request $request, Order $order)
     {
-        // Jika order sudah 'cancelled', tidak perlu lakukan apa-apa
+        // 1. Validasi Shift
+        $request->validate([
+            'cashier_shift_id' => 'required|exists:cashier_shifts,id',
+        ]);
+
+        // Tentukan rute redirect yang benar (berdasarkan is_online_order)
+        $redirectRoute = $order->is_online_order ? 'admin.orders.online' : 'admin.orders.index';
+
+        // 2. Cek Redundansi Status (Digabungkan)
         if ($order->status == 'cancelled') {
-            return redirect()->route('admin.orders.index')->with('success', 'Pesanan sudah dibatalkan.');
+            return redirect()->route($redirectRoute)->with('error', 'Pesanan sudah dibatalkan sebelumnya.');
         }
 
-        // Cek apakah order ini sudah lunas (completed)
         $wasCompleted = ($order->status == 'completed');
 
         try {
             DB::beginTransaction();
 
-            // 1. Kembalikan stok HANYA JIKA order sebelumnya completed
+            // 3. Kembalikan stok HANYA JIKA order sebelumnya completed
             if ($wasCompleted) {
-                $order->returnStock(); // Panggil fungsi yang baru kita buat
+                // Asumsi: $order->returnStock() sudah didefinisikan di Model Order
+                $order->returnStock();
             }
 
-            // 2. Ubah status order
+            // 4. Ubah status order & Simpan ID Shift yang melakukan pembatalan
             $order->update([
-                'status' => 'cancelled',
-                'payment_status' => 'unpaid' // Set juga status bayar (jika perlu)
+                'status' => 'cancelled', // WAJIB DIUBAH ke CANCELLED
+                'payment_status' => 'unpaid', // WAJIB DIUBAH ke FAILED/UNPAID
+                'cashier_shift_id' => $request->cashier_shift_id, // KRUSIAL: Menyimpan ID Shift
             ]);
 
             DB::commit();
 
-            return redirect()->route('admin.orders.index')
-                ->with('success', 'Pesanan berhasil dibatalkan. Stok telah dikembalikan.');
+            return redirect()->route($redirectRoute)
+                ->with('success', 'Pesanan berhasil dibatalkan. Stok telah dikembalikan' . ($wasCompleted ? '.' : ' (Tidak ada stok yang dikembalikan karena belum selesai).'));
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Gagal membatalkan Order ID {$order->id}: " . $e->getMessage());
-            return redirect()->route('admin.orders.index')
-                ->with('error', 'Gagal membatalkan pesanan. Terjadi error.');
+
+            return redirect()->route($redirectRoute)
+                ->with('error', 'Gagal membatalkan pesanan. Terjadi error: ' . $e->getMessage());
         }
     }
 

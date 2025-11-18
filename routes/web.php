@@ -22,6 +22,9 @@ use App\Http\Controllers\Admin\StockRequestController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\StrukConfigController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\TableMonitoringController;
+use App\Http\Controllers\Online\OnlineOrderController;
+use App\Models\Table;
 
 
 // Public routes
@@ -51,27 +54,87 @@ Route::controller(LoginController::class)->group(function () {
 
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin_or_owner'])->group(function () {
-    // POS (Akses: Owner & Admin)
-    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
-    Route::post('/pos/store', [PosController::class, 'store'])->name('pos.store');
-    Route::get('/pos/data', [PosController::class, 'getDataForPos'])->name('pos.data');
-    Route::resource('orders', OrderController::class);
-    Route::get('/orders/{order}/receipt', [OrderController::class, 'printReceipt'])->name('orders.receipt');
-    Route::get('/shift', [ShiftController::class, 'index'])->name('shift.index');
 
-    // Rute API Manajemen Shift (DITEMPATKAN DI DALAM GRUP INI)
-    Route::prefix('/shift')->name('shift.')->group(function () {
-        Route::post('/open', [ShiftController::class, 'openShift'])->name('open');
-        Route::post('/close', [ShiftController::class, 'closeShift'])->name('close');
-        Route::get('/active', [ShiftController::class, 'getActiveShift'])->name('active');
-        Route::get('/history', [ShiftController::class, 'getShiftHistory'])->name('history'); // Opsional: Melihat riwayat
+    // ========================================
+    // DASHBOARD / HOME
+    // ========================================
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    // ATAU jika ingin langsung ke monitoring meja:
+    // Route::get('/', [TableMonitoringController::class, 'index'])->name('dashboard');
+
+
+    // ========================================
+    // TABLE MONITORING (Floor Plan)
+    // ========================================
+    Route::prefix('tables')->name('tables.')->group(function () {
+        Route::get('/', [TableMonitoringController::class, 'index'])->name('index');
+        Route::post('/', [TableMonitoringController::class, 'store'])->name('store');
+        Route::put('/{table}', [TableMonitoringController::class, 'update'])->name('update');
+        Route::delete('/{table}', [TableMonitoringController::class, 'destroy'])->name('destroy');
+
+        Route::get('/by-area', [TableMonitoringController::class, 'getByArea'])->name('by-area');
+        Route::get('/statistics', [TableMonitoringController::class, 'getStatistics'])->name('statistics');
+        Route::get('/{table}/details', [TableMonitoringController::class, 'getTableDetails'])->name('details');
+        Route::post('/{table}/position', [TableMonitoringController::class, 'savePosition'])->name('save-position');
+        Route::post('/reset-layout', [TableMonitoringController::class, 'resetLayout'])->name('reset-layout');
+        Route::post('/save-layout', [TableMonitoringController::class, 'saveLayout'])->name('admin.tables.save-layout');
+        Route::post('/{table}/clear-table', [TableMonitoringController::class, 'clearTable'])->name('admin.tables.clear-table');
+        Route::get('/table}/details', [TableMonitoringController::class, 'getTableDetails'])->name('admin.tables.details');
     });
 
-    Route::prefix('/pos')->name('pos.')->middleware(['auth'])->group(function () {
+
+    // ========================================
+    // POS (Point of Sale)
+    // ========================================
+    Route::prefix('pos')->name('pos.')->group(function () {
+        // Main POS view
+        Route::get('/', [PosController::class, 'index'])->name('index');
+        Route::post('/store', [PosController::class, 'store'])->name('store');
+        Route::get('/data', [PosController::class, 'getDataForPos'])->name('data');
+
+        // Open Bills Management
         Route::get('/open-bills', [PosController::class, 'getOpenBills'])->name('open_bills');
         Route::get('/load-bill/{order}', [PosController::class, 'loadBill'])->name('load_bill');
         Route::post('/complete-old-bill/{order}', [PosController::class, 'updateBillAfterPayment'])->name('update_bill_status');
         Route::post('/complete-open-bill/{order}', [PosController::class, 'completeOpenBill'])->name('complete_open_bill');
+    });
+
+
+    // ========================================
+    // ORDERS
+    // ========================================
+    Route::prefix('orders')->name('orders.')->group(function () {
+        // Online orders
+        Route::get('/online', [OrderController::class, 'index2'])->name('online');
+
+        // Receipt printing
+        Route::get('/{order}/receipt', [OrderController::class, 'printReceipt'])->name('receipt');
+    });
+
+    // Resource routes untuk orders (index, create, store, show, edit, update, destroy)
+    Route::resource('orders', OrderController::class)->names([
+        'index' => 'orders.index',
+        'create' => 'orders.create',
+        'store' => 'orders.store',
+        'show' => 'orders.show',
+        'edit' => 'orders.edit',
+        'update' => 'orders.update',
+        'destroy' => 'orders.destroy',
+    ]);
+
+
+    // ========================================
+    // SHIFT MANAGEMENT
+    // ========================================
+    Route::prefix('shift')->name('shift.')->group(function () {
+        // Main shift view
+        Route::get('/', [ShiftController::class, 'index'])->name('index');
+
+        // Shift operations (API endpoints)
+        Route::post('/open', [ShiftController::class, 'openShift'])->name('open');
+        Route::post('/close', [ShiftController::class, 'closeShift'])->name('close');
+        Route::get('/active', [ShiftController::class, 'getActiveShift'])->name('active');
+        Route::get('/history', [ShiftController::class, 'getShiftHistory'])->name('history');
     });
 });
 
@@ -105,4 +168,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'owner'])->group(fun
     });
 });
 
+Route::prefix('online/order')->name('online.order.')->group(function () {
+    Route::get('/{table}', [OnlineOrderController::class, 'index'])->name('menu');
+    Route::post('/store', [OnlineOrderController::class, 'store'])->name('store');
+});
 // Route::post('/midtrans-webhook', [WebhookController::class, 'webhook']);

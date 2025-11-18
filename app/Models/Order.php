@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo; // <-- Tambahkan ini
 use Illuminate\Database\Eloquent\Relations\HasMany; // <-- Tambahkan ini
 use Illuminate\Support\Facades\Log;
 
+
 class Order extends Model
 {
     use HasFactory;
@@ -15,6 +16,8 @@ class Order extends Model
         'user_id',
         'invoice_number',
         'cashier_shift_id',
+        'table_id',
+        'is_online_order',
         'status',
         'subtotal',
         'tax_amount',
@@ -25,6 +28,7 @@ class Order extends Model
         'cash_received',
         'cash_change',
     ];
+
     protected $guarded = []; // Izinkan mass assignment
 
     public function user(): BelongsTo
@@ -88,5 +92,10 @@ class Order extends Model
                 $ingredient->increment('stock', $amountToReturn);
             }
         }
+    }
+
+    public function table()
+    {
+        return $this->belongsTo(Table::class);
     }
 }
