@@ -4,19 +4,9 @@
 
 @push('styles')
     <style>
-        /* Variabel yang mungkin tidak ada (untuk fallback) */
-        :root {
-            --card-bg: #fff;
-            --border-color: #e0e0e0;
-            --primary: #007bff;
-            --primary-light: #e6f7ff;
-            --secondary-light: #f8f9fa;
-            --text-color: #333;
-            --text-muted: #6c757d;
-            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
+        /* Variabel yang mungkin tidak ada (untuk fallback) *
 
-        /* --- STYLING FILTER/CONTROL BAR --- */
+            /* --- STYLING FILTER/CONTROL BAR --- */
         .report-controls-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);

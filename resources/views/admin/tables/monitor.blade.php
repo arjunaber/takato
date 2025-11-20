@@ -6,8 +6,6 @@
 @push('styles')
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;

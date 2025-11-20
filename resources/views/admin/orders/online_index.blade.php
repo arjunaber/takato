@@ -6,18 +6,6 @@
 @push('styles')
     <style>
         /* [Style CSS Anda tetap di sini] */
-        :root {
-            /* Contoh variabel warna */
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --secondary: #6c757d;
-            --primary: #007bff;
-            --secondary-light: #e9ecef;
-            --text-muted: #6c757d;
-            --text-color: #333;
-            --border-color: #dee2e6;
-        }
 
         .badge {
             display: inline-block;

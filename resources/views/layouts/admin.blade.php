@@ -11,22 +11,45 @@
 
     <style>
         :root {
-            --primary: #007bff;
-            --secondary: #6c757d;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
+            /* === PALET WARNA EARTH TONE (Sesuai Gambar) === */
+            --primary: #A05C35;
+            /* Rust/Tembaga */
+            --primary-dark: #824828;
+            /* Hover Tembaga */
+            --primary-light: #FDF3EE;
+            /* Tint Sangat Muda (untuk background aktif) */
+
+            --secondary: #946E67;
+            /* Mauve/Coklat Pudar */
+
+            --warning: #C39653;
+            /* Gold/Emas */
+
+            /* Functional Colors */
+            --success: #556B2F;
+            /* Dark Olive Green */
+            --danger: #A52A2A;
+            /* Brown/Red */
+
             --light: #f8f9fa;
-            --dark: #343a40;
-            --body-bg: #f8f9fa;
+            --dark: #646C66;
+            /* Slate/Abu Gelap */
+
+            --body-bg: #DADDD8;
+            /* Mist/Abu Terang (Background Utama) */
             --card-bg: #ffffff;
-            --text-color: #495057;
-            --border-color: #dee2e6;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-            /* Tambahan untuk sidebar */
+
+            --text-color: #2C3330;
+            /* Hampir Hitam (untuk teks utama) */
+            --text-muted: #646C66;
+
+            --border-color: #c1c4c0;
+            --shadow-sm: 0 2px 4px rgba(60, 60, 60, 0.08);
+
             --sidebar-width: 260px;
         }
 
+        /* === RESET & GLOBAL STYLES === */
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--body-bg);
@@ -37,35 +60,43 @@
             overflow: hidden;
         }
 
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--primary-dark);
+            text-decoration: none;
+        }
+
         /* === SIDEBAR === */
         .sidebar {
             width: var(--sidebar-width);
             min-width: var(--sidebar-width);
-            /* Agar tidak 'penyet' saat di-hide */
             background-color: var(--card-bg);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             padding: 24px;
             flex-shrink: 0;
-            /* Tambahkan transisi */
             transition: margin-left 0.3s ease-in-out;
             z-index: 100;
         }
 
-        /* === STATE SAAT SIDEBAR TERTUTUP === */
         body.sidebar-closed .sidebar {
             margin-left: calc(-1 * var(--sidebar-width));
         }
 
         .sidebar-header {
             font-size: 24px;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--primary);
             padding-bottom: 24px;
             margin-bottom: 24px;
             border-bottom: 1px solid var(--border-color);
-            /* Hapus text-align, biarkan default */
+            letter-spacing: -0.5px;
         }
 
         .sidebar-nav {
@@ -73,77 +104,75 @@
             flex-direction: column;
             gap: 8px;
             overflow-y: auto;
-            /* Jika menu banyak, bisa di-scroll */
         }
 
         .nav-link {
             display: block;
             padding: 12px 16px;
             border-radius: 8px;
-            text-decoration: none;
             color: var(--text-color);
             font-weight: 500;
             transition: all 0.2s ease;
             white-space: nowrap;
-            /* Agar teks tidak wrap saat sidebar mengecil */
         }
 
         .nav-link:hover {
-            background-color: #f1f3f5;
-            /* Warna hover lebih soft */
+            background-color: #F0F2F1;
+            color: var(--primary);
         }
 
         .nav-link.active {
-            background-color: #e7f5ff;
-            /* Primary light */
+            background-color: var(--primary-light);
             color: var(--primary);
-            font-weight: 600;
+            font-weight: 700;
+            border-left: 4px solid var(--primary);
         }
 
-        /* === Konten Utama (Navbar + Page) === */
+        /* === LAYOUT UTAMA === */
         .main-wrapper {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            /* Tambahkan ini agar tidak 'loncat' saat sidebar hilang */
             min-width: 0;
         }
 
-        /* === NAVBAR === */
         .navbar {
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
             padding: 16px 24px;
             display: flex;
-            /* Ubah jadi space-between */
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
         }
 
-        /* Wrapper untuk item navbar */
         .navbar-left,
         .navbar-right {
             display: flex;
             align-items: center;
         }
 
-        /* Tombol Toggle Sidebar Baru */
         #sidebar-toggle {
             background: none;
             border: none;
             font-size: 24px;
             line-height: 1;
-            color: var(--dark);
+            color: var(--primary);
             cursor: pointer;
             margin-right: 16px;
             padding: 4px;
+            transition: color 0.2s;
+        }
+
+        #sidebar-toggle:hover {
+            color: var(--primary-dark);
         }
 
         .navbar .username {
             font-weight: 600;
             margin-right: 16px;
+            color: var(--text-color);
         }
 
         .navbar .logout-btn {
@@ -152,60 +181,86 @@
             color: var(--danger);
             font-weight: 600;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.2s;
         }
 
-        /* === Konten Halaman === */
+        .navbar .logout-btn:hover {
+            background-color: #fff5f5;
+        }
+
         .main-content {
             flex-grow: 1;
             overflow-y: auto;
             padding: 32px;
         }
 
-        /* === Utility (Card, Button, Form, Table) === */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
+        /* === KOMPONEN UI SERAGAM (POS & HISTORY) === */
 
-        .page-header h1 {
-            margin: 0;
-            font-size: 28px;
-        }
-
+        /* 1. Buttons */
         .btn {
             padding: 10px 20px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
-            border: none;
+            border: 1px solid transparent;
+            /* Ensure border exists for outlines */
             border-radius: 8px;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
         }
 
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Override Bootstrap Btn Primary */
         .btn-primary {
-            background-color: var(--primary);
-            color: white;
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: white !important;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark) !important;
+            border-color: var(--primary-dark) !important;
+        }
+
+        .btn-outline-primary {
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary) !important;
+            color: white !important;
         }
 
         .btn-success {
-            background-color: var(--success);
-            color: white;
+            background-color: var(--success) !important;
+            border-color: var(--success) !important;
+            color: white !important;
         }
 
         .btn-danger {
-            background-color: var(--danger);
-            color: white;
+            background-color: var(--danger) !important;
+            border-color: var(--danger) !important;
+            color: white !important;
         }
 
         .btn-secondary {
-            background-color: var(--secondary);
-            color: white;
+            background-color: var(--secondary) !important;
+            border-color: var(--secondary) !important;
+            color: white !important;
         }
 
+        /* 2. Cards */
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -215,6 +270,7 @@
             margin-bottom: 24px;
         }
 
+        /* 3. Tables */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -222,6 +278,8 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: var(--shadow-sm);
+            margin-bottom: 0;
+            /* Reset margin jika di dalam card */
         }
 
         th,
@@ -232,14 +290,16 @@
         }
 
         thead th {
-            background-color: var(--light);
+            background-color: #F0F2F1;
             font-weight: 600;
+            color: var(--dark);
         }
 
-        tbody tr:last-child td {
-            border-bottom: none;
+        tbody tr:hover {
+            background-color: #fafbfc;
         }
 
+        /* 4. Forms & Inputs */
         .form-group {
             margin-bottom: 20px;
         }
@@ -248,15 +308,100 @@
             display: block;
             font-weight: 600;
             margin-bottom: 8px;
+            color: var(--dark);
         }
 
         .form-control {
             width: 100%;
             padding: 12px 16px;
-            font-size: 16px;
+            font-size: 15px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-sizing: border-box;
+            background-color: #ffffff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        /* Hapus biru pada fokus input */
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(160, 92, 53, 0.15);
+            /* Glow Rust */
+        }
+
+        /* 5. Override Bootstrap Utilities (Hapus Biru) */
+        .bg-primary {
+            background-color: var(--primary) !important;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
+        .border-primary {
+            border-color: var(--primary) !important;
+        }
+
+        .bg-info {
+            background-color: var(--secondary) !important;
+        }
+
+        /* Ganti cyan info jadi secondary */
+        .text-info {
+            color: var(--secondary) !important;
+        }
+
+        /* 6. Override Select2 (Sering jadi sumber warna biru) */
+        .select2-container--default .select2-selection--single {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            height: 45px !important;
+            /* Samakan dengan form-control */
+            display: flex;
+            align-items: center;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 43px !important;
+        }
+
+        /* Warna sorotan saat dropdown dipilih */
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary) !important;
+            color: white !important;
+        }
+
+        /* Fokus Select2 */
+        .select2-container--default.select2-container--focus .select2-selection--multiple,
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px rgba(160, 92, 53, 0.15);
+        }
+
+        /* 7. Pagination (Jika ada) */
+        .page-item.active .page-link {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: white !important;
+        }
+
+        .page-link {
+            color: var(--primary) !important;
+        }
+
+        /* Utility Classes */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: var(--dark);
         }
 
         .alert {
@@ -267,15 +412,15 @@
         }
 
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: #eef5e9;
+            color: #3d4d21;
+            border: 1px solid #dce8d3;
         }
 
         .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: #faeaea;
+            color: #7a1f1f;
+            border: 1px solid #f0d5d5;
         }
 
         .text-right {
@@ -291,7 +436,6 @@
         }
     </style>
 
-    {{-- Stack untuk CSS tambahan per halaman --}}
     @stack('styles')
 </head>
 
@@ -303,7 +447,6 @@
         </div>
         <nav class="sidebar-nav">
             @auth
-                {{-- 1. Dashboard (Hanya Owner yang bisa lihat) --}}
                 @if (auth()->user()->role === 'owner')
                     <a href="{{ route('admin.dashboard') }}"
                         class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -311,7 +454,6 @@
                     </a>
                 @endif
 
-                {{-- 2. Kasir (POS) (Owner & Admin bisa lihat) --}}
                 @if (in_array(auth()->user()->role, ['owner', 'admin']))
                     <a href="{{ route('admin.pos.index') }}"
                         class="nav-link {{ request()->routeIs('admin.pos.index') ? 'active' : '' }}">
@@ -335,51 +477,37 @@
                     </a>
                 @endif
 
-                {{-- 3. Histori Pesanan (Hanya Owner yang bisa lihat) --}}
                 @if (auth()->user()->role === 'owner')
-                    {{-- 4. Produk (Hanya Owner yang bisa lihat) --}}
                     <a href="{{ route('admin.products.index') }}"
                         class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
                         Produk
                     </a>
-
-                    {{-- 5. Kategori (Hanya Owner yang bisa lihat) --}}
                     <a href="{{ route('admin.categories.index') }}"
                         class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
                         Kategori
                     </a>
-
-                    {{-- 6. Add-Ons (Hanya Owner yang bisa lihat) --}}
                     <a href="{{ route('admin.addons.index') }}"
                         class="nav-link {{ request()->routeIs('admin.addons.*') ? 'active' : '' }}">
                         Add-Ons
                     </a>
-
-                    {{-- 7. Bahan Baku (Stok) (Hanya Owner yang bisa lihat) --}}
                     <a href="{{ route('admin.ingredients.index') }}"
                         class="nav-link {{ request()->routeIs('admin.ingredients.*') ? 'active' : '' }}">
                         Bahan Baku (Stok)
                     </a>
-
-                    {{-- 8. Diskon (Hanya Owner yang bisa lihat) --}}
                     <a href="{{ route('admin.discounts.index') }}"
                         class="nav-link {{ request()->routeIs('admin.discounts.*') ? 'active' : '' }}">
                         Diskon
                     </a>
-
-                    {{-- 9. Tipe Pesanan (Hanya Owner yang bisa lihat) --}}
                     <a href="{{ route('admin.order-types.index') }}"
                         class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
                         Tipe Pesanan
                     </a>
-
                     <a href="{{ route('admin.config.struk.edit') }}"
-                        class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
+                        class="nav-link {{ request()->routeIs('admin.config.*') ? 'active' : '' }}">
                         Config Struk
                     </a>
-
                     <a href="{{ route('admin.reports.gross_profit.index') }}"
-                        class="nav-link {{ request()->routeIs('admin.order-types.*') ? 'active' : '' }}">
+                        class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                         Report
                     </a>
                 @endif
@@ -389,12 +517,9 @@
 
     <div class="main-wrapper">
         <nav class="navbar">
-            {{-- TOMBOL TOGGLE BARU --}}
             <div class="navbar-left">
                 <button id="sidebar-toggle" title="Toggle Sidebar">&#9776;</button>
             </div>
-
-            {{-- ITEM NAVBAR SEBELAH KANAN --}}
             <div class="navbar-right">
                 @auth
                     <span class="username">Halo, {{ auth()->user()->name }}</span>
@@ -411,7 +536,6 @@
         </main>
     </div>
 
-    {{-- SCRIPT BARU UNTUK TOGGLE SIDEBAR --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
@@ -420,17 +544,13 @@
             const body = document.body;
             const storageKey = 'sidebarState';
 
-            // 1. Cek status tersimpan di localStorage saat halaman dimuat
             const currentState = localStorage.getItem(storageKey);
             if (currentState === 'closed') {
                 body.classList.add('sidebar-closed');
             }
 
-            // 2. Tambahkan event listener ke tombol
             toggleButton.addEventListener('click', function() {
                 body.classList.toggle('sidebar-closed');
-
-                // 3. Simpan state baru ke localStorage
                 if (body.classList.contains('sidebar-closed')) {
                     localStorage.setItem(storageKey, 'closed');
                 } else {
@@ -440,7 +560,6 @@
         });
     </script>
 
-    {{-- Stack untuk JS tambahan per halaman (contoh: script dinamis form diskon) --}}
     @stack('scripts')
 </body>
 

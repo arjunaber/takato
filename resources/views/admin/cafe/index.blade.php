@@ -312,22 +312,6 @@
             gap: 10px;
         }
 
-        :root {
-            --primary: #007bff;
-            --primary-light: #e6f0ff;
-            --secondary: #6c757d;
-            --secondary-light: #f1f3f5;
-            --success: #28a745;
-            --purple: #6f42c1;
-            --purple-light: #f4f0f9;
-            --body-bg: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-color: #495057;
-            --text-muted: #6c757d;
-            --border-color: #dee2e6;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
 
         .product-nav-container {
             width: 100%;

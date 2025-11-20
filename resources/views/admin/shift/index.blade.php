@@ -27,7 +27,6 @@
             border-radius: 12px;
             width: 90%;
             max-width: 400px;
-            /* Lebar kustom untuk modal status */
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
@@ -45,12 +44,14 @@
             justify-content: center;
         }
 
+        /* Ikon Sukses (Hijau) */
         .modal-content.success .status-modal-icon-success {
             background-color: #eafbf0;
             color: #28a745;
             display: flex !important;
         }
 
+        /* Ikon Error (Merah) */
         .modal-content.error .status-modal-icon-danger {
             background-color: #fdeeee;
             color: #dc3545;
@@ -70,7 +71,7 @@
             margin: 0 auto;
             max-width: 90%;
             font-family: monospace;
-            /* Menggunakan font monospace untuk rekonsiliasi yang rapi */
+            /* Font monospace untuk detail angka */
         }
 
         .modal-footer {
@@ -79,10 +80,15 @@
             border-top: 1px solid #dee2e6;
             display: flex;
             justify-content: center;
+            gap: 10px;
+            /* Jarak antar tombol */
+        }
+
+        /* Tombol Full Width di Modal */
+        .btn-full {
+            flex: 1;
         }
     </style>
-    {{-- Tambahkan link CSS DataTables di sini jika diperlukan --}}
-    {{-- <link rel="stylesheet" href="path/to/datatables.css"> --}}
 @endpush
 
 @section('content')
@@ -93,9 +99,6 @@
             {{-- Bagian Status Shift Aktif --}}
             <div class="col-lg-6">
                 <div class="card shadow mb-4">
-                    <div class="card-header py-3 bg-primary text-white">
-                        <h6 class="m-0 font-weight-bold">Status Shift Saat Ini</h6>
-                    </div>
                     <div class="card-body" id="current-shift-status">
 
                         @if ($activeShift)
@@ -103,16 +106,17 @@
                             <div class="alert alert-success">
                                 <h4 class="alert-heading">Shift Aktif!</h4>
                                 <p class="mb-0">
-                                    **Shift #{{ $activeShift->id }}** dibuka oleh
-                                    **{{ $activeShift->user->name ?? 'Anda' }}**
-                                    sejak **{{ $activeShift->start_time->format('d M Y H:i:s') }}**.
-                                    <br>Kas Awal: **{{ number_format($activeShift->initial_cash, 0, ',', '.') }} IDR**
+                                    Shift #{{ $activeShift->id }} dibuka oleh
+                                    {{ $activeShift->user->name ?? 'Anda' }}
+                                    sejak {{ $activeShift->start_time->format('d M Y H:i:s') }}.
+                                    <br>Kas Awal: {{ number_format($activeShift->initial_cash, 0, ',', '.') }} IDR
                                 </p>
                             </div>
 
                             <hr>
 
-                            <form id="close-shift-form" onsubmit="closeShift(event, {{ $activeShift->id }})">
+                            {{-- Form Tutup Shift --}}
+                            <form id="close-shift-form">
                                 @csrf
                                 <div class="form-group">
                                     <label for="closing_cash">Kas Akhir (Uang Fisik di Laci) <span
@@ -127,7 +131,9 @@
                                     <label for="close_notes">Catatan Penutupan (Opsional)</label>
                                     <textarea id="close_notes" name="notes" class="form-control" rows="3"></textarea>
                                 </div>
-                                <button type="submit" class="btn btn-danger btn-block btn-lg mt-3">Tutup Shift</button>
+                                {{-- Perubahan: Type Button dan panggil fungsi validasi --}}
+                                <button type="button" onclick="validateAndShowConfirm({{ $activeShift->id }})"
+                                    class="btn btn-danger btn-block btn-lg mt-3">Tutup Shift</button>
                             </form>
                         @else
                             {{-- TAMPILAN JIKA SHIFT TIDAK AKTIF --}}
@@ -179,7 +185,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{-- Data akan diisi oleh DataTables --}}
                                     @foreach ($history as $shift)
                                         <tr>
                                             <td>{{ $shift->id }}</td>
@@ -206,20 +211,56 @@
     </div>
 
     {{-- ======================================= --}}
-    {{-- == HTML MODAL STATUS (Untuk Feedback Kustom) == --}}
+    {{-- == MODAL 1: KONFIRMASI TUTUP SHIFT == --}}
+    {{-- ======================================= --}}
+    <div class="modal-overlay" id="confirm-modal-overlay">
+        <div class="modal-content">
+            <div class="modal-body">
+                {{-- Ikon Peringatan (Kuning) --}}
+                <div class="status-modal-icon" style="background-color: #fff3cd; color: #856404;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                        </path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+
+                <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">Konfirmasi Tutup Shift</h2>
+                <p class="text-muted">Apakah Anda yakin ingin menutup shift ini?</p>
+
+                {{-- Konfirmasi Angka --}}
+                <div class="alert alert-secondary text-left" style="font-family: monospace; font-size: 14px;">
+                    Kas Fisik yang diinput:<br>
+                    <strong id="confirm-display-cash" style="font-size: 18px; color: #333;">Rp 0</strong>
+                </div>
+
+                <small class="text-danger">Pastikan jumlah uang fisik sudah dihitung dengan benar.</small>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeConfirmModal()" class="btn btn-secondary btn-full">Batal</button>
+                <button type="button" id="btn-confirm-yes" class="btn btn-danger btn-full">Ya, Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ======================================= --}}
+    {{-- == MODAL 2: STATUS / HASIL TRANSAKSI == --}}
     {{-- ======================================= --}}
     <div class="modal-overlay" id="status-modal-overlay">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-body">
                 <div id="status-modal-icon">
-                    <div class="status-modal-icon-success">
+                    <div class="status-modal-icon-success" style="display: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
                             stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
-                    <div class="status-modal-icon-danger">
+                    <div class="status-modal-icon-danger" style="display: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
                             stroke-linejoin="round">
@@ -232,26 +273,23 @@
                 <p id="status-modal-message"></p>
             </div>
 
-            <div class="modal-footer" id="status-modal-footer">
+            <div class="modal-footer">
                 <button type="button" id="status-modal-print-btn" class="btn btn-secondary"
-                    style="display: none;">Cetak
-                    Struk</button>
-                <button type="button" id="status-modal-ok-btn" class="btn btn-primary">OK</button>
+                    style="display: none;">Cetak Struk</button>
+                <button type="button" id="status-modal-ok-btn" class="btn btn-primary btn-full">OK</button>
             </div>
         </div>
     </div>
 @endsection
 
-
 @push('scripts')
-    {{-- Pastikan Anda memuat DataTables JS di sini atau di layouts.admin --}}
-    {{-- <script src="path/to/jquery.dataTables.min.js"></script> --}}
-
     <script>
-        // Variabel untuk melacak status transaksi shift
+        // ===============================================
+        // == VARIABEL GLOBAL & HELPER
+        // ===============================================
         let isLastShiftTransactionSuccess = false;
+        let pendingShiftId = null; // Menyimpan ID shift saat modal konfirmasi terbuka
 
-        // Fungsi untuk memformat angka menjadi Rupiah
         function formatRupiah(number) {
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
@@ -261,56 +299,117 @@
         }
 
         // ===============================================
-        // == FUNGSI MODAL KUSTOM
+        // == LOGIKA MODAL KONFIRMASI (BARU)
         // ===============================================
 
-        function showStatusModal(type, title, message) {
-            const statusModal = document.getElementById('status-modal-overlay');
-            const statusModalContent = statusModal.querySelector('.modal-content');
-            const statusModalTitle = document.getElementById('status-modal-title');
-            const statusModalMessage = document.getElementById('status-modal-message');
-            const statusIconSuccess = statusModal.querySelector('.status-modal-icon-success');
-            const statusIconDanger = statusModal.querySelector('.status-modal-icon-danger');
+        // 1. Fungsi dipanggil saat tombol "Tutup Shift" diklik
+        function validateAndShowConfirm(shiftId) {
+            const closingCashInput = document.getElementById('closing_cash').value;
 
-            // Atur tampilan ikon dan border
-            if (type === 'success' || type === 'pending') {
-                statusModalContent.classList.remove('error');
-                statusModalContent.classList.add('success');
-                statusIconSuccess.style.display = 'flex';
-                statusIconDanger.style.display = 'none';
-            } else {
-                statusModalContent.classList.remove('success');
-                statusModalContent.classList.add('error');
-                statusIconSuccess.style.display = 'none';
-                statusIconDanger.style.display = 'flex';
+            // Validasi Input sebelum muncul modal
+            if (closingCashInput === "" || isNaN(parseFloat(closingCashInput)) || parseFloat(closingCashInput) < 0) {
+                showStatusModal('error', 'Input Tidak Valid', "Harap masukkan jumlah kas akhir (uang fisik) dengan benar.");
+                return;
             }
 
-            statusModalTitle.innerText = title;
-            statusModalMessage.innerText = message;
+            // Simpan ID dan set tampilan modal konfirmasi
+            pendingShiftId = shiftId;
+            const formattedCash = formatRupiah(closingCashInput);
+            document.getElementById('confirm-display-cash').innerText = formattedCash;
 
-            // Tombol print disembunyikan di halaman shift
-            document.getElementById('status-modal-print-btn').style.display = 'none';
-
-            statusModal.style.display = 'flex';
+            // Tampilkan Modal Konfirmasi
+            document.getElementById('confirm-modal-overlay').style.display = 'flex';
         }
 
-        function closeStatusModal() {
-            document.getElementById('status-modal-overlay').style.display = 'none';
-            // PENTING: Jika transaksi shift sukses, reload halaman
-            if (isLastShiftTransactionSuccess) {
-                // Hapus flag success agar tidak terjadi loop reload
-                isLastShiftTransactionSuccess = false;
-                window.location.reload();
+        // 2. Fungsi menutup modal konfirmasi (Tombol Batal)
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal-overlay').style.display = 'none';
+            pendingShiftId = null;
+        }
+
+        // 3. Event Listener tombol "Ya, Tutup" di dalam modal konfirmasi
+        document.getElementById('btn-confirm-yes').addEventListener('click', function() {
+            if (pendingShiftId) {
+                executeCloseShift(pendingShiftId);
+                closeConfirmModal(); // Tutup modal konfirmasi
+            }
+        });
+
+
+        // ===============================================
+        // == LOGIKA EKSEKUSI KE SERVER (FETCH)
+        // ===============================================
+
+        // Fungsi Tutup Shift (Dijalankan setelah konfirmasi "Ya")
+        async function executeCloseShift(shiftId) {
+            const closingCash = document.getElementById('closing_cash').value;
+            const notes = document.getElementById('close_notes').value;
+            const csrfToken = document.querySelector('#close-shift-form input[name="_token"]').value;
+
+            try {
+                const response = await fetch("{{ route('admin.shift.close') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        shift_id: shiftId,
+                        closing_cash: parseFloat(closingCash),
+                        notes: notes
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    isLastShiftTransactionSuccess = true;
+                    const diff = result.report.cash_difference;
+                    const systemNonCash = result.report.system_noncash_sales;
+
+                    let title;
+                    // Tentukan judul berdasarkan selisih
+                    if (diff == 0) {
+                        title = 'Shift Ditutup (Sempurna) 💰';
+                    } else if (diff > 0) {
+                        title = 'Shift Ditutup (Kas Berlebih) ⬆️';
+                    } else {
+                        title = 'Shift Ditutup (Kas Kurang) ⬇️';
+                    }
+
+                    // Pesan detail rekonsiliasi
+                    let message = `
+                    Rekonsiliasi Shift #${shiftId}
+                    -------------------------------------
+                    Kas Awal:         ${formatRupiah(result.report.initial_cash)}
+                    Penjualan Tunai:  ${formatRupiah(result.report.system_cash_sales)}
+                    Penjualan Non-Kas: ${formatRupiah(systemNonCash)}
+                    -------------------------------------
+                    Total Kas Seharusnya: ${formatRupiah(result.report.initial_cash + result.report.system_cash_sales)}
+                    Kas Fisik Dihitung:  ${formatRupiah(result.report.closing_cash)}
+                    -------------------------------------
+                    Selisih Kas:      ${formatRupiah(diff)}
+                    `;
+
+                    if (diff != 0) {
+                        message += "\n\nHarap periksa selisih kas ini!";
+                    }
+
+                    // Tampilkan Status Modal (Success/Error based on diff is optional, here strictly success transaction)
+                    // Menggunakan error style jika ada selisih agar mencolok, tapi transaksinya sukses.
+                    const modalType = diff == 0 ? 'success' : 'error';
+                    showStatusModal(modalType, title, message);
+
+                } else {
+                    showStatusModal('error', 'Gagal Menutup Shift ❌', result.error || 'Gagal menutup shift.');
+                }
+            } catch (error) {
+                console.error('Error closing shift:', error);
+                showStatusModal('error', 'Error Server 🛑', 'Terjadi kesalahan saat menutup shift.');
             }
         }
 
-        document.getElementById('status-modal-ok-btn').addEventListener('click', closeStatusModal);
-
-
-        // ===============================================
-        // == LOGIKA BUKA SHIFT
-        // ===============================================
-
+        // Fungsi Buka Shift (Masih menggunakan logika form standar tapi AJAX)
         async function openShift(event) {
             event.preventDefault();
             const initialCash = document.getElementById('initial_cash').value;
@@ -350,106 +449,58 @@
         }
 
         // ===============================================
-        // == LOGIKA TUTUP SHIFT
+        // == LOGIKA MODAL STATUS (HELPER)
         // ===============================================
 
-        async function closeShift(event, shiftId) {
-            event.preventDefault();
+        function showStatusModal(type, title, message) {
+            const statusModal = document.getElementById('status-modal-overlay');
+            const statusModalContent = statusModal.querySelector('.modal-content');
+            const statusModalTitle = document.getElementById('status-modal-title');
+            const statusModalMessage = document.getElementById('status-modal-message');
+            const statusIconSuccess = statusModal.querySelector('.status-modal-icon-success');
+            const statusIconDanger = statusModal.querySelector('.status-modal-icon-danger');
 
-            if (!confirm("PERINGATAN: Menutup shift berarti mengakhiri sesi kasir Anda. Lanjutkan?")) return;
-
-            const closingCash = document.getElementById('closing_cash').value;
-            const notes = document.getElementById('close_notes').value;
-            const csrfToken = document.querySelector('#close-shift-form input[name="_token"]').value;
-
-            if (closingCash === null || isNaN(parseFloat(closingCash)) || parseFloat(closingCash) < 0) {
-                showStatusModal('error', 'Input Tidak Valid', "Jumlah kas akhir tidak valid.");
-                return;
+            if (type === 'success' || type === 'pending') {
+                statusModalContent.classList.remove('error');
+                statusModalContent.classList.add('success');
+                statusIconSuccess.style.display = 'flex';
+                statusIconDanger.style.display = 'none';
+            } else {
+                statusModalContent.classList.remove('success');
+                statusModalContent.classList.add('error');
+                statusIconSuccess.style.display = 'none';
+                statusIconDanger.style.display = 'flex';
             }
 
-            try {
-                const response = await fetch("{{ route('admin.shift.close') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                    },
-                    body: JSON.stringify({
-                        shift_id: shiftId,
-                        closing_cash: parseFloat(closingCash),
-                        notes: notes
-                    })
-                });
+            statusModalTitle.innerText = title;
+            statusModalMessage.innerText = message;
+            document.getElementById('status-modal-print-btn').style.display = 'none';
+            statusModal.style.display = 'flex';
+        }
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    isLastShiftTransactionSuccess = true;
-                    const diff = result.report.cash_difference;
-                    const systemNonCash = result.report.system_noncash_sales;
-
-                    let title;
-                    if (diff == 0) {
-                        title = 'Shift Ditutup (Sempurna) 💰';
-                    } else if (diff > 0) {
-                        title = 'Shift Ditutup (Kas Berlebih) ⬆️';
-                    } else {
-                        title = 'Shift Ditutup (Kas Kurang) ⬇️';
-                    }
-
-                    // Format pesan rekonsiliasi agar lebih mudah dibaca
-                    // Catatan: \n digunakan di JS string literal, tetapi di message HTML (di showStatusModal) 
-                    // kita sudah menggunakan white-space: pre-wrap untuk memprosesnya.
-                    let message = `
-                    Rekonsiliasi Shift # ${shiftId}
-                    -------------------------------------
-                    Kas Awal:         ${formatRupiah(result.report.initial_cash)}
-                    Penjualan Tunai:  ${formatRupiah(result.report.system_cash_sales)}
-                    Penjualan Non-Kas: ${formatRupiah(systemNonCash)}
-                    -------------------------------------
-                    Total Kas Seharusnya: ${formatRupiah(result.report.initial_cash + result.report.system_cash_sales)}
-                    Kas Fisik Dihitung:  ${formatRupiah(result.report.closing_cash)}
-                    -------------------------------------
-                    Selisih Kas:      ${formatRupiah(diff)}
-                    `;
-
-                    if (diff != 0) {
-                        message += "\n\nHarap periksa selisih kas ini!";
-                    }
-
-                    const modalType = diff == 0 ? 'success' : 'error';
-
-                    showStatusModal(modalType, title, message);
-
-                } else {
-                    showStatusModal('error', 'Gagal Menutup Shift ❌', result.error || 'Gagal menutup shift.');
-                }
-            } catch (error) {
-                console.error('Error closing shift:', error);
-                // Menangkap error 404/500/SQL dari server
-                showStatusModal('error', 'Error Server 🛑', 'Terjadi kesalahan saat menutup shift. Cek Log Laravel.');
+        function closeStatusModal() {
+            document.getElementById('status-modal-overlay').style.display = 'none';
+            if (isLastShiftTransactionSuccess) {
+                isLastShiftTransactionSuccess = false;
+                window.location.reload();
             }
         }
 
+        document.getElementById('status-modal-ok-btn').addEventListener('click', closeStatusModal);
+
+        // Inisialisasi DataTables
         window.onload = () => {
-            // FIX: Inisialisasi DataTables saat dokumen siap
             if (typeof jQuery !== 'undefined' && typeof jQuery.fn.DataTable !== 'undefined') {
                 $('#shiftDataTable').DataTable({
-                    // Nonaktifkan ordering (pengurutan) untuk semua kolom agar sesuai tampilan.
                     "ordering": false,
-                    // Nonaktifkan fitur pencarian, paging, dan info jika Anda hanya menampilkan 10 item.
                     "searching": true,
                     "paging": true,
                     "info": true,
-                    // Default bahasa (optional)
                     "language": {
                         "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Indonesian.json"
                     }
                 });
             }
-
-            // Pasangkan event listener untuk tombol OK
-            document.getElementById('status-modal-ok-btn').addEventListener('click', closeStatusModal);
         }
     </script>
 @endpush
