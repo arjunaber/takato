@@ -11,6 +11,7 @@ class TableMonitoringController extends Controller
 {
     /**
      * Menampilkan daftar semua meja (Monitoring View).
+     * LOGIKA: Hanya tampilkan order yang PAID sebagai occupied
      */
     public function index()
     {
@@ -24,18 +25,20 @@ class TableMonitoringController extends Controller
             // Grouping untuk tampilan per area (jika perlu)
             $tablesByArea = $tables->groupBy('area');
 
-            // STATISTIK: Hitung ulang berdasarkan logika "Real" (Order ada = Occupied)
+            // STATISTIK: Hitung ulang berdasarkan logika "Real" (Hanya Order PAID = Occupied)
             $stats = [
                 'total' => $tables->count(),
 
-                // Available = Status meja available DAN tidak ada order nempel
+                // Available = Status meja available DAN tidak ada order PAID yang nempel
                 'available' => $tables->filter(function ($t) {
-                    return $t->status === 'available' && !$t->activeOrder;
+                    $paidOrder = $t->activeOrder && $t->activeOrder->payment_status === 'paid';
+                    return $t->status === 'available' && !$paidOrder;
                 })->count(),
 
-                // Occupied = Status meja occupied ATAU ada order aktif (meskipun status 'completed'/'paid')
+                // Occupied = Status meja occupied ATAU ada order PAID (BUKAN unpaid)
                 'occupied' => $tables->filter(function ($t) {
-                    return $t->status === 'occupied' || $t->activeOrder;
+                    $paidOrder = $t->activeOrder && $t->activeOrder->payment_status === 'paid';
+                    return $t->status === 'occupied' || $paidOrder;
                 })->count(),
 
                 'cleaning' => $tables->where('status', 'cleaning')->count(),
@@ -53,6 +56,7 @@ class TableMonitoringController extends Controller
     /**
      * Get tables filtered by area (AJAX).
      * Endpoint ini dipanggil oleh Javascript untuk refresh data real-time.
+     * HANYA menampilkan order dengan status PAID
      */
     public function getByArea(Request $request)
     {
@@ -71,20 +75,18 @@ class TableMonitoringController extends Controller
                 'success' => true,
                 'tables' => $tables->map(function ($table) {
 
-                    // --- LOGIKA SEDERHANA ---
+                    // --- LOGIKA SEDERHANA: HANYA PAID ---
 
-                    // 1. Cek apakah ada order yang MENEMPEL?
-                    // Karena saat 'Free Table' kita sudah set table_id = NULL,
-                    // maka variabel $order ini otomatis NULL jika meja sudah dibersihkan.
+                    // 1. Cek apakah ada order yang MENEMPEL DAN berstatus PAID?
                     $order = $table->activeOrder;
+                    $hasPaidOrder = $order && $order->payment_status === 'paid';
 
                     // 2. Tentukan Status Tampilan
-                    if ($order) {
-                        // Jika masih ada relasi order -> PASTI OCCUPIED
-                        // Tidak peduli paid/unpaid, kalau masih nempel berarti meja dipake.
+                    if ($hasPaidOrder) {
+                        // Jika ada order PAID -> PASTI OCCUPIED
                         $displayStatus = 'occupied';
                     } else {
-                        // Jika tidak ada order (atau sudah di-NULL-kan) -> Ikuti status meja (available)
+                        // Jika tidak ada order PAID -> Ikuti status meja (available/cleaning)
                         $displayStatus = $table->status;
                     }
 
@@ -93,7 +95,7 @@ class TableMonitoringController extends Controller
                         'name' => $table->name,
                         'capacity' => $table->capacity,
                         'status' => $displayStatus,
-                        'payment_status' => $order ? $order->payment_status : null,
+                        'payment_status' => $hasPaidOrder ? $order->payment_status : null,
                         'area' => $table->area,
                         'position_x' => $table->position_x,
                         'position_y' => $table->position_y,
@@ -109,14 +111,20 @@ class TableMonitoringController extends Controller
 
     /**
      * Mengambil detail pesanan (via AJAX) untuk ditampilkan di Side Panel.
+     * HANYA menampilkan order yang berstatus PAID
      */
     public function getTableDetails(Table $table)
     {
         try {
-            // Ambil order terakhir (termasuk yang completed/paid)
-            $order = $table->activeOrder()->with('orderItems')->first();
+            // Ambil order terakhir yang PAID saja
+            $order = $table->activeOrder;
 
-            // Jika tidak ada order, kembalikan info meja saja
+            // ✅ PERUBAHAN: Jika order ada tapi UNPAID, anggap sebagai tidak ada order
+            if ($order && $order->payment_status !== 'paid') {
+                $order = null;
+            }
+
+            // Jika tidak ada order PAID, kembalikan info meja saja sebagai available
             if (!$order) {
                 return response()->json([
                     'status' => $table->status, // available / cleaning
@@ -134,15 +142,15 @@ class TableMonitoringController extends Controller
                 ];
             });
 
-            // Jika ada order, status pasti occupied
+            // Jika ada order PAID, status pasti occupied
             return response()->json([
                 'status' => 'occupied',
                 'table' => $table,
                 'order' => [
                     'id' => $order->id,
                     'invoice_number' => $order->invoice_number,
-                    'total_price' => (float) $order->total, // Pastikan kolom di DB 'total' atau 'total_price'
-                    'payment_status' => $order->payment_status, // Frontend akan cek ini untuk warna badge
+                    'total_price' => (float) $order->total,
+                    'payment_status' => $order->payment_status, // PAID
                     'created_at' => $order->created_at->format('d M Y H:i'),
                 ],
                 'order_items' => $orderItems,
@@ -161,19 +169,16 @@ class TableMonitoringController extends Controller
     public function clearTable(Table $table)
     {
         try {
-            // 1. Ambil order aktif yang masih menempel pada meja ini
-            // (Pastikan menggunakan activeOrder() yang sudah ada di model Table)
             $order = $table->activeOrder;
 
             if ($order) {
-                // 2. PUTUS RELASI: Set table_id menjadi NULL
-                // Ini inti permintaanmu: History meja di order ini akan hilang.
+                // PUTUS RELASI: Set table_id menjadi NULL
                 $order->update([
                     'table_id' => null
                 ]);
             }
 
-            // 3. Ubah status meja fisik menjadi Available
+            // Ubah status meja fisik menjadi Available
             $table->update(['status' => 'available']);
 
             return response()->json([
@@ -185,7 +190,7 @@ class TableMonitoringController extends Controller
         }
     }
 
-    // --- CRUD FUNCTIONS (SAMA SEPERTI SEBELUMNYA) ---
+    // --- CRUD FUNCTIONS ---
 
     public function store(Request $request)
     {

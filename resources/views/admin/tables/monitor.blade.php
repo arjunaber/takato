@@ -936,34 +936,30 @@
             <div class="floor-plan-wrapper">
                 <div class="floor-plan-container" id="floorPlan">
                     <div class="floor-plan-content">
-                        @foreach ($tables as $table)
-                            @php
-                                $isOccupied = $table->activeOrder;
-                                $status = $isOccupied ? 'occupied' : $table->status;
-                                $shapeClass = 'shape-' . $table->shape;
-                                $capacityClass = 'capacity-' . $table->capacity;
-                            @endphp
-                            <div class="table-item status-{{ $status }} {{ $shapeClass }} {{ $capacityClass }}"
-                                data-table-id="{{ $table->id }}" data-table-name="{{ $table->name }}"
-                                data-status="{{ $status }}" data-capacity="{{ $table->capacity }}"
-                                data-area="{{ $table->area }}" data-shape="{{ $table->shape }}"
-                                style="left: {{ $table->position_x ?? 50 }}px; top: {{ $table->position_y ?? 50 }}px;"
-                                title="Click for details, drag to move">
+                        @php
+                            // ✅ PERUBAHAN: Cek apakah ada order PAID
+                            $hasPaidOrder = $table->activeOrder && $table->activeOrder->payment_status === 'paid';
+                            $status = $hasPaidOrder ? 'occupied' : $table->status;
+                        @endphp
+                        <div class="table-item status-{{ $status }} shape-{{ $table->shape }} capacity-{{ $table->capacity }}"
+                            data-table-id="{{ $table->id }}" data-table-name="{{ $table->name }}"
+                            data-status="{{ $status }}" data-capacity="{{ $table->capacity }}"
+                            data-area="{{ $table->area }}" data-shape="{{ $table->shape }}"
+                            style="left: {{ $table->position_x ?? 50 }}px; top: {{ $table->position_y ?? 50 }}px;"
+                            title="Click for details, drag to move">
 
-                                <div class="table-shape-wrapper">
-                                    {{-- RENDER KURSI SESUAI KAPASITAS --}}
-                                    {{-- Loop ini memastikan jumlah kursi pas sesuai kapasitas, tidak perlu hide via CSS --}}
-                                    @for ($i = 1; $i <= $table->capacity; $i++)
-                                        <div class="chair chair-{{ $i }}"></div>
-                                    @endfor
+                            <div class="table-shape-wrapper">
+                                @for ($i = 1; $i <= $table->capacity; $i++)
+                                    <div class="chair chair-{{ $i }}"></div>
+                                @endfor
 
-                                    <div class="table-text">
-                                        <div class="table-name">{{ $table->name }}</div>
-                                        <div class="table-capacity">{{ $table->capacity }} pax</div>
-                                    </div>
+                                <div class="table-text">
+                                    <div class="table-name">{{ $table->name }}</div>
+                                    <div class="table-capacity">{{ $table->capacity }} pax</div>
                                 </div>
-
                             </div>
+
+                        </div>
                         @endforeach
                     </div>
                 </div>
