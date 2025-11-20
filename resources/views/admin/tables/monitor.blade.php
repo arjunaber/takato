@@ -933,22 +933,25 @@
                 </div>
             </div>
 
-            <div class="floor-plan-wrapper">
-                <div class="floor-plan-container" id="floorPlan">
-                    <div class="floor-plan-content">
+            <div class="floor-plan-container" id="floorPlan">
+                <div class="floor-plan-content">
+                    @foreach ($tables as $table)
                         @php
-                            // ✅ PERUBAHAN: Cek apakah ada order PAID
+                            // ✅ Logika: Hanya PAID order yang dianggap occupied
                             $hasPaidOrder = $table->activeOrder && $table->activeOrder->payment_status === 'paid';
-                            $status = $hasPaidOrder ? 'occupied' : $table->status;
+                            $displayStatus = $hasPaidOrder ? 'occupied' : $table->status;
+                            $shapeClass = 'shape-' . $table->shape;
+                            $capacityClass = 'capacity-' . $table->capacity;
                         @endphp
-                        <div class="table-item status-{{ $status }} shape-{{ $table->shape }} capacity-{{ $table->capacity }}"
+                        <div class="table-item status-{{ $displayStatus }} {{ $shapeClass }} {{ $capacityClass }}"
                             data-table-id="{{ $table->id }}" data-table-name="{{ $table->name }}"
-                            data-status="{{ $status }}" data-capacity="{{ $table->capacity }}"
+                            data-status="{{ $displayStatus }}" data-capacity="{{ $table->capacity }}"
                             data-area="{{ $table->area }}" data-shape="{{ $table->shape }}"
                             style="left: {{ $table->position_x ?? 50 }}px; top: {{ $table->position_y ?? 50 }}px;"
                             title="Click for details, drag to move">
 
                             <div class="table-shape-wrapper">
+                                {{-- RENDER KURSI SESUAI KAPASITAS --}}
                                 @for ($i = 1; $i <= $table->capacity; $i++)
                                     <div class="chair chair-{{ $i }}"></div>
                                 @endfor
@@ -958,21 +961,8 @@
                                     <div class="table-capacity">{{ $table->capacity }} pax</div>
                                 </div>
                             </div>
-
                         </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="side-panel">
-                    <div class="panel-header">
-                        <i class="fas fa-info-circle"></i> Table Details
-                    </div>
-                    <div class="panel-content" id="panelContent">
-                        <p style="color: #999; text-align: center; padding: 40px 0;">
-                            Click on a table to view details
-                        </p>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -1267,56 +1257,57 @@
                 .then(response => response.json())
                 .then(data => {
                     const table = data.table;
-
-                    // --- CEK STATUS ---
-                    // Tombol Edit hanya aktif jika status 'available'
                     const isAvailable = data.status === 'available';
-
-                    // Style tombol mati
                     const disabledStyle = isAvailable ? '' :
                         'opacity: 0.6; cursor: not-allowed; background-color: #ccc; border: 1px solid #bbb;';
                     const disabledAttr = isAvailable ? '' : 'disabled';
 
-                    // 1. Bagian Header Info Meja
                     let html = `
                 <h4 style="margin-bottom:10px;">${table.name} (${table.area})</h4>
                 <div class="detail-item"><div class="detail-label">Capacity</div><div class="detail-value">${table.capacity} Pax</div></div>
                 <div class="detail-item"><div class="detail-label">Shape</div><div class="detail-value">${capitalizeWords(table.shape)}</div></div>
             `;
 
-                    // 2. Bagian Status & Tombol Free Table
+                    // ✅ Hanya tampilkan detail order jika status OCCUPIED (artinya PAID)
                     if (data.status === 'occupied' && data.order) {
-                        // Tampilkan badge status bayar
-                        let payStatus = data.order.payment_status === 'paid' ?
-                            '<span style="color:green; font-weight:bold;">(LUNAS)</span>' :
-                            '<span style="color:red; font-weight:bold;">(BELUM BAYAR)</span>';
-
                         html += `<hr>
-                         <h5 style="color:var(--danger); margin:10px 0;">Active Order ${payStatus}</h5>
-                         <div class="detail-item"><div class="detail-label">Invoice</div><div class="detail-value">${data.order.invoice_number}</div></div>
-                         <div class="detail-item"><div class="detail-label">Total</div><div class="detail-value">Rp ${formatNumber(data.order.total_price)}</div></div>
-                         
-                         <button class="btn btn-danger btn-sm" style="margin-top:10px; width:100%;" onclick="clearTable(${table.id}, '${table.name}')">
-                            <i class="fas fa-broom"></i> Free Table (Clear)
-                         </button>`;
+                     <h5 style="color:var(--danger); margin:10px 0;">
+                        <i class="fas fa-info-circle"></i> Active Order (PAID)
+                     </h5>
+                     <div class="detail-item">
+                        <div class="detail-label">Invoice</div>
+                        <div class="detail-value">${data.order.invoice_number}</div>
+                     </div>
+                     <div class="detail-item">
+                        <div class="detail-label">Total</div>
+                        <div class="detail-value">Rp ${formatNumber(data.order.total_price)}</div>
+                     </div>
+                     <div class="detail-item">
+                        <div class="detail-label">Created</div>
+                        <div class="detail-value">${data.order.created_at}</div>
+                     </div>
+                     
+                     <button class="btn btn-danger btn-sm" style="margin-top:10px; width:100%;" onclick="clearTable(${table.id}, '${table.name}')">
+                        <i class="fas fa-broom"></i> Free Table (Clear)
+                     </button>`;
                     } else if (data.status === 'cleaning') {
                         html +=
-                            `<hr><div class="alert alert-warning">Sedang Dibereskan</div>
-                          <button class="btn btn-success btn-sm" onclick="clearTable(${table.id}, '${table.name}')">Selesai</button>`;
+                            `<hr><div class="alert alert-warning"><i class="fas fa-broom"></i> Sedang Dibereskan</div>
+                      <button class="btn btn-success btn-sm" onclick="clearTable(${table.id}, '${table.name}')">
+                        <i class="fas fa-check"></i> Selesai
+                      </button>`;
                     } else {
-                        html += `<hr><p style="color:green; font-weight:bold;">Available</p>`;
+                        html +=
+                            `<hr><p style="color:green; font-weight:bold;"><i class="fas fa-check-circle"></i> Available</p>`;
                     }
 
-                    // 3. Bagian Tombol Edit & Delete
                     html += `<div style="margin-top:20px; border-top:1px dashed #ccc; padding-top:10px; display:flex; gap:5px;">
-                        
                         <button class="btn btn-primary btn-sm" 
                             style="flex:1; ${disabledStyle}" 
                             ${disabledAttr} 
                             onclick="${isAvailable ? `editTable(${table.id})` : ''}">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-
                         <button class="btn btn-danger btn-sm" style="flex:1;" onclick="deleteTable(${table.id}, '${table.name}')">
                             <i class="fas fa-trash"></i> Delete
                         </button>
@@ -1331,7 +1322,8 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    panel.innerHTML = '<p style="color:red;">Error loading details.</p>';
+                    panel.innerHTML =
+                        '<p style="color:red;"><i class="fas fa-exclamation-circle"></i> Error loading details.</p>';
                 });
         }
 
