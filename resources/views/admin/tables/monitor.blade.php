@@ -933,36 +933,60 @@
                 </div>
             </div>
 
-            <div class="floor-plan-container" id="floorPlan">
-                <div class="floor-plan-content">
-                    @foreach ($tables as $table)
-                        @php
-                            // ✅ Logika: Hanya PAID order yang dianggap occupied
-                            $hasPaidOrder = $table->activeOrder && $table->activeOrder->payment_status === 'paid';
-                            $displayStatus = $hasPaidOrder ? 'occupied' : $table->status;
-                            $shapeClass = 'shape-' . $table->shape;
-                            $capacityClass = 'capacity-' . $table->capacity;
-                        @endphp
-                        <div class="table-item status-{{ $displayStatus }} {{ $shapeClass }} {{ $capacityClass }}"
-                            data-table-id="{{ $table->id }}" data-table-name="{{ $table->name }}"
-                            data-status="{{ $displayStatus }}" data-capacity="{{ $table->capacity }}"
-                            data-area="{{ $table->area }}" data-shape="{{ $table->shape }}"
-                            style="left: {{ $table->position_x ?? 50 }}px; top: {{ $table->position_y ?? 50 }}px;"
-                            title="Click for details, drag to move">
+            <div class="floor-plan-wrapper">
+                <div class="floor-plan-container" id="floorPlan">
+                    <div class="floor-plan-content">
+                        @foreach ($tables as $table)
+                            @php
+                                // Cek apakah ada order PAID
+                                $hasPaidOrder = $table->activeOrder && $table->activeOrder->payment_status === 'paid';
 
-                            <div class="table-shape-wrapper">
-                                {{-- RENDER KURSI SESUAI KAPASITAS --}}
-                                @for ($i = 1; $i <= $table->capacity; $i++)
-                                    <div class="chair chair-{{ $i }}"></div>
-                                @endfor
+                                // LOGIKA BARU: Prioritas Tampilan
+                                if ($hasPaidOrder) {
+                                    // 1. Jika sudah bayar -> PASTI OCCUPIED
+                                    $displayStatus = 'occupied';
+                                } else {
+                                    // 3. Sisanya (termasuk jika ada order tapi UNPAID/PENDING) -> AVAILABLE
+                                    // Kita memaksa tampil available meskipun di database statusnya 'occupied'
+                                    $displayStatus = 'available';
+                                }
 
-                                <div class="table-text">
-                                    <div class="table-name">{{ $table->name }}</div>
-                                    <div class="table-capacity">{{ $table->capacity }} pax</div>
+                                $shapeClass = 'shape-' . $table->shape;
+                                $capacityClass = 'capacity-' . $table->capacity;
+                            @endphp
+                            <div class="table-item status-{{ $displayStatus }} {{ $shapeClass }} {{ $capacityClass }}"
+                                data-table-id="{{ $table->id }}" data-table-name="{{ $table->name }}"
+                                data-status="{{ $displayStatus }}" data-capacity="{{ $table->capacity }}"
+                                data-area="{{ $table->area }}" data-shape="{{ $table->shape }}"
+                                style="left: {{ $table->position_x ?? 50 }}px; top: {{ $table->position_y ?? 50 }}px;"
+                                title="Click for details, drag to move">
+
+                                <div class="table-shape-wrapper">
+                                    {{-- RENDER KURSI SESUAI KAPASITAS --}}
+                                    @for ($i = 1; $i <= $table->capacity; $i++)
+                                        <div class="chair chair-{{ $i }}"></div>
+                                    @endfor
+
+                                    <div class="table-text">
+                                        <div class="table-name">{{ $table->name }}</div>
+                                        <div class="table-capacity">{{ $table->capacity }} pax</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- SIDEBAR TETAP ADA --}}
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <i class="fas fa-info-circle"></i> Table Details
+                    </div>
+                    <div class="panel-content" id="panelContent">
+                        <p style="color: #999; text-align: center; padding: 40px 0;">
+                            Click on a table to view details
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
