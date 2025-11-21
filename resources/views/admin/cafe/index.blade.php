@@ -53,8 +53,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                            * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
-                                                                                                                                                                                                                                                                                                                                                                            * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                                * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
+                                                                                                                                                                                                                                                                                                                                                                                * ====================================================================== */
 
         .cart-actions-bottom {
             display: grid;
@@ -122,8 +122,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                            * MODAL OPEN BILLS
-                                                                                                                                                                                                                                                                                                                                                                            * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                                * MODAL OPEN BILLS
+                                                                                                                                                                                                                                                                                                                                                                                * ====================================================================== */
         #open-bills-modal-overlay .modal-content {
             max-width: 700px;
         }
@@ -156,8 +156,8 @@
 
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                            * MODAL SPLIT BILL (Dipertahankan)
-                                                                                                                                                                                                                                                                                                                                                                            * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                                * MODAL SPLIT BILL (Dipertahankan)
+                                                                                                                                                                                                                                                                                                                                                                                * ====================================================================== */
         #split-bill-modal-overlay .modal-content {
             max-width: 900px;
         }
@@ -2459,8 +2459,8 @@
 
                                 // 1. Panggil Konfirmasi Pembayaran (Agar status Pending -> Paid & Stok Berkurang)
                                 // Pastikan Anda sudah membuat Route: Route::post('/pos/confirm-payment/{order}', [PosController::class, 'confirmPayment']);
-                                const confirmUrl =
-                                `{{ url('api/pos/confirm-payment') }}/${result.order_id}`;
+                                const confirmUrl = "{{ route('admin.pos.confirm_payment', ':id') }}"
+                                    .replace(':id', result.order_id);
 
                                 const confirmResponse = await fetch(confirmUrl, {
                                     method: 'POST',
