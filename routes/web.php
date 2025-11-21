@@ -97,6 +97,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin_or_owner'])->
         Route::get('/load-bill/{order}', [PosController::class, 'loadBill'])->name('load_bill');
         Route::post('/complete-old-bill/{order}', [PosController::class, 'updateBillAfterPayment'])->name('update_bill_status');
         Route::post('/complete-open-bill/{order}', [PosController::class, 'completeOpenBill'])->name('complete_open_bill');
+        Route::post('/confirm-payment/{order}', [PosController::class, 'confirmPayment'])->name('confirm_payment');
     });
 
 

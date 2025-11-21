@@ -555,6 +555,56 @@ class PosController extends Controller
             ], 500);
         }
     }
+    /**
+     * Method BARU: Konfirmasi pembayaran Gateway dari Frontend (JS)
+     * Dipanggil saat onsuccess Midtrans Snap.
+     */
+    public function confirmPayment(Request $request, Order $order)
+    {
+        // 1. Cek Idempotency (Cek apakah sudah lunas duluan)
+        if ($order->status === 'completed' || $order->payment_status === 'paid') {
+            return response()->json([
+                'message' => 'Order sudah lunas sebelumnya.',
+                'status' => 'completed'
+            ], 200);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 2. Update Status Order
+            $order->status = 'completed';
+            $order->payment_status = 'paid';
+            $order->save();
+
+            // 3. KURANGI STOK
+            // Kita load item beserta varian-nya untuk looping pengurangan stok
+            $order->load('orderItems.variant');
+
+            foreach ($order->orderItems as $item) {
+                // Pastikan item tersebut memiliki variant (bukan custom item murni tanpa resep)
+                if (!is_null($item->product_id) && $item->variant_id) {
+                    // Panggil fungsi private reduceStock yang sudah ada di bawah
+                    $this->reduceStock($item->variant_id, $item->quantity);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Pembayaran berhasil dikonfirmasi dan stok diperbarui.',
+                'status' => 'completed',
+                'order_id' => $order->id
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal konfirmasi pembayaran gateway POS: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Gagal memproses konfirmasi di server.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Fungsi private untuk mengurangi stok
