@@ -19,11 +19,14 @@ use App\Models\CashierShift;
 
 class PosController extends Controller
 {
-    // ... (Metode __construct() tidak berubah) ...
+    public function __construct()
+    {
+        // Set konfigurasi Midtrans saat controller ini diinisialisasi
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        \Midtrans\Config::$isSanitized = true;
+    }
 
-    /**
-     * Menampilkan halaman POS dan memuat semua data awal.
-     */
     public function index()
     {
         $categories = Category::orderBy('name')->get();
@@ -138,37 +141,76 @@ class PosController extends Controller
         }
     }
 
-    // ... (Sisa metode di bawah ini tidak berubah) ...
 
     public function completeOpenBill(Request $request, Order $order)
     {
         $request->validate([
-            'paymentMethod' => 'required|string|in:cash,gateway', // Hanya terima metode bayar
+            'paymentMethod' => 'required|string|in:cash,gateway',
             'cashReceived' => 'nullable|numeric',
             'cashChange' => 'nullable|numeric',
         ]);
 
         $paymentMethod = $request->input('paymentMethod');
-        $isCash = ($paymentMethod === 'cash');
-
         $cashReceived = $request->input('cashReceived') ?? null;
         $cashChange = $request->input('cashChange') ?? null;
 
         try {
             DB::beginTransaction();
 
-            // 1. Update Status Order Lama (Bayar Penuh)
+            // === LOGIKA BARU: JIKA GATEWAY (NON CASH) ===
+            if ($paymentMethod === 'gateway') {
+                // 1. Konfigurasi Midtrans
+                \Midtrans\Config::$serverKey = config('midtrans.server_key');
+                \Midtrans\Config::$isProduction = config('midtrans.is_production');
+                \Midtrans\Config::$isSanitized = true;
+                \Midtrans\Config::$is3ds = true;
+
+                // 2. Buat Parameter Snap
+                // Kita tambahkan suffix unik agar Midtrans tidak menolak jika ID order pernah dipakai
+                $transactionId = $order->invoice_number . '-' . time();
+
+                $params = [
+                    'transaction_details' => [
+                        'order_id' => $transactionId, // Gunakan ID unik
+                        'gross_amount' => (int) $order->total,
+                    ],
+                    'customer_details' => [
+                        'first_name' => Auth::user()->name ?? 'Pelanggan',
+                        'email' => Auth::user()->email ?? 'customer@tokomu.com',
+                    ],
+                ];
+
+                // 3. Dapatkan Token
+                $snapToken = \Midtrans\Snap::getSnapToken($params);
+
+                // 4. Update Order ke Pending (bukan Paid)
+                $order->status = 'pending'; // Masih menunggu bayar
+                $order->payment_status = 'unpaid';
+                $order->payment_method = 'gateway';
+                $order->save();
+
+                DB::commit();
+
+                // 5. Kembalikan Response Pending + Token
+                return response()->json([
+                    'message' => 'Silakan selesaikan pembayaran.',
+                    'order_id' => $order->id,
+                    'status' => 'pending', // Status pending memicu popup di JS
+                    'snap_token' => $snapToken
+                ], 200);
+            }
+
+            // === LOGIKA LAMA: JIKA CASH ===
             $order->status = 'completed';
             $order->payment_status = 'paid';
-            $order->payment_method = $paymentMethod;
+            $order->payment_method = 'cash';
             $order->cash_received = $cashReceived;
             $order->cash_change = $cashChange;
             $order->save();
 
-            // 2. Kurangi Stok berdasarkan OrderItems di Order lama
+            // Kurangi Stok
             $order->load('orderItems.variant');
             foreach ($order->orderItems as $item) {
-                // Hanya kurangi stok jika BUKAN custom item
                 if (!is_null($item->product_id) && $item->variant_id) {
                     $this->reduceStock($item->variant_id, $item->quantity);
                 }
@@ -385,10 +427,17 @@ class PosController extends Controller
             if ($isOpenBill) {
                 $orderStatus = 'openbill';
                 $paymentStatus = 'unpaid';
+            } elseif ($paymentMethod === 'gateway') { // PRIORITASKAN CEK GATEWAY DULU
+                // Jika Gateway (baik Split maupun Normal), status harus Pending
+                $orderStatus = 'pending';
+                $paymentStatus = 'unpaid';
             } elseif ($isCash || $isSplit) {
+                // Jika Cash (Normal/Split), status Completed
+                // Catatan: isSplit di sini hanya relevan jika BUKAN Gateway
                 $orderStatus = 'completed';
                 $paymentStatus = 'paid';
-            } else { // Jika Gateway
+            } else {
+                // Fallback (seharusnya tidak terpanggil jika validasi benar)
                 $orderStatus = 'pending';
                 $paymentStatus = 'unpaid';
             }
@@ -468,6 +517,11 @@ class PosController extends Controller
 
             // Buat Snap Token HANYA JIKA GATEWAY (dan bukan Open Bill)
             if (!$isCash && !$isOpenBill) {
+
+                \Midtrans\Config::$serverKey = config('midtrans.server_key');
+                \Midtrans\Config::$isProduction = config('midtrans.is_production');
+                \Midtrans\Config::$isSanitized = true;
+                \Midtrans\Config::$is3ds = true;
                 $params = [
                     'transaction_details' => [
                         'order_id' => $order->invoice_number,

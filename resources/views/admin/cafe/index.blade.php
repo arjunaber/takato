@@ -53,8 +53,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                    * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
-                                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                        * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
+                                                                                                                                                                                                                                                                                                                                                                        * ====================================================================== */
 
         .cart-actions-bottom {
             display: grid;
@@ -122,8 +122,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                    * MODAL OPEN BILLS
-                                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                        * MODAL OPEN BILLS
+                                                                                                                                                                                                                                                                                                                                                                        * ====================================================================== */
         #open-bills-modal-overlay .modal-content {
             max-width: 700px;
         }
@@ -156,8 +156,8 @@
 
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                    * MODAL SPLIT BILL (Dipertahankan)
-                                                                                                                                                                                                                                                                                                                                                                    * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                        * MODAL SPLIT BILL (Dipertahankan)
+                                                                                                                                                                                                                                                                                                                                                                        * ====================================================================== */
         #split-bill-modal-overlay .modal-content {
             max-width: 900px;
         }
@@ -2392,7 +2392,7 @@
             const oldOrderId = activeOpenBillId;
 
             if (oldOrderId && !isSplit) {
-                // Logika: BAYAR PENUH (Update Order Lama, TIDAK buat Order Baru)
+                // Logika: BAYAR PENUH (Update Order Lama)
                 endpointUrl = `{{ route('admin.pos.complete_open_bill', ['order' => 'ORDER_ID_PLACEHOLDER'], false) }}`
                     .replace('ORDER_ID_PLACEHOLDER', oldOrderId);
                 isUpdatingOldBill = true;
@@ -2412,7 +2412,6 @@
                 isSplit: isSplit
             };
 
-            // Jika Bayar Penuh, dataToSend hanya berisi metode pembayaran, cash/change
             let fullPayDataToSend = {};
             if (isUpdatingOldBill) {
                 fullPayDataToSend = {
@@ -2437,22 +2436,53 @@
 
                 const result = await response.json();
                 if (!response.ok) {
-                    // PENTING: Jika server mengembalikan error 500/403/404, pesan HTML akan ada di 'text'.
                     if (response.headers.get("content-type") && !response.headers.get("content-type").includes(
                             "application/json")) {
-                        const errorText = await response.text();
-                        console.error('Server HTML Error:', errorText);
-                        throw new Error(`Server Error (${response.status}). Cek Log Laravel.`);
+                        throw new Error(`Server Error (${response.status}). Cek Log.`);
                     }
                     throw new Error(result.error || result.message || 'Terjadi kesalahan server');
                 }
 
-                // === LOGIKA PENYELESAIAN SETELAH ORDER DIBUAT/DIPERBARUI ===
+                // === LOGIKA RESPONSE ===
 
-                if (isUpdatingOldBill) {
-                    // KASUS 1: BAYAR PENUH (Order Lama di-update)
+                // 1. CEK PENDING / SNAP TOKEN DULU (Untuk Kasus Gateway: Split maupun Full)
+                if (result.status === 'pending' && result.snap_token) {
+
                     isLastTransactionSuccess = true;
-                    lastSuccessfulOrderId = oldOrderId; // Order ID yang ditutup adalah Order Lama
+                    lastSuccessfulOrderId = result.order_id;
+                    closePaymentModal(); // Tutup modal input pembayaran
+
+                    // Panggil Midtrans Snap
+                    snap.pay(result.snap_token, {
+                        onSuccess: function(trxResult) {
+                            showStatusModal('success', 'Pembayaran Berhasil',
+                            'Transaksi berhasil dibayar.');
+                            // Bersihkan cart setelah sukses
+                            activeOpenBillId = null;
+                            cartItems = [];
+                            renderCart();
+                            updateSummary();
+                        },
+                        onPending: function(trxResult) {
+                            showStatusModal('pending', 'Menunggu Pembayaran',
+                                'Silakan selesaikan pembayaran Anda.');
+                        },
+                        onError: function(trxResult) {
+                            showStatusModal('error', 'Pembayaran Gagal',
+                                'Terjadi kesalahan saat pembayaran.');
+                        },
+                        onClose: function() {
+                            // Opsional: Beri tahu user mereka menutup popup
+                        }
+                    });
+                    return; // Hentikan eksekusi di sini, biarkan Snap JS bekerja
+                }
+
+                // 2. JIKA CASH / SUKSES LANGSUNG
+                if (isUpdatingOldBill) {
+                    // KASUS 1: BAYAR PENUH CASH (Order Lama Selesai)
+                    isLastTransactionSuccess = true;
+                    lastSuccessfulOrderId = oldOrderId;
 
                     closePaymentModal();
                     showStatusModal('success', 'Tagihan Selesai',
@@ -2464,16 +2494,16 @@
                     updateSummary();
 
                 } else if (result.status === 'completed') {
-                    // KASUS 2: TRANSAKSI NORMAL atau SPLIT CASH (Order Baru dibuat)
+                    // KASUS 2: TRANSAKSI NORMAL / SPLIT CASH (Order Baru)
                     isLastTransactionSuccess = true;
                     lastSuccessfulOrderId = result.order_id;
 
                     if (oldOrderId && isSplit) {
-                        // SUB-KASUS 2a: SPLIT BILL (Order Baru dibuat, kini update Order Lama)
-
+                        // SUB-KASUS: SPLIT BILL CASH
                         const newOrderId = result.order_id;
                         const idsToMarkPaid = paidItemIds;
 
+                        // Update Order Lama (Hapus item yang sudah dibayar)
                         const updateUrl =
                             `{{ route('admin.pos.update_bill_status', ['order' => 'ORDER_ID_PLACEHOLDER'], false) }}`
                             .replace('ORDER_ID_PLACEHOLDER', oldOrderId);
@@ -2494,42 +2524,29 @@
                         });
 
                         const updateResult = await updateResponse.json();
-
-                        if (!updateResponse.ok) {
-                            throw new Error(updateResult.error || 'Gagal memperbarui status order lama setelah split.');
-                        }
-
-                        closePaymentModal(); // Tutup modal pembayaran setelah sukses membuat order split
+                        closePaymentModal();
 
                         if (updateResult.old_order_status === 'completed') {
-                            // KRUSIAL FIX: Jika Order Lama selesai, langsung cleanup total
                             showStatusModal('success', 'Tagihan Selesai',
                                 `Order utama ID: ${oldOrderId} telah ditutup. Pembayaran Split ID: ${newOrderId}.`);
-
-                            // TUTUP MODAL SPLIT BILL DI SINI SECARA PAKSA
                             document.getElementById('split-bill-modal-overlay').style.display = 'none';
-
                             activeOpenBillId = null;
                             cartItems = [];
                             renderCart();
                             updateSummary();
                         } else {
-                            // Masih ada sisa item. Muat kembali dan BUKA MODAL SPLIT.
-
-                            await loadBillToCart(oldOrderId); // Muat ulang sisa item ke cartItems
-
-                            openSplitBillModal(); // Buka modal split bill lagi
-
+                            // Reload sisa tagihan
+                            await loadBillToCart(oldOrderId);
+                            openSplitBillModal();
                             showStatusModal('success', 'Pembayaran Split Berhasil',
-                                `Pembayaran ID: ${newOrderId} berhasil. Sisa tagihan: ${formatRupiah(updateResult.new_total)} dimuat. Silakan lanjutkan pembayaran.`
-                            );
+                                `Pembayaran ID: ${newOrderId} berhasil. Sisa tagihan: ${formatRupiah(updateResult.new_total)} dimuat.`
+                                );
                         }
-
                         remainingCartItems = [];
                         paidItemIds = [];
 
                     } else {
-                        // SUB-KASUS 2b: TRANSAKSI NORMAL
+                        // Transaksi Biasa Cash
                         closePaymentModal();
                         showStatusModal('success', 'Pesanan Berhasil', 'Order ID: ' + result.order_id +
                             ' telah disimpan.');
@@ -2538,46 +2555,17 @@
                         renderCart();
                         updateSummary();
                     }
-
-                } else if (result.status === 'pending' && result.snap_token) {
-                    // KASUS 3: PEMBAYARAN GATEWAY PENDING (Order Baru dibuat)
-                    isLastTransactionSuccess = true;
-                    lastSuccessfulOrderId = result.order_id;
-
-                    snap.pay(result.snap_token, {
-                        onSuccess: function(trxResult) {
-                            /* ... */
-                        },
-                        onPending: function(trxResult) {
-                            /* ... */
-                        },
-                        onError: function(trxResult) {
-                            /* ... */
-                        },
-                        onClose: function() {
-                            /* ... */
-                        }
-                    });
                 }
-
-                // Final cleanup for split process
-                remainingCartItems = [];
-                paidItemIds = [];
 
             } catch (error) {
                 console.error('Error submitting payment:', error);
                 isLastTransactionSuccess = false;
                 lastSuccessfulOrderId = null;
 
-                // Jika terjadi error, kembalikan item yang dicoba bayar ke splitCartItems
                 if (isSplit) {
                     splitCartItems = cartItems;
-                    if (oldOrderId) {
-                        // Muat ulang cart utama dengan sisa item Order Lama dari DB
-                        loadBillToCart(oldOrderId);
-                    }
+                    if (oldOrderId) loadBillToCart(oldOrderId);
                 }
-
                 showStatusModal('error', 'Gagal Menyimpan', error.message);
 
             } finally {
