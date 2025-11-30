@@ -190,7 +190,14 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="product-name">{{ $product->name }}</div>
+                                <div class="product-name">
+                                    {{ $product->name }}
+                                    @if ($product->is_favorite)
+                                        <span style="color: #ffc107; margin-left: 5px;" title="Produk Favorit">
+                                            ★
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td>
                                 <span class="product-category">

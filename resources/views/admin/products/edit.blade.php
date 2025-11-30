@@ -4,6 +4,66 @@
 
 @push('styles')
     <style>
+        /* CSS UNTUK TOMBOL SWITCH ON/OFF */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        /* Sembunyikan checkbox asli */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* Slider (Latar belakang tombol) */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            /* Warna saat OFF (Abu-abu) */
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+            /* Membuat sudut bulat */
+        }
+
+        /* Bulatan tombol (Knob) */
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+            /* Membuat bulatan */
+        }
+
+        /* Warna saat ON (Biru/Primary) */
+        input:checked+.slider {
+            background-color: #2196F3;
+        }
+
+        /* Efek geser saat ON */
+        input:checked+.slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
         /* == CSS VARIAN == */
         .variant-item {
             display: flex;
@@ -167,7 +227,29 @@
                     <div style="color: var(--danger); margin-top: 5px;">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="form-group">
+                <label style="font-weight: 600; display: block; margin-bottom: 8px;">Status Favorit</label>
 
+                <div
+                    style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+
+                    {{-- TOMBOL SWITCH --}}
+                    <label class="switch">
+                        <input type="checkbox" name="is_favorite" value="1"
+                            {{ old('is_favorite', $product->is_favorite ?? 0) ? 'checked' : '' }}>
+                        <span class="slider"></span>
+                    </label>
+
+                    {{-- LABEL TEKS DI SEBELAHNYA --}}
+                    <div>
+                        <span style="font-size: 16px; font-weight: bold; color: #333;">Tampilkan di Rekomendasi</span>
+                        <small class="text-muted" style="display: block; line-height: 1.2;">
+                            Geser tombol menjadi biru untuk mengaktifkan.
+                        </small>
+                    </div>
+
+                </div>
+            </div>
             {{-- >>> BARU: INPUT GAMBAR & PREVIEW <<< --}}
             <div class="form-group">
                 <label for="image">Gambar Produk (Biarkan kosong jika tidak ingin mengubah)</label>
@@ -448,7 +530,7 @@
 
                     // Bersihkan dan isi ulang Select
                     ingredientSelect.innerHTML =
-                    '<option value="">-- Pilih Bahan Baku --</option>'; // Opsi default
+                        '<option value="">-- Pilih Bahan Baku --</option>'; // Opsi default
                     allIngredients.forEach(ing => {
                         const option = document.createElement('option');
                         option.value = ing.id;

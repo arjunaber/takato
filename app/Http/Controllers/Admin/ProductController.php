@@ -16,7 +16,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category')->latest(); 
+        $query = Product::with('category')->latest();
 
         // Filter: Search
         if ($request->filled('search')) {
@@ -43,7 +43,7 @@ class ProductController extends Controller
         return view('admin.products.index', [
             'products' => $products,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'category_id']) 
+            'filters' => $request->only(['search', 'category_id'])
         ]);
     }
 
@@ -55,7 +55,7 @@ class ProductController extends Controller
         $categories = Category::orderBy('name')->get();
         $addons = Addon::orderBy('name')->get();
 
-        return view('admin.products.create', compact('categories', 'addons')); 
+        return view('admin.products.create', compact('categories', 'addons'));
     }
 
     public function store(Request $request)
@@ -64,16 +64,16 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             // VALIDASI FILE GAMBAR
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', 
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'variants' => 'required|array|min:1',
             'variants.*.name' => 'required|string|max:255',
             'variants.*.price' => 'required|numeric|min:0',
-            'addons' => 'nullable|array', 
+            'addons' => 'nullable|array',
             'addons.*' => 'exists:addons,id'
         ]);
 
         $imagePath = null;
-        
+
         // 1. UPLOAD GAMBAR
         if ($request->hasFile('image')) {
             // Simpan gambar ke storage/app/public/images/products
@@ -85,6 +85,8 @@ class ProductController extends Controller
             'category_id' => $validatedData['category_id'],
             // 2. SIMPAN PATH GAMBAR
             'image_url' => $imagePath,
+            'is_favorite' => $request->has('is_favorite') ? 1 : 0,
+
         ]);
 
         foreach ($validatedData['variants'] as $variantData) {
@@ -114,11 +116,11 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::orderBy('name')->get();
-        $addons = Addon::orderBy('name')->get(); 
+        $addons = Addon::orderBy('name')->get();
 
-        $product->load('variants', 'addons'); 
+        $product->load('variants', 'addons');
 
-        return view('admin.products.edit', compact('product', 'categories', 'addons')); 
+        return view('admin.products.edit', compact('product', 'categories', 'addons'));
     }
 
     public function update(Request $request, Product $product)
@@ -127,18 +129,19 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             // VALIDASI FILE GAMBAR (boleh kosong)
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', 
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'variants' => 'required|array|min:1',
             'variants.*.id' => 'nullable|exists:variants,id',
             'variants.*.name' => 'required|string|max:255',
             'variants.*.price' => 'required|numeric|min:0',
-            'addons' => 'nullable|array', 
+            'addons' => 'nullable|array',
             'addons.*' => 'exists:addons,id'
         ]);
 
         $updateData = [
             'name' => $validatedData['name'],
             'category_id' => $validatedData['category_id'],
+            'is_favorite' => $request->has('is_favorite') ? 1 : 0,
         ];
 
         // 4. UPLOAD DAN GANTI GAMBAR LAMA (JIKA ADA FILE BARU)
@@ -166,7 +169,7 @@ class ProductController extends Controller
         $product->variants()->whereNotIn('id', $existingVariantIds)->delete();
 
         // 5. SINKRONKAN ADDONS
-        $product->addons()->sync($request->addons ?? []); 
+        $product->addons()->sync($request->addons ?? []);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Produk berhasil diperbarui.');
@@ -182,7 +185,7 @@ class ProductController extends Controller
             if ($product->image_url) {
                 Storage::disk('public')->delete($product->image_url);
             }
-            
+
             $product->delete();
 
             return redirect()->route('admin.products.index')
