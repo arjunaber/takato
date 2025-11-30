@@ -29,11 +29,30 @@ class PosController extends Controller
 
     public function index()
     {
-        $categories = Category::orderBy('name')->get();
+        // 1. Optimasi Kategori: Hanya ambil id, name, icon
+        $categories = Category::select('id', 'name', 'icon')->orderBy('name')->get();
 
-        // KRUSIAL FIX: Tambahkan 'variants.ingredients' untuk memuat data resep
-        $libraryProducts = Product::with(['variants.ingredients', 'addons'])->orderBy('name')->get();
-        $favoriteProducts = Product::with(['variants.ingredients', 'addons'])->where('is_favorite', true)->orderBy('name')->get();
+        // 2. Optimasi Produk: Gunakan select() agar deskripsi panjang/timestamp tidak ikut terambil
+        // Kita hanya butuh: id, category_id, name, image_url, base_price, is_favorite
+        $productsQuery = Product::with([
+            'variants' => function ($q) {
+                // Optimasi Varian: Ambil kolom penting saja
+                $q->select('id', 'product_id', 'name', 'price');
+                // Load ingredients untuk hitung stok
+                $q->with(['ingredients' => function ($i) {
+                    $i->select('ingredients.id', 'ingredients.stock');
+                }]);
+            },
+            'addons' => function ($q) {
+                // Optimasi Addons
+                $q->select('addons.id', 'addons.name', 'addons.price');
+            }
+        ])
+            ->select('id', 'category_id', 'name', 'image_url', 'is_favorite'); // <--- PENTING: BATASI KOLOM
+
+        // Ambil data
+        $libraryProducts = (clone $productsQuery)->orderBy('name')->get();
+        $favoriteProducts = (clone $productsQuery)->where('is_favorite', true)->orderBy('name')->get();
 
         // Panggil fungsi pembantu untuk menghitung stok pembatas
         $libraryProducts = $this->calculateLimitingStock($libraryProducts);

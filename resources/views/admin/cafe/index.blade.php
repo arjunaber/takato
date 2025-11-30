@@ -53,8 +53,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                                        * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
-                                                                                                                                                                                                                                                                                                                                                                                        * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                                                * MODIFIKASI TOMBOL AKSI KERANJANG (BARU)
+                                                                                                                                                                                                                                                                                                                                                                                                * ====================================================================== */
 
         .cart-actions-bottom {
             display: grid;
@@ -122,8 +122,8 @@
         }
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                                        * MODAL OPEN BILLS
-                                                                                                                                                                                                                                                                                                                                                                                        * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                                                * MODAL OPEN BILLS
+                                                                                                                                                                                                                                                                                                                                                                                                * ====================================================================== */
         #open-bills-modal-overlay .modal-content {
             max-width: 700px;
         }
@@ -156,8 +156,8 @@
 
 
         /* ======================================================================
-                                                                                                                                                                                                                                                                                                                                                                                        * MODAL SPLIT BILL (Dipertahankan)
-                                                                                                                                                                                                                                                                                                                                                                                        * ====================================================================== */
+                                                                                                                                                                                                                                                                                                                                                                                                * MODAL SPLIT BILL (Dipertahankan)
+                                                                                                                                                                                                                                                                                                                                                                                                * ====================================================================== */
         #split-bill-modal-overlay .modal-content {
             max-width: 900px;
         }
@@ -1259,12 +1259,11 @@
         // ===============================================
         // == DATA DARI CONTROLLER
         // ===============================================
-        const allCategories = @json($categories ?? []);
-        const allLibraryProducts = @json($libraryProducts ?? []);
-        const allFavoriteProducts = @json($favoriteProducts ?? []);
-        const allDiscounts = @json($discounts ?? []);
-        const allOrderTypes = @json($orderTypes ?? []);
-
+        const allCategories = {!! json_encode($categories ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
+        const allLibraryProducts = {!! json_encode($libraryProducts ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?: '[]' !!};
+        const allFavoriteProducts = {!! json_encode($favoriteProducts ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
+        const allDiscounts = {!! json_encode($discounts ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
+        const allOrderTypes = {!! json_encode($orderTypes ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
         // ===============================================
         // == VARIABEL GLOBAL
         // ===============================================
