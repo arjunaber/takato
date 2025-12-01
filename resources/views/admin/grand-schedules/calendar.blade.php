@@ -332,7 +332,7 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
+                <a href="/admin/grand-schedules" class="sidebar-link">
                     <span class="sidebar-icon"><i class="fas fa-calendar-alt"></i></span>
                     <span class="sidebar-text">Schedule Management</span>
                 </a>
@@ -341,18 +341,6 @@
                 <a href="#" class="sidebar-link active">
                     <span class="sidebar-icon"><i class="fas fa-calendar"></i></span>
                     <span class="sidebar-text">Calendar View</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
-                    <span class="sidebar-icon"><i class="fas fa-users"></i></span>
-                    <span class="sidebar-text">User Management</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
-                    <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
-                    <span class="sidebar-text">Settings</span>
                 </a>
             </li>
         </ul>

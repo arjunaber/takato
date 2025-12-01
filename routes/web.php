@@ -44,6 +44,9 @@ Route::get('/events/gathering', function () {
     return view('gathering');
 });
 
+Route::get('/booking', [GrandScheduleController::class, 'userView'])->name('booking');
+Route::get('/api/calendar-data', [GrandScheduleController::class, 'getCalendarData']); // API JSON
+Route::post('/api/calculate-price', [GrandScheduleController::class, 'calculatePrice']); // API Kalkulator
 
 // Authentication Routes
 Route::controller(LoginController::class)->group(function () {
@@ -167,6 +170,22 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'owner'])->group(fun
         Route::get('gross-profit', [ReportController::class, 'grossProfitIndex'])->name('gross_profit.index');
         Route::get('gross-profit/export', [ReportController::class, 'exportGrossProfit'])->name('gross_profit.export'); // Untuk export
     });
+
+    Route::get('/grand-schedules', [GrandScheduleController::class, 'index'])->name('grand-schedules.index');
+    
+    // 2. Calendar View
+    Route::get('/grand-schedules/calendar', [GrandScheduleController::class, 'calendar'])->name('grand-schedules.calendar');
+    
+    // 3. DATA API UNTUK CALENDAR ADMIN (INI YANG HILANG)
+    // Menambahkan parameter ?is_admin=1 agar controller tahu ini request dari admin
+    Route::get('/grand-schedules/data', [GrandScheduleController::class, 'getCalendarData'])->name('grand-schedules.calendar-data');
+
+    // 4. Create & Update
+    Route::post('/grand-schedules/store', [GrandScheduleController::class, 'store'])->name('grand-schedules.store');
+    Route::put('/grand-schedules/{grandSchedule}', [GrandScheduleController::class, 'update'])->name('grand-schedules.update');
+
+    // 5. Bulk Action
+    Route::post('/grand-schedules/bulk-store', [GrandScheduleController::class, 'bulkStore'])->name('grand-schedules.bulk-store');
 });
 
 Route::prefix('online/order')->name('online.order.')->group(function () {

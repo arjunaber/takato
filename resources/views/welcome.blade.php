@@ -1032,6 +1032,16 @@
                 <p class="text-base md:text-xl text-white mt-4 max-w-4xl mx-auto" x-text="t('residenceDesc')">
                     A versatile and elegant private villa space for stay and events.
                 </p>
+
+                <div class="mt-8">
+                    <a href="/booking"
+                        class="inline-flex items-center gap-2 px-8 py-3 rounded-full font-bold text-base md:text-lg 
+                              bg-[var(--color-secondary-accent)] text-white hover:bg-[var(--color-primary-accent)] 
+                              transition duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Check Availability & Price</span>
+                    </a>
+                </div>
             </div>
 
             <div class="grid lg:grid-cols-3 gap-8 md:gap-12 items-stretch">
@@ -1122,10 +1132,18 @@
                         class="card-elegant p-6 md:p-8 rounded-xl shadow-luxury h-fit border-l-4 border-[var(--color-secondary-accent)]">
                         <h3 class="font-serif text-xl font-bold text-[var(--color-primary-dark)] mb-4"
                             x-text="t('reservations')">Reservations (TAKATO House)</h3>
-                        <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('availDesc')">
+                        <p class="text-sm md:text-base text-gray-700 mb-6" x-text="t('availDesc')">
                             Tanyakan ketersediaan tanggal dan paket event spesifik Anda langsung kepada tim
                             kami.
                         </p>
+
+                        <a href="/booking"
+                            class="inline-flex items-center gap-2 w-full justify-center px-6 py-3 rounded-md font-semibold text-sm md:text-base mb-3
+                                   bg-[var(--color-primary-dark)] text-white hover:bg-[var(--color-secondary-accent)] transition duration-300 shadow-md hover:shadow-lg border border-transparent hover:border-[var(--color-light-bg)]">
+                            <i class="fas fa-calendar-check text-lg"></i>
+                            <span>Check Schedule & Pricing</span>
+                        </a>
+
                         <a href="https://www.airbnb.co.id/rooms/31336206?guests=1&adults=1&s=67&unique_share_id=8a460253-0073-4a62-a778-8c25c2f589f4"
                             target="_blank"
                             class="inline-flex items-center gap-2 w-full justify-center px-6 py-3 rounded-md font-semibold text-sm md:text-base mb-3

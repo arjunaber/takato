@@ -4,81 +4,114 @@ namespace App\Http\Controllers;
 
 use App\Models\GrandSchedule;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class GrandScheduleController extends Controller
 {
+    // --- ADMIN SECTION ---
+
     public function index()
     {
-        $schedules = GrandSchedule::orderBy('date', 'asc')->paginate(30);
+        // Ambil data jadwal
+        $schedules = GrandSchedule::orderBy('date', 'desc')->paginate(30);
+
+        // AMBIL DATA REFERENSI DARI MODEL
         $dayTypes = GrandSchedule::dayTypes();
         $statuses = GrandSchedule::statuses();
 
+        // Kirim ke view menggunakan compact
         return view('admin.grand-schedules.index', compact('schedules', 'dayTypes', 'statuses'));
     }
 
     public function calendar()
     {
+        // Tampilan kalender admin
         return view('admin.grand-schedules.calendar');
     }
 
+    // Fungsi create single schedule (dari tombol Add di index)
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $data = $request->validate([
             'date' => 'required|date|unique:grand_schedules,date',
-            'day_type' => 'required|in:weekday,weekend,holiday,special_event',
-            'price' => 'required|numeric|min:0',
-            'status' => 'required|in:available,booked,maintenance',
-            'notes' => 'nullable|string|max:255'
+            'day_type' => 'required',
+            'price' => 'required|numeric',
+            'status' => 'required',
+            'notes' => 'nullable|string',
+            'booked_email' => 'nullable|required_if:status,booked|email',
+            'booked_phone' => 'nullable|required_if:status,booked|string',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        GrandSchedule::create($validator->validated());
+        GrandSchedule::create($data);
 
         return redirect()->route('admin.grand-schedules.index')
             ->with('success', 'Schedule created successfully.');
     }
 
+    // Fungsi update single schedule (dari tombol Edit di index)
     public function update(Request $request, GrandSchedule $grandSchedule)
     {
-        $validator = Validator::make($request->all(), [
-            'day_type' => 'required|in:weekday,weekend,holiday,special_event',
-            'price' => 'required|numeric|min:0',
-            'status' => 'required|in:available,booked,maintenance',
-            'notes' => 'nullable|string|max:255'
+        $data = $request->validate([
+            'day_type' => 'required',
+            'price' => 'required|numeric',
+            'status' => 'required',
+            'notes' => 'nullable|string',
+            'booked_email' => 'nullable|required_if:status,booked|email',
+            'booked_phone' => 'nullable|required_if:status,booked|string',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $grandSchedule->update($validator->validated());
+        $grandSchedule->update($data);
 
         return redirect()->route('admin.grand-schedules.index')
             ->with('success', 'Schedule updated successfully.');
     }
 
-    public function bulkUpdate(Request $request)
+    // Fungsi untuk menyimpan booking manual BANYAK TANGGAL SEKALIGUS (Bulk Store)
+    public function bulkStore(Request $request)
     {
         $request->validate([
             'dates' => 'required|array',
-            'dates.*' => 'date',
-            'status' => 'required|in:available,booked,maintenance'
+            'status' => 'required|in:available,booked,event', // Update status sesuai model
+            'price' => 'nullable|numeric',
+            'notes' => 'nullable|string',
+            'booked_email' => 'nullable|required_if:status,booked|email',
+            'booked_phone' => 'nullable|required_if:status,booked|string',
         ]);
 
-        GrandSchedule::whereIn('date', $request->dates)
-            ->update(['status' => $request->status]);
+        DB::beginTransaction();
+        try {
+            foreach ($request->dates as $dateStr) {
+                // Hapus data lama jika ada, lalu buat baru (upsert logic)
+                GrandSchedule::where('date', $dateStr)->delete();
 
-        return response()->json(['success' => true]);
+                $dayType = Carbon::parse($dateStr)->isWeekend() ? 'weekend' : 'weekday';
+                $price = $request->price ?? GrandSchedule::getPriceForDate($dateStr);
+
+                GrandSchedule::create([
+                    'date' => $dateStr,
+                    'day_type' => $request->day_type ?? $dayType, // Gunakan input day_type jika ada
+                    'price' => $price,
+                    'status' => $request->status,
+                    'notes' => $request->notes,
+                    'booked_email' => $request->booked_email, // Gunakan Email
+                    'booked_phone' => $request->booked_phone, // Gunakan Phone
+                ]);
+            }
+            DB::commit();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    // --- PUBLIC/USER SECTION ---
+
+    public function userView()
+    {
+        // Halaman booking untuk user dengan tema retreat.blade.php
+        return view('booking');
     }
 
     public function getCalendarData(Request $request)
@@ -86,250 +119,116 @@ class GrandScheduleController extends Controller
         $start = $request->start;
         $end = $request->end;
 
-        // Ambil semua schedule yang ada di database
-        $existingSchedules = GrandSchedule::whereBetween('date', [$start, $end])
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->date->format('Y-m-d');
-            });
+        $schedules = GrandSchedule::whereBetween('date', [$start, $end])->get();
 
-        // Generate semua tanggal dalam range
-        $allDates = [];
-        $current = Carbon::parse($start);
-        $endDate = Carbon::parse($end);
+        $events = [];
 
-        while ($current <= $endDate) {
-            $dateStr = $current->format('Y-m-d');
-            $allDates[$dateStr] = true;
-            $current->addDay();
-        }
+        foreach ($schedules as $sched) {
+            // --- LOGIKA WARNA DIPERBAIKI DISINI ---
 
-        // Gabungkan dengan data dari database
-        $result = [];
-        foreach ($allDates as $dateStr => $_) {
-            if (isset($existingSchedules[$dateStr])) {
-                // Jika ada di database, gunakan data tersebut
-                $schedule = $existingSchedules[$dateStr];
-                $result[] = $this->formatCalendarEvent($schedule);
+            // 1. Jika Status BOOKED -> Merah
+            if ($sched->status === 'booked') {
+                $color = '#ef4444';
+                $title = 'Booked';
+                $className = 'bg-booked';
+
+                // 2. Jika Status EVENT atau Day Type SPECIAL EVENT -> KUNING (EAB308)
+            } elseif ($sched->status === 'event' || $sched->day_type === 'special_event') {
+                $color = '#EAB308'; // <--- Warna Gold sesuai request
+                $title = 'Event / Special';
+                $className = 'bg-event';
+
+                // 3. Sisanya (Available) -> Hijau
             } else {
-                // Jika tidak ada, buat default available
-                $result[] = [
-                    'title' => 'Rp 5.000.000', // Default price
-                    'start' => $dateStr,
-                    'color' => $this->getStatusColor('available'),
-                    'extendedProps' => [
-                        'day_type' => $this->getDefaultDayType($dateStr),
-                        'status' => 'available',
-                        'notes' => 'Auto-generated'
-                    ]
-                ];
+                $color = '#28a745';
+                $title = 'Available';
+                $className = 'bg-available';
             }
+
+            // Logic privasi admin
+            if ($request->is_admin && $sched->status == 'booked') {
+                $contactInfo = $sched->booked_email ?? $sched->booked_phone ?? 'No Contact';
+                $title .= " ($contactInfo)";
+            } elseif ($request->is_admin && ($sched->status == 'event' || $sched->day_type == 'special_event')) {
+                $title .= " (" . ($sched->notes ?? 'Special Event') . ")";
+            }
+
+            $events[] = [
+                'title' => $title,
+                'start' => $sched->date->format('Y-m-d'),
+                'display' => 'background',
+                'backgroundColor' => $color, // Ini akan mengirim #EAB308 ke frontend
+                'classNames' => [$className],
+                'extendedProps' => [
+                    'status' => $sched->status,
+                    'price' => $sched->price,
+                    'day_type' => $sched->day_type,
+                    // Kita kirim flag khusus is_event untuk validasi frontend
+                    'is_event' => ($sched->status === 'event' || $sched->day_type === 'special_event')
+                ]
+            ];
         }
 
-        return response()->json($result);
+        return response()->json($events);
     }
 
-    private function formatCalendarEvent($schedule)
+    // API Kalkulator Harga Otomatis
+    public function calculatePrice(Request $request)
     {
-        return [
-            'title' => 'Rp ' . number_format($schedule->price),
-            'start' => $schedule->date->format('Y-m-d'),
-            'color' => $this->getStatusColor($schedule->status),
-            'extendedProps' => [
-                'day_type' => $schedule->day_type,
-                'status' => $schedule->status,
-                'notes' => $schedule->notes
-            ]
-        ];
-    }
+        $dates = $request->dates;
+        if (empty($dates)) return response()->json(['total' => 0]);
 
-    private function getDefaultDayType($dateStr)
-    {
-        $date = Carbon::parse($dateStr);
-        if ($date->isWeekend()) {
-            return 'weekend';
+        $total = 0;
+        $details = [];
+
+        foreach ($dates as $dateStr) {
+            // Cek validasi booking/event (sudah ada sebelumnya)
+            $existing = GrandSchedule::where('date', $dateStr)
+                ->whereIn('status', ['booked']) // Event boleh dihitung harganya, Booked tidak
+                ->first();
+
+            if ($existing) {
+                return response()->json(['error' => "Tanggal $dateStr sudah terbooking!"], 422);
+            }
+
+            // Ambil data schedule
+            $schedule = GrandSchedule::where('date', $dateStr)->first();
+
+            // Logika Harga
+            $price = $schedule ? $schedule->price : GrandSchedule::getPriceForDate($dateStr);
+
+            // --- LOGIKA LABEL UNTUK FRONTEND ---
+            $carbonDate = Carbon::parse($dateStr);
+            $label = 'Weekday';
+            $labelColor = 'green'; // Default
+
+            // Prioritas 1: Special Event / Event Status
+            if ($schedule && ($schedule->status === 'event' || $schedule->day_type === 'special_event')) {
+                $label = 'Special Event';
+                $labelColor = 'gold'; // Untuk CSS di frontend
+            }
+            // Prioritas 2: Weekend
+            elseif ($carbonDate->isWeekend()) {
+                $label = 'Weekend';
+                $labelColor = 'orange';
+            }
+
+            $total += $price;
+
+            $details[] = [
+                'date' => $carbonDate->translatedFormat('D, d M Y'), // Format cantik: Senin, 12 Des 2025
+                'raw_date' => $dateStr,
+                'price' => $price,
+                'formatted' => number_format($price, 0, ',', '.'),
+                'label' => $label,       // Kirim Label
+                'color' => $labelColor   // Kirim Kode Warna
+            ];
         }
-        return 'weekday';
-    }
 
-    private function getStatusColor($status)
-    {
-        switch ($status) {
-            case 'booked':
-                return '#EA5455'; // Red
-            case 'maintenance':
-                return '#FF9F43'; // Orange
-            default:
-                return '#28C76F'; // Green
-        }
-    }
-
-    public function bulkStore(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'dates' => 'required|array',
-            'dates.*' => 'date',
-            'day_type' => 'required|in:weekday_weekend,special_event',
-            'price' => 'required|numeric|min:0',
-            'status' => 'required|in:available,booked',
-            'notes' => 'nullable|string|max:255',
-            'booked_email' => 'nullable|email|required_if:status,booked',
-            'booked_phone' => 'nullable|string|required_if:status,booked'
+        return response()->json([
+            'total' => $total,
+            'total_formatted' => number_format($total, 0, ',', '.'),
+            'details' => $details // Array ini yang akan kita loop di frontend
         ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $validated = $validator->validated();
-        $createdCount = 0;
-
-        DB::beginTransaction();
-        try {
-            foreach ($validated['dates'] as $date) {
-                $exists = GrandSchedule::where('date', $date)->exists();
-
-                if (!$exists) {
-                    $scheduleData = [
-                        'date' => $date,
-                        'day_type' => $validated['day_type'],
-                        'price' => $validated['price'],
-                        'status' => $validated['status'],
-                        'notes' => $validated['notes'] ?? null
-                    ];
-
-                    // Jika status booked, tambahkan informasi booking
-                    if ($validated['status'] === 'booked') {
-                        $scheduleData['booked_at'] = now();
-                        $scheduleData['booked_email'] = $validated['booked_email'] ?? null;
-                        $scheduleData['booked_phone'] = $validated['booked_phone'] ?? null;
-                    }
-
-                    GrandSchedule::create($scheduleData);
-                    $createdCount++;
-                }
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => "Successfully created {$createdCount} new schedules",
-                'created_count' => $createdCount
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error creating schedules: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function book(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'checkin_date' => 'required|date|after_or_equal:today',
-            'checkout_date' => 'required|date|after:checkin_date',
-            'email' => 'required|email',
-            'phone' => 'required|string|min:10',
-            'guests' => 'required|integer|min:1',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        DB::beginTransaction();
-        try {
-            $dates = [];
-            $current = Carbon::parse($request->checkin_date);
-            $end = Carbon::parse($request->checkout_date);
-            $totalPrice = 0;
-
-            while ($current < $end) {
-                $dateStr = $current->format('Y-m-d');
-                $schedule = GrandSchedule::where('date', $dateStr)->first();
-
-                if (!$schedule) {
-                    // Determine day type and price for new dates
-                    $dayType = 'weekday_weekend'; // Default value
-                    $price = 5000000; // Default weekday price
-
-                    // Check if this is a special event date (you might have other logic here)
-                    $isSpecialEvent = false; // Add your special event detection logic
-
-                    if ($isSpecialEvent) {
-                        $dayType = 'special_event';
-                        $price = 7000000; // Special event price
-                    } elseif ($current->isWeekend()) {
-                        $price = 6000000; // Weekend price
-                    }
-
-                    $schedule = GrandSchedule::create([
-                        'date' => $dateStr,
-                        'day_type' => $dayType,
-                        'price' => $price,
-                        'status' => 'available'
-                    ]);
-                }
-
-                if ($schedule->status === 'booked') {
-                    throw new \Exception("Date {$dateStr} is already booked");
-                }
-
-                $totalPrice += $schedule->price;
-                $dates[] = $dateStr;
-                $current->addDay();
-            }
-
-            // Update booking information
-            GrandSchedule::whereIn('date', $dates)
-                ->update([
-                    'status' => 'booked',
-                    'booked_at' => now(),
-                    'booked_email' => $request->email,
-                    'booked_phone' => $request->phone,
-                    'notes' => "Booking for {$request->guests} guests"
-                ]);
-
-            $bookingId = 'BK-' . strtoupper(uniqid());
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Booking successful',
-                'booking_id' => $bookingId,
-                'total_price' => $totalPrice,
-                'payment_options' => $this->preparePaymentOptions($totalPrice, $bookingId)
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
-        }
-    }
-
-    private function preparePaymentOptions($amount, $bookingId)
-    {
-        // This would be replaced with actual Midtrans integration
-        return [
-            'midtrans' => [
-                'client_key' => config('services.midtrans.client_key'),
-                'token' => 'MOCK_SNAP_TOKEN_' . $bookingId,
-                'amount' => $amount
-            ]
-        ];
     }
 }
