@@ -110,7 +110,7 @@ class PosController extends Controller
                 if ($variantHasRecipe) {
                     $variant->max_production = ($minVariantStock === INF) ? 0 : (int)$minVariantStock;
                 } else {
-                    $variant->max_production = INF;
+                    $variant->max_production = 9999;
                 }
 
                 if ($variant->max_production < $minProductStock) {
