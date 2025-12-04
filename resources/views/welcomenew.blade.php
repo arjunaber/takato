@@ -7,7 +7,6 @@
     <title>TAKATO.id - Luxury Residence, Premium Dining & Events</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +15,6 @@
         rel="stylesheet">
     <script src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <!-- Swiper JS -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <style>
@@ -31,6 +29,170 @@
             --color-black-contrast: #000000;
         }
 
+        /* --- FLIP CARD STYLES (ELASTIC EFFECT) --- */
+        .flip-card {
+            perspective: 1000px;
+            width: 100%;
+            height: 300px;
+            /* Tinggi Default Mobile */
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            /* Smooth Easing */
+        }
+
+        /* --- LOGIC KHUSUS DESKTOP (ELASTIC / ACCORDION) --- */
+        @media (min-width: 768px) {
+            .perspective-container {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 1.5rem;
+                width: 100%;
+                max-width: 1100px !important;
+            }
+
+            .flip-card {
+                /* Default: Rata 50:50 (flex 1) */
+                flex: 1;
+                height: 300px;
+                transition: flex 0.6s cubic-bezier(0.25, 1, 0.5, 1), filter 0.6s ease, transform 0.6s ease;
+            }
+
+            /* --- LOGIKA BARU: EFEK GESER & GELAP --- */
+
+            /* Saat container di-hover, kartu yang TIDAK di-hover:
+               1. Flex 0.8: Menyusut sedikit (supaya yang aktif punya ruang)
+               2. Brightness 0.2: Menjadi JAUH LEBIH GELAP */
+            .perspective-container:hover .flip-card:not(:hover) {
+                flex: 0.8;
+                filter: brightness(0.2) grayscale(0.8);
+                /* Gelap banget */
+                transform: scale(0.95);
+                /* Mundur sedikit */
+            }
+
+            /* Kartu yang sedang di-hover (Flip):
+               1. Flex 1.3: Membesar sedikit saja (dominan tapi tidak lebay)
+               2. Scale 1.05: Maju/Pop-out sedikit ke tengah */
+            .perspective-container .flip-card:hover {
+                flex: 1.3;
+                filter: brightness(1) grayscale(0);
+                z-index: 20;
+                transform: scale(1.05);
+                /* Zoom in sedikit */
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                /* Shadow lebih dalam */
+            }
+
+            /* Sembunyikan konten teks saat kartu menyusut agar rapi */
+            .perspective-container:hover .flip-card:not(:hover) .card-content-wrapper {
+                opacity: 0;
+                transform: scale(0.9);
+                transition: opacity 0.3s ease, transform 0.3s ease;
+            }
+
+            /* Munculkan konten saat hover */
+            .perspective-container .flip-card:hover .card-content-wrapper {
+                opacity: 1;
+                transform: scale(1);
+                transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+            }
+        }
+
+        /* Wrapper untuk konten teks agar bisa di-fade */
+        .card-content-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.4s ease;
+        }
+
+        /* --- INTERAKSI KLIK (ZOOM & LOADING) --- */
+        .flip-card.zoom-active {
+            transform: scale(25) !important;
+            flex: 10 !important;
+            /* Paksa lebar penuh saat zoom */
+            opacity: 0;
+            /* Timing: Zoom dulu baru hilang */
+            transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.5s ease-in 0.6s;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        /* Kartu lain saat zooming */
+        .flip-card.zoom-inactive {
+            flex: 0.01 !important;
+            /* Kecilkan sampai habis */
+            opacity: 0;
+            filter: blur(10px);
+            margin: 0 !important;
+            padding: 0 !important;
+            transition: all 0.5s ease;
+        }
+
+        /* --- STRUKTUR KARTU (FLIP) --- */
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+        }
+
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Matikan flip saat sedang zooming */
+        .flip-card.zoom-active .flip-card-inner {
+            transform: rotateY(0deg) !important;
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .flip-card-front {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+            background-color: var(--color-primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flip-card-back img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .flip-card-back-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* --- SCROLL SNAP LOGIC --- */
         html {
             scroll-snap-type: y mandatory;
@@ -39,7 +201,6 @@
             scroll-behavior: smooth;
         }
 
-        /* Section utama wajib snap */
         section {
             scroll-snap-align: start;
             scroll-snap-stop: always;
@@ -101,29 +262,6 @@
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-
-        .btn-warm {
-            background-color: var(--color-secondary-accent);
-            color: white;
-            transition: all 0.3s;
-        }
-
-        .btn-warm:hover {
-            background-color: var(--color-primary-accent);
-            transform: translateY(-1px);
-        }
-
-        .btn-light-subtle {
-            background-color: var(--color-light-bg);
-            color: var(--color-primary-dark);
-            border: 1px solid var(--color-tertiary-accent);
-            transition: all 0.3s;
-        }
-
-        .btn-light-subtle:hover {
-            background-color: var(--color-primary-accent);
-            color: white;
         }
 
         .nav-link-elegant.white-text {
@@ -233,55 +371,35 @@
         }
 
         /* --- CALM LUXURY FALLING LEAVES --- */
-
-        /* Base Styles */
         .falling-leaf {
             position: absolute;
             top: -15%;
-            /* Mulai lebih tinggi supaya tidak kaget munculnya */
             opacity: 0;
             pointer-events: none;
             z-index: 40;
             will-change: transform, opacity;
+            backdrop-filter: blur(1px);
         }
 
         .leaf-gold {
             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-            /* TURUNKAN OPACITY: Dari 0.9 jadi 0.4 (supaya tidak silau/mengganggu teks) */
             opacity: 0.4 !important;
         }
 
-        /* KHUSUS EUCALYPTUS (Watercolor) */
         .leaf-watercolor {
             mix-blend-mode: multiply;
-            /* TURUNKAN OPACITY: Dari 0.7 jadi 0.25 (sangat halus) */
             opacity: 0.25 !important;
         }
 
-        /* Base Blur untuk SEMUA daun supaya tidak tajam (Hard Edge) */
-        .falling-leaf {
-            /* ... properti lama ... */
-            /* Tambahkan ini biar semua daun agak nge-blur sedikit secara default */
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
-        }
-
-        /* Update Level Blur Tambahan */
         .blur-sm-leaf {
             filter: blur(2px);
-            /* Blur ringan */
         }
 
         .blur-md-leaf {
             filter: blur(4px);
-            /* Blur lebih kuat untuk efek kedalaman (depth of field) */
             opacity: 0.2 !important;
-            /* Semakin blur, semakin transparan */
         }
 
-
-        /* Keyframes 1: Drift Gentle (Melayang Santai Kiri-Kanan) */
-        /* Cocok untuk Eucalyptus yang ringan */
         @keyframes drift-gentle {
             0% {
                 opacity: 0;
@@ -293,7 +411,6 @@
                 opacity: 1;
             }
 
-            /* Fade in halus */
             25% {
                 transform: translateX(15px) rotate(5deg);
             }
@@ -313,8 +430,6 @@
             }
         }
 
-        /* Keyframes 2: Slow Sway (Ayunan Lebar tapi Lambat) */
-        /* Cocok untuk Gold Leaf biar terlihat elegan */
         @keyframes slow-sway {
             0% {
                 opacity: 0;
@@ -328,19 +443,15 @@
 
             50% {
                 transform: translateX(20px) rotate(10deg);
-                /* Gerak ke kanan pelan */
             }
 
             100% {
                 opacity: 0;
                 top: 110%;
                 transform: translateX(-20px) rotate(-5deg);
-                /* Kembali ke kiri pelan */
             }
         }
 
-        /* Keyframes 3: Soft Tumble (Putaran Sangat Minim) */
-        /* Variasi sedikit miring tanpa berputar gila-gilaan */
         @keyframes soft-tumble {
             0% {
                 opacity: 0;
@@ -355,12 +466,10 @@
             100% {
                 opacity: 0;
                 top: 110%;
-                /* Hanya berputar 45 derajat total selama jatuh, sangat halus */
                 transform: translateX(30px) rotate(45deg) scale(0.95);
             }
         }
 
-        /* Utility Classes */
         .animate-leaf-1 {
             animation: drift-gentle linear infinite;
         }
@@ -372,23 +481,40 @@
         .animate-leaf-3 {
             animation: soft-tumble linear infinite;
         }
-
-        /* Blur Depth (Tetap dipakai biar ada dimensi) */
-        .blur-sm-leaf {
-            filter: blur(1px);
-        }
-
-        .blur-md-leaf {
-            filter: blur(2px);
-            opacity: 0.6;
-        }
     </style>
 </head>
 
 <body class="bg-[var(--color-light-bg)] text-[var(--color-primary-dark)]" x-data="{
-    lang: 'en', // DEFAULT ENGLISH
+    lang: 'en',
     setLang(newLang) { this.lang = newLang; },
     isScrolled: false,
+
+    // NAVIGATION & LOADING LOGIC
+    navigateTo(url) {
+        const loader = document.getElementById('loading-screen');
+        loader.style.display = 'flex';
+        void loader.offsetWidth;
+        loader.style.opacity = '1';
+        loader.style.visibility = 'visible';
+
+        setTimeout(() => {
+            const target = document.querySelector(url);
+            if (target) {
+                target.scrollIntoView({ behavior: 'auto' });
+                history.pushState(null, null, url);
+            }
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    this.zooming = false;
+                    this.activeCard = null;
+                }, 500);
+            }, 500);
+        }, 1500);
+    },
+
     translations: {
         en: {
             home: 'Home',
@@ -401,6 +527,8 @@
             heroTitle2: 'for Every Story',
             exploreHouse: 'Explore Villa',
             visitResto: 'Visit Restaurant',
+            villaShort: 'Exclusive private villa with pool & large garden.',
+            diningShort: 'Authentic cuisine & premium coffee in nature.',
             welcomeHouse: 'Welcome to Takato House',
             residenceTitle: 'Private Villa',
             residenceDesc: 'Takato House is a luxury private villa perfect for exclusive stays or grand events. Equipped with full facilities including a private pool, spacious kitchen, and lush garden areas.',
@@ -443,6 +571,8 @@
             heroTitle2: 'untuk Setiap Kisah',
             exploreHouse: 'Jelajahi Villa',
             visitResto: 'Kunjungi Restoran',
+            villaShort: 'Villa pribadi eksklusif dengan kolam renang & taman.',
+            diningShort: 'Masakan otentik & kopi premium di alam.',
             welcomeHouse: 'Welcome to Takato House',
             residenceTitle: 'Villa Pribadi',
             residenceDesc: 'Takato House adalah vila mewah pribadi yang sempurna untuk menginap eksklusif atau acara besar. Dilengkapi dengan fasilitas lengkap termasuk kolam renang pribadi, dapur luas, dan area taman yang asri.',
@@ -479,40 +609,25 @@
 }"
     @scroll.window="isScrolled = (window.scrollY > 50)">
 
-    <!-- Loading Screen -->
     <div id="loading-screen">
         <div class="water-fill-text" data-text="TAKATO">TAKATO</div>
     </div>
-    <div class="fixed inset-0 pointer-events-none z-[40] overflow-hidden" aria-hidden="true">
 
+    <div class="fixed inset-0 pointer-events-none z-[40] overflow-hidden" aria-hidden="true">
         <img src="leaf.png" class="falling-leaf leaf-gold animate-leaf-2 w-8 md:w-12 blur-[1px]"
             style="left: 10%; animation-duration: 18s; animation-delay: 0s;">
-
         <img src="leaf.png" class="falling-leaf leaf-gold animate-leaf-3 w-10 blur-sm-leaf hidden md:block"
             style="left: 85%; animation-duration: 22s; animation-delay: 5s;">
-
         <img src="leaf.png" class="falling-leaf leaf-gold animate-leaf-2 w-14 blur-md-leaf hidden md:block"
             style="left: 50%; animation-duration: 25s; animation-delay: 10s;">
-
         <img src="leaf2.png" class="falling-leaf leaf-watercolor animate-leaf-1 w-10 md:w-16 blur-[1px]"
             style="left: 5%; animation-duration: 15s; animation-delay: 2s;">
-
         <img src="leaf2.png" class="falling-leaf leaf-watercolor animate-leaf-1 w-12 hidden md:block"
             style="left: 25%; animation-duration: 17s; animation-delay: -5s;">
-
         <img src="leaf2.png" class="falling-leaf leaf-watercolor animate-leaf-3 w-14 blur-sm-leaf hidden md:block"
             style="left: 65%; animation-duration: 20s; animation-delay: 1s;">
-
-        <img src="leaf2.png" class="falling-leaf leaf-watercolor animate-leaf-1 w-8 md:w-10 blur-md-leaf"
-            style="left: 90%; animation-duration: 19s; animation-delay: 7s;">
-
-        <img src="leaf2.png" class="falling-leaf leaf-watercolor animate-leaf-3 w-16 hidden md:block"
-            style="left: 35%; animation-duration: 23s; animation-delay: -2s;">
-
-        <img src="leaf2.png" class="falling-leaf leaf-watercolor animate-leaf-1 w-20 blur-sm-leaf hidden md:block"
-            style="left: 75%; animation-duration: 21s; animation-delay: 4s;">
     </div>
-    <!-- Navigation -->
+
     <nav id="fixed-nav"
         class="fixed top-0 left-0 w-full z-50 flex justify-center items-center py-4 px-4 md:px-8 transition-all duration-300"
         :class="{ 'bg-white/25 backdrop-blur-md shadow-md': isScrolled, 'bg-transparent shadow-none': !isScrolled }">
@@ -551,7 +666,6 @@
         </div>
     </nav>
 
-    <!-- Mobile Menu -->
     <div x-data class="md:hidden">
         <div x-show="$store.mobileMenu.open" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             @click="$store.mobileMenu.open = false" style="display:none;"></div>
@@ -573,31 +687,111 @@
         </div>
     </div>
 
-    <!-- SECTION 1: HERO -->
-    <section id="home" class="h-screen w-full relative overflow-hidden">
-        <div class="absolute inset-0">
+    <section id="home" class="h-screen w-full relative overflow-hidden" x-data="{ cardHovered: false, zooming: false, activeCard: null }">
+
+        <div class="absolute inset-0 z-0">
             <img src="/img2.jpg" class="w-full h-full object-cover">
         </div>
-        <div class="absolute inset-0 bg-black/35 flex flex-col items-center justify-center text-center p-6">
-            <h1
-                class="font-serif text-4xl sm:text-6xl md:text-7xl font-bold mb-6 leading-tight animated-gradient-text">
+
+        <div class="absolute inset-0 bg-black transition-opacity duration-500 ease-in-out z-1"
+            :class="cardHovered ? 'opacity-70' : 'opacity-30'"></div>
+
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10"
+            :class="{ 'pointer-events-none': zooming }">
+
+            <h1 class="font-serif text-4xl sm:text-6xl md:text-7xl font-bold mb-8 leading-tight animated-gradient-text mt-12 md:mt-0 transition-opacity duration-500"
+                :class="{ 'opacity-0': zooming }">
                 <span x-text="t('heroTitle1')">A Luxury Space</span><br />
                 <span x-text="t('heroTitle2')">for Every Story</span>
             </h1>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <a href="#residence" class="px-8 py-3 btn-warm rounded-md font-semibold"
-                    x-text="t('exploreHouse')">Explore</a>
-                <a href="#dining" class="px-8 py-3 btn-light-subtle rounded-md font-semibold"
-                    x-text="t('visitResto')">Visit</a>
+
+            <div class="perspective-container w-full px-4 relative flex flex-col md:flex-row gap-4 md:gap-6">
+
+                <a href="#residence" class="flip-card" @mouseenter="cardHovered = true"
+                    @mouseleave="cardHovered = false" @click.prevent="navigateTo('#residence')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="card-content-wrapper p-6 text-center">
+                                <div
+                                    class="bg-[var(--color-light-bg)] p-4 rounded-full mb-4 text-[var(--color-primary-dark)]">
+                                    <i class="fas fa-home text-2xl"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-[var(--color-primary-dark)] font-serif mb-2"
+                                    x-text="t('residenceTitle')">TAKATO HOUSE</h3>
+                                <p class="text-gray-600 mb-6 text-sm flex-grow flex items-center justify-center"
+                                    x-text="t('villaShort')">Short description...</p>
+                                <button
+                                    class="bg-[var(--color-primary-dark)] text-white px-6 py-2 rounded-full hover:bg-[var(--color-primary-accent)] transition text-sm shadow-md whitespace-nowrap">
+                                    <span x-text="t('exploreHouse')">Click</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flip-card-back bg-black rounded-[20px] overflow-hidden">
+                            <img src="image.png" alt="Villa" class="w-full h-full !object-contain rounded-[20px]">
+
+                            <div class="flip-card-back-overlay rounded-[20px] !justify-end pr-8 !bg-transparent">
+                                <div
+                                    class="flex flex-col items-center gap-2 group-hover:scale-110 transition-transform duration-300">
+                                    <div
+                                        class="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/40 shadow-lg">
+                                        <i class="fas fa-arrow-right text-white text-2xl"></i>
+                                    </div>
+                                    <span
+                                        class="text-white text-xs font-bold tracking-widest uppercase shadow-black drop-shadow-md">Click</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="#dining" class="flip-card" @mouseenter="cardHovered = true"
+                    @mouseleave="cardHovered = false" @click.prevent="navigateTo('#dining')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="card-content-wrapper p-6 text-center">
+                                <div
+                                    class="bg-[var(--color-light-bg)] p-4 rounded-full mb-4 text-[var(--color-primary-dark)]">
+                                    <i class="fas fa-utensils text-2xl"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-[var(--color-primary-dark)] font-serif mb-2"
+                                    x-text="t('diningNav')">TAKATO RESTO</h3>
+                                <p class="text-gray-600 mb-6 text-sm flex-grow flex items-center justify-center"
+                                    x-text="t('diningShort')">Short description...</p>
+                                <button
+                                    class="bg-[var(--color-secondary-accent)] text-white px-6 py-2 rounded-full hover:bg-[var(--color-primary-accent)] transition text-sm shadow-md whitespace-nowrap">
+                                    <span x-text="t('visitResto')">Order</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flip-card-back bg-white rounded-[20px] overflow-hidden">
+                            <img src="cafe.png" alt="Restaurant"
+                                class="w-full h-full !object-contain rounded-[20px]">
+
+                            <div class="flip-card-back-overlay rounded-[20px] !justify-end pr-8 !bg-transparent">
+                                <div
+                                    class="flex flex-col items-center gap-2 group-hover:scale-110 transition-transform duration-300">
+                                    <div
+                                        class="bg-black/5 backdrop-blur-md p-3 rounded-full border border-black/10 shadow-lg">
+                                        <i class="fas fa-arrow-right text-black text-2xl"></i>
+                                    </div>
+                                    <span class="text-black text-xs font-bold tracking-widest uppercase">Click</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
-            <div class="absolute bottom-8 animate-bounce text-white">
+
+            <div class="absolute bottom-8 animate-bounce text-white hidden md:block transition-opacity duration-300"
+                :class="{ 'opacity-0': zooming }">
                 <span class="text-xs tracking-widest block mb-2 opacity-80">SCROLL</span>
                 <i class="fas fa-chevron-down"></i>
             </div>
         </div>
     </section>
 
-    <!-- SECTION 2: RESIDENCE -->
     <section id="residence"
         class="min-h-screen h-auto md:h-screen w-full bg-[var(--color-primary-dark)] text-white relative flex flex-col justify-center py-8">
         <div class="max-w-7xl mx-auto px-4 w-full h-full flex flex-col justify-center">
@@ -644,9 +838,7 @@
                 </div>
             </div>
 
-            <!-- Auto Sliding Friends & Centered Header -->
             <div class="border-t border-white/10 pt-4 shrink-0">
-                <!-- Header DITENGAH -->
                 <div class="flex items-center justify-center gap-4 mb-4">
                     <div class="h-px bg-white/20 w-12 md:w-24"></div>
                     <h3 class="font-serif text-lg md:text-xl font-bold text-[var(--color-tertiary-accent)] uppercase tracking-wider"
@@ -666,8 +858,7 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"The villa is massive!
-                                        Perfect for our big family reunion. The pool is clean and the air is so fresh."
-                                    </p>
+                                        Perfect for our big family reunion."</p>
                                 </div>
                                 <span class="font-semibold text-xs text-white">- Budi Santoso</span>
                             </div>
@@ -682,7 +873,7 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Very private. We loved
-                                        the kitchen facilities, complete and clean. Highly recommended."</p>
+                                        the kitchen facilities."</p>
                                 </div>
                                 <span class="font-semibold text-xs text-white">- Sarah Jenkins</span>
                             </div>
@@ -697,84 +888,9 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Best healing spot near
-                                        Jakarta. No traffic noise, just nature sounds."</p>
+                                        Jakarta."</p>
                                 </div>
                                 <span class="font-semibold text-xs text-white">- Andi Pratama</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Halaman luas banget,
-                                        anak-anak puas lari-larian. Staff sangat ramah."</p>
-                                </div>
-                                <span class="font-semibold text-xs text-white">- Citra Lestari</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Held our intimate
-                                        wedding here. The garden setup was magical."</p>
-                                </div>
-                                <span class="font-semibold text-xs text-white">- Dimas & Rina</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Luxury vibes with
-                                        affordable price for large groups. Will come back!"</p>
-                                </div>
-                                <span class="font-semibold text-xs text-white">- Michael T.</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Kamar tidurnya banyak
-                                        dan bersih. AC dingin, water heater lancar."</p>
-                                </div>
-                                <span class="font-semibold text-xs text-white">- Ibu Ratna</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Pengalaman menginap yang
-                                        luar biasa. Sangat recommended!"</p>
-                                </div>
-                                <span class="font-semibold text-xs text-white">- Ferry Irawan</span>
                             </div>
                         </div>
                     </div>
@@ -783,7 +899,6 @@
         </div>
     </section>
 
-    <!-- SECTION 3: DINING -->
     <section id="dining"
         class="min-h-screen h-auto md:h-screen w-full bg-[var(--color-light-bg)] text-[var(--color-primary-dark)] relative flex flex-col justify-center py-8">
         <div class="max-w-7xl mx-auto px-4 w-full h-full flex flex-col justify-center">
@@ -829,9 +944,7 @@
                 </div>
             </div>
 
-            <!-- Auto Sliding Friends & Centered Header -->
             <div class="border-t border-[var(--color-tertiary-accent)] pt-4 shrink-0">
-                <!-- Header DITENGAH -->
                 <div class="flex items-center justify-center gap-4 mb-4 text-[var(--color-primary-dark)]">
                     <div class="h-px bg-[var(--color-primary-dark)]/20 w-12 md:w-24"></div>
                     <h3 class="font-serif text-lg md:text-xl font-bold uppercase tracking-wider"
@@ -851,7 +964,7 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Great coffee, chill
-                                        vibes. The manual brew is a must try!"</p>
+                                        vibes."</p>
                                 </div>
                                 <span class="font-semibold text-xs text-gray-800">- Dina M.</span>
                             </div>
@@ -866,84 +979,9 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Nasi Goreng Kampoeng nya
-                                        juara! Rasanya otentik banget."</p>
+                                        juara!"</p>
                                 </div>
                                 <span class="font-semibold text-xs text-gray-800">- Rahmat Hidayat</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Cozy place for work
-                                        (WFC). Wifi kencang, colokan banyak."</p>
-                                </div>
-                                <span class="font-semibold text-xs text-gray-800">- Fajar Nugraha</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Hidden gem in Bogor. The
-                                        ambiance at night is so romantic."</p>
-                                </div>
-                                <span class="font-semibold text-xs text-gray-800">- Clara S.</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Soto Ayam nya enak,
-                                        kuahnya seger. Harga juga reasonable."</p>
-                                </div>
-                                <span class="font-semibold text-xs text-gray-800">- Ibu Wati</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Pelayanan ramah, tempat
-                                        bersih. Cocok buat nongkrong sore."</p>
-                                </div>
-                                <span class="font-semibold text-xs text-gray-800">- Dedi K.</span>
-                            </div>
-                        </div>
-                        <div class="swiper-slide h-auto">
-                            <div
-                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
-                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
-                                            class="fas fa-star"></i>
-                                    </div>
-                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Tempatnya instagramable
-                                        banget, banyak spot foto."</p>
-                                </div>
-                                <span class="font-semibold text-xs text-gray-800">- Sisca E.</span>
                             </div>
                         </div>
                     </div>
@@ -952,7 +990,6 @@
         </div>
     </section>
 
-    <!-- SECTION 4: EXPERIENCE -->
     <section id="experience" class="py-10 md:py-20 mobile-py-10">
         <div class="max-w-7xl mx-auto px-4 md:px-6">
             <div class="text-center mb-10 md:mb-16">
@@ -1018,11 +1055,9 @@
         </div>
     </section>
 
-    <!-- SECTION 5: CONTACT + FOOTER (Merged for scroll fix) -->
     <section id="contact"
         class="min-h-screen h-auto w-full bg-[var(--color-primary-dark)] text-white flex flex-col justify-between overflow-y-auto">
 
-        <!-- Contact Content Centered -->
         <div class="flex-grow flex flex-col justify-center py-10 md:py-20 px-4">
             <div class="max-w-xl md:max-w-4xl mx-auto px-4 md:px-6 w-full">
                 <div class="text-center mb-8 md:mb-10">
@@ -1058,7 +1093,6 @@
             </div>
         </div>
 
-        <!-- Footer attached at bottom -->
         <footer class="w-full px-4 md:px-6 py-8 md:py-12 text-gray-300 shrink-0" style="background-color: #000000;">
             <div class="container mx-auto">
                 <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
@@ -1116,7 +1150,6 @@
         </footer>
     </section>
 
-    <!-- Floating WA -->
     <div class="fixed bottom-6 right-4 md:bottom-8 md:right-6 z-[1008]">
         <a href="https://wa.me/+6281214831823" target="_blank"
             class="group w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 animated-whatsapp text-white text-3xl">
@@ -1154,39 +1187,31 @@
 
             // Initialize Swiper (Auto Slide Enabled)
             const reviewsSwiper = new Swiper('.reviews-swiper', {
-                // Basic Settings
-                slidesPerView: 1.2, // Show partial next slide on mobile
+                slidesPerView: 1.2,
                 spaceBetween: 15,
-                centeredSlides: true, // Centers the active slide
-                loop: true, // Infinite loop
+                centeredSlides: true,
+                loop: true,
                 grabCursor: true,
-
-                // Auto Play Settings
                 autoplay: {
-                    delay: 3000, // 3 seconds per slide
-                    disableOnInteraction: false, // Continue sliding after user touches it
-                    pauseOnMouseEnter: true // Pause when user hovers mouse (good for reading)
+                    delay: 3000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true
                 },
-
-                // Responsive Breakpoints
                 breakpoints: {
-                    // Mobile (Portrait)
                     0: {
                         slidesPerView: 1.2,
                         spaceBetween: 15,
-                        centeredSlides: true,
+                        centeredSlides: true
                     },
-                    // Mobile (Landscape)
                     640: {
                         slidesPerView: 2.5,
                         spaceBetween: 20,
-                        centeredSlides: false, // Don't center on tablet
+                        centeredSlides: false
                     },
-                    // Desktop
                     1024: {
                         slidesPerView: 3,
                         spaceBetween: 30,
-                        centeredSlides: false, // Standard layout on desktop
+                        centeredSlides: false
                     },
                 },
             });
@@ -1195,7 +1220,7 @@
             setTimeout(() => {
                 loadingScreen.style.opacity = '0';
                 loadingScreen.style.visibility = 'hidden';
-                setTimeout(() => loadingScreen.remove(), 500);
+                setTimeout(() => loadingScreen.style.display = 'none', 500);
             }, 2000);
         });
     </script>
