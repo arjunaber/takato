@@ -34,12 +34,10 @@
             perspective: 1000px;
             width: 100%;
             height: 300px;
-            /* Tinggi Default Mobile */
             cursor: pointer;
             position: relative;
             z-index: 10;
             transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-            /* Smooth Easing */
         }
 
         /* --- LOGIC KHUSUS DESKTOP (ELASTIC / ACCORDION) --- */
@@ -55,46 +53,31 @@
             }
 
             .flip-card {
-                /* Default: Rata 50:50 (flex 1) */
                 flex: 1;
                 height: 300px;
                 transition: flex 0.6s cubic-bezier(0.25, 1, 0.5, 1), filter 0.6s ease, transform 0.6s ease;
             }
 
-            /* --- LOGIKA BARU: EFEK GESER & GELAP --- */
-
-            /* Saat container di-hover, kartu yang TIDAK di-hover:
-               1. Flex 0.8: Menyusut sedikit (supaya yang aktif punya ruang)
-               2. Brightness 0.2: Menjadi JAUH LEBIH GELAP */
             .perspective-container:hover .flip-card:not(:hover) {
                 flex: 0.8;
                 filter: brightness(0.2) grayscale(0.8);
-                /* Gelap banget */
                 transform: scale(0.95);
-                /* Mundur sedikit */
             }
 
-            /* Kartu yang sedang di-hover (Flip):
-               1. Flex 1.3: Membesar sedikit saja (dominan tapi tidak lebay)
-               2. Scale 1.05: Maju/Pop-out sedikit ke tengah */
             .perspective-container .flip-card:hover {
                 flex: 1.3;
                 filter: brightness(1) grayscale(0);
                 z-index: 20;
                 transform: scale(1.05);
-                /* Zoom in sedikit */
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                /* Shadow lebih dalam */
             }
 
-            /* Sembunyikan konten teks saat kartu menyusut agar rapi */
             .perspective-container:hover .flip-card:not(:hover) .card-content-wrapper {
                 opacity: 0;
                 transform: scale(0.9);
                 transition: opacity 0.3s ease, transform 0.3s ease;
             }
 
-            /* Munculkan konten saat hover */
             .perspective-container .flip-card:hover .card-content-wrapper {
                 opacity: 1;
                 transform: scale(1);
@@ -102,7 +85,6 @@
             }
         }
 
-        /* Wrapper untuk konten teks agar bisa di-fade */
         .card-content-wrapper {
             width: 100%;
             height: 100%;
@@ -113,22 +95,18 @@
             transition: opacity 0.4s ease;
         }
 
-        /* --- INTERAKSI KLIK (ZOOM & LOADING) --- */
+        /* --- INTERAKSI KLIK --- */
         .flip-card.zoom-active {
             transform: scale(25) !important;
             flex: 10 !important;
-            /* Paksa lebar penuh saat zoom */
             opacity: 0;
-            /* Timing: Zoom dulu baru hilang */
             transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.5s ease-in 0.6s;
             z-index: 50;
             pointer-events: none;
         }
 
-        /* Kartu lain saat zooming */
         .flip-card.zoom-inactive {
             flex: 0.01 !important;
-            /* Kecilkan sampai habis */
             opacity: 0;
             filter: blur(10px);
             margin: 0 !important;
@@ -136,7 +114,7 @@
             transition: all 0.5s ease;
         }
 
-        /* --- STRUKTUR KARTU (FLIP) --- */
+        /* --- STRUKTUR KARTU --- */
         .flip-card-inner {
             position: relative;
             width: 100%;
@@ -151,7 +129,6 @@
             transform: rotateY(180deg);
         }
 
-        /* Matikan flip saat sedang zooming */
         .flip-card.zoom-active .flip-card-inner {
             transform: rotateY(0deg) !important;
         }
@@ -193,7 +170,7 @@
             justify-content: center;
         }
 
-        /* --- SCROLL SNAP LOGIC --- */
+        /* --- SCROLL SNAP --- */
         html {
             scroll-snap-type: y mandatory;
             height: 100vh;
@@ -208,7 +185,6 @@
             position: relative;
         }
 
-        /* Typography & Colors */
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--color-light-bg);
@@ -274,7 +250,6 @@
             padding-bottom: 3px;
         }
 
-        /* Loading Screen */
         #loading-screen {
             position: fixed;
             top: 0;
@@ -328,7 +303,6 @@
             }
         }
 
-        /* WhatsApp Animation */
         @keyframes calm-dribble {
             0% {
                 transform: translateY(0);
@@ -348,12 +322,10 @@
             animation: calm-dribble 2s ease-in-out infinite;
         }
 
-        /* Swiper Pagination */
         .swiper-pagination-bullet-active {
             background-color: var(--color-primary-accent) !important;
         }
 
-        /* Compact Adjustments */
         .compact-img {
             height: 280px;
         }
@@ -370,7 +342,7 @@
             }
         }
 
-        /* --- CALM LUXURY FALLING LEAVES --- */
+        /* --- FALLING LEAVES --- */
         .falling-leaf {
             position: absolute;
             top: -15%;
@@ -489,7 +461,6 @@
     setLang(newLang) { this.lang = newLang; },
     isScrolled: false,
 
-    // NAVIGATION & LOADING LOGIC
     navigateTo(url) {
         const loader = document.getElementById('loading-screen');
         loader.style.display = 'flex';
@@ -521,86 +492,124 @@
             villa: 'Villa',
             dining: 'Dining',
             diningNav: 'Restaurant',
-            event: 'Event',
+            event: 'Events',
             contact: 'Contact',
+
+            // Hero
             heroTitle1: 'A Luxury Sanctuary',
             heroTitle2: 'for Every Story',
+
+            // Buttons
             exploreHouse: 'Explore Villa',
             visitResto: 'Visit Restaurant',
-            villaShort: 'Exclusive private villa with pool & large garden.',
+            checkAvailability: 'Check Availability',
+            viewMenu: 'View Menu',
+            getQuote: 'Get Quotation',
+            seePackages: 'View Packages',
+            bookStay: 'Book Your Stay',
+            inquireCatering: 'Inquire Catering',
+
+            // Special Offers (BARU)
+            promoTitle: 'Special Prize & Exclusive Offers',
+            promoDesc: 'Unlock exclusive privileges for reservations made this month. Contact us to reveal our bespoke packages.',
+            getYours: 'Claim Offer',
+
+            // Short Descs
+            villaShort: 'Exclusive private villa with a pool & lush gardens.',
             diningShort: 'Authentic cuisine & premium coffee in nature.',
+
+            // Residence
             welcomeHouse: 'Welcome to Takato House',
             residenceTitle: 'Private Villa',
-            residenceDesc: 'Takato House is a luxury private villa perfect for exclusive stays or grand events. Equipped with full facilities including a private pool, spacious kitchen, and lush garden areas.',
-            checkAvailability: 'Check Availability',
+            residenceDesc: 'Takato House is an exclusive luxury villa, designed for private stays and grand events. Featuring a private pool, a professional kitchen, and expansive garden areas.',
             facilities: 'Facilities: 11 Bedrooms, Private Pool, Kitchen, Spacious Garden',
+
+            // Dining
             welcomeKitchen: 'Welcome to Takato Kitchen & Coffee',
             diningTitle: 'Taste of Nusantara',
-            diningDesc: 'Experience the warmth of Indonesian cuisine amidst a lush garden. The perfect place to relax with family and friends over premium coffee and authentic dishes.',
-            viewMenu: 'View Menu',
-            menuHighlights: 'Highlights: Fried Rice, Soto Ayam, Premium Bogor Coffee',
+            diningDesc: 'Experience the warmth of Indonesian cuisine amidst lush greenery. The perfect sanctuary to relax with family and friends over premium coffee and authentic dishes.',
+            menuHighlights: 'Signatures: Nasi Goreng, Soto Ayam, Premium Bogor Coffee',
+
+            // Events
             ourFriends: 'Our Friends',
             expSubtitle: 'Curated',
             expDesc: 'Host your most cherished moments in our magnificent venue.',
-            event: 'Experience',
-            weddingTitle: 'Wedding',
-            weddingDesc: 'Magical venue for your special day.',
-            retreatTitle: 'Corporate Retreat',
-            retreatDesc: 'Ideal for team building.',
-            gatheringTitle: 'Family Gathering',
-            gatheringDesc: 'Comfortable for big families.',
-            getQuote: 'Get Quotation',
-            seePackages: 'See Packages',
-            bookStay: 'Book Your Stay',
+            event: 'Experiences',
+            weddingTitle: 'Weddings',
+            weddingDesc: 'A magical venue for your special day.',
+            retreatTitle: 'Corporate Retreats',
+            retreatDesc: 'Ideal for team building and productivity.',
+            gatheringTitle: 'Family Gatherings',
+            gatheringDesc: 'Perfect spacious venue for large family reunions.',
+
+            // Catering & Footer
             cateringTitle: 'Catering Services',
-            cateringDesc: 'Special menus for every event.',
-            inquireCatering: 'Inquire Catering',
+            cateringDesc: 'Bespoke menus crafted for every occasion.',
             locationTitle: 'Location',
-            opHours: 'Open: 9:00 AM - 9:00 PM',
+            opHours: 'Open Daily: 09:00 AM - 09:00 PM',
             chatSupport: 'Chat with us',
-            copy: '© 2024 Takato.id',
+            copy: '© 2024 Takato.id. All Rights Reserved.',
         },
         id: {
             home: 'Beranda',
             villa: 'Villa',
             dining: 'Coffee & Kitchen',
             diningNav: 'Restoran',
-            event: 'Event',
+            event: 'Acara',
             contact: 'Kontak',
+
+            // Hero
             heroTitle1: 'Sebuah Ruang Mewah',
             heroTitle2: 'untuk Setiap Kisah',
+
+            // Buttons
             exploreHouse: 'Jelajahi Villa',
             visitResto: 'Kunjungi Restoran',
-            villaShort: 'Villa pribadi eksklusif dengan kolam renang & taman.',
-            diningShort: 'Masakan otentik & kopi premium di alam.',
-            welcomeHouse: 'Welcome to Takato House',
-            residenceTitle: 'Villa Pribadi',
-            residenceDesc: 'Takato House adalah vila mewah pribadi yang sempurna untuk menginap eksklusif atau acara besar. Dilengkapi dengan fasilitas lengkap termasuk kolam renang pribadi, dapur luas, dan area taman yang asri.',
             checkAvailability: 'Cek Ketersediaan',
-            facilities: 'Fasilitas: 11 Kamar Tidur, Kolam Renang, Dapur, Taman Luas',
-            welcomeKitchen: 'Welcome to Takato Kitchen and Coffee',
-            diningTitle: 'Cita Rasa Nusantara',
-            diningDesc: 'Rasakan kehangatan masakan Indonesia di tengah taman yang asri. Tempat yang sempurna untuk bersantai bersama keluarga dan teman dengan kopi premium dan hidangan otentik.',
             viewMenu: 'Lihat Menu',
-            menuHighlights: 'Menu Favorit: Nasi Goreng, Soto Ayam, Kopi Bogor Premium',
-            ourFriends: 'Our Friends',
-            expSubtitle: 'Kurasi',
-            expDesc: 'Selenggarakan momen paling berharga Anda di venue megah kami.',
-            event: 'Experience',
-            weddingTitle: 'Pernikahan',
-            weddingDesc: 'Tempat magis untuk hari istimewa.',
-            retreatTitle: 'Corporate Retreat',
-            retreatDesc: 'Ideal untuk team building.',
-            gatheringTitle: 'Family Gathering',
-            gatheringDesc: 'Nyaman untuk keluarga besar.',
             getQuote: 'Dapatkan Penawaran',
             seePackages: 'Lihat Paket',
-            bookStay: 'Pesan Tempat Anda',
-            cateringTitle: 'Layanan Katering',
-            cateringDesc: 'Menu spesial untuk setiap acara.',
+            bookStay: 'Reservasi Sekarang',
             inquireCatering: 'Tanya Katering',
+
+            // Special Offers (BARU)
+            promoTitle: 'Penawaran Spesial & Eksklusif',
+            promoDesc: 'Dapatkan penawaran spesial untuk pemesanan bulan ini. Hubungi kami untuk detail paket eksklusif.',
+            getYours: 'Ambil Penawaran',
+
+            // Short Descs
+            villaShort: 'Villa pribadi eksklusif dengan kolam renang & taman.',
+            diningShort: 'Masakan otentik & kopi premium di alam terbuka.',
+
+            // Residence
+            welcomeHouse: 'Selamat Datang di Takato House',
+            residenceTitle: 'Villa Pribadi',
+            residenceDesc: 'Takato House adalah vila mewah pribadi yang sempurna untuk penginapan eksklusif atau acara besar. Dilengkapi fasilitas lengkap termasuk kolam renang pribadi, dapur luas, dan taman yang asri.',
+            facilities: 'Fasilitas: 11 Kamar Tidur, Kolam Renang, Dapur, Taman Luas',
+
+            // Dining
+            welcomeKitchen: 'Selamat Datang di Takato Kitchen & Coffee',
+            diningTitle: 'Cita Rasa Nusantara',
+            diningDesc: 'Rasakan kehangatan masakan Indonesia di tengah taman yang asri. Tempat sempurna untuk bersantai bersama keluarga dan teman ditemani kopi premium dan hidangan otentik.',
+            menuHighlights: 'Menu Favorit: Nasi Goreng, Soto Ayam, Kopi Bogor Premium',
+
+            // Events
+            ourFriends: 'Sahabat Kami',
+            expSubtitle: 'Kurasi',
+            expDesc: 'Wujudkan momen paling berharga Anda di venue megah kami.',
+            event: 'Pengalaman',
+            weddingTitle: 'Pernikahan',
+            weddingDesc: 'Tempat magis untuk hari istimewa Anda.',
+            retreatTitle: 'Corporate Retreat',
+            retreatDesc: 'Ideal untuk kegiatan team building perusahaan.',
+            gatheringTitle: 'Kumpul Keluarga',
+            gatheringDesc: 'Sangat nyaman dan luas untuk keluarga besar.',
+
+            // Catering & Footer
+            cateringTitle: 'Layanan Katering',
+            cateringDesc: 'Menu spesial untuk melengkapi setiap acara.',
             locationTitle: 'Lokasi',
-            opHours: 'Buka: 09:00 - 21:00',
+            opHours: 'Buka: 09:00 - 21:00 WIB',
             chatSupport: 'Chat Kami',
             copy: 'Hak Cipta © 2024 Takato.id',
         }
@@ -694,7 +703,7 @@
         </div>
 
         <div class="absolute inset-0 bg-black transition-opacity duration-500 ease-in-out z-1"
-            :class="cardHovered ? 'opacity-70' : 'opacity-30'"></div>
+            :class="cardHovered ? 'opacity-90' : 'opacity-30'"></div>
 
         <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10"
             :class="{ 'pointer-events-none': zooming }">
@@ -992,6 +1001,7 @@
 
     <section id="experience" class="py-10 md:py-20 mobile-py-10">
         <div class="max-w-7xl mx-auto px-4 md:px-6">
+
             <div class="text-center mb-10 md:mb-16">
                 <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-primary-dark)]">
                     <span x-text="t('expSubtitle')">Curated</span> <span class="gradient-text-dark"
@@ -1000,6 +1010,7 @@
                 <p class="text-base md:text-xl text-gray-600 mt-4 max-w-4xl mx-auto" x-text="t('expDesc')">Host your
                     moments...</p>
             </div>
+
             <div class="grid md:grid-cols-3 gap-6 md:gap-8">
                 <a href="/events/wedding"
                     class="card-elegant rounded-xl shadow-luxury space-y-4 cursor-pointer group block" @click.stop>
@@ -1009,7 +1020,7 @@
                     </div>
                     <div class="p-6 md:p-8 space-y-4">
                         <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-primary-dark)]"
-                            x-text="t('weddingTitle')">Wedding</h3>
+                            x-text="t('weddingTitle')">Weddings</h3>
                         <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('weddingDesc')">Desc...</p>
                         <span
                             class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
@@ -1017,6 +1028,7 @@
                                 class="fas fa-arrow-right text-xs ml-1"></i></span>
                     </div>
                 </a>
+
                 <a href="/events/retreat"
                     class="card-elegant rounded-xl shadow-luxury space-y-4 cursor-pointer group block" @click.stop>
                     <div class="h-48 w-full overflow-hidden rounded-t-xl">
@@ -1026,7 +1038,7 @@
                     </div>
                     <div class="p-6 md:p-8 space-y-4">
                         <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-primary-dark)]"
-                            x-text="t('retreatTitle')">Corporate Retreat</h3>
+                            x-text="t('retreatTitle')">Corporate Retreats</h3>
                         <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('retreatDesc')">Desc...</p>
                         <span
                             class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
@@ -1034,6 +1046,7 @@
                                 class="fas fa-arrow-right text-xs ml-1"></i></span>
                     </div>
                 </a>
+
                 <a href="/events/gathering"
                     class="card-elegant rounded-xl shadow-luxury space-y-4 cursor-pointer group block" @click.stop>
                     <div class="h-48 w-full overflow-hidden rounded-t-xl">
@@ -1043,7 +1056,7 @@
                     </div>
                     <div class="p-6 md:p-8 space-y-4">
                         <h3 class="font-serif text-xl md:text-2xl font-bold mb-3 text-[var(--color-primary-dark)]"
-                            x-text="t('gatheringTitle')">Family Gathering</h3>
+                            x-text="t('gatheringTitle')">Family Gatherings</h3>
                         <p class="text-sm md:text-base text-gray-700 mb-4" x-text="t('gatheringDesc')">Desc...</p>
                         <span
                             class="text-xs md:text-sm text-[var(--color-primary-accent)] font-semibold hover:underline"
@@ -1051,6 +1064,67 @@
                                 class="fas fa-arrow-right text-xs ml-1"></i></span>
                     </div>
                 </a>
+            </div>
+
+            <div class="mt-8 space-y-6">
+
+                <div
+                    class="card-elegant rounded-xl shadow-luxury p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 group relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary-accent)]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2">
+                    </div>
+
+                    <div class="relative z-10 text-center md:text-left">
+                        <h3 class="font-serif text-2xl md:text-3xl font-bold text-[var(--color-primary-dark)] mb-2">
+                            <span class="gradient-text-dark" x-text="t('promoTitle')">Special Prize & Exclusive
+                                Offers</span>
+                        </h3>
+                        <p class="text-gray-600 text-sm md:text-base max-w-2xl" x-text="t('promoDesc')">
+                            Dapatkan penawaran spesial...
+                        </p>
+                    </div>
+
+                    <a href="https://wa.me/+6281214831823?text=Halo,%20saya%20tertarik%20dengan%20Special%20Prize/Offer%20di%20Takato"
+                        target="_blank"
+                        class="relative z-10 inline-flex items-center gap-2 px-8 py-3 bg-[var(--color-primary-dark)] text-white rounded-full font-semibold hover:bg-[var(--color-primary-accent)] transition-all duration-300 shadow-md whitespace-nowrap group-hover:scale-105">
+                        <span x-text="t('getYours')">Get Yours</span>
+                        <i class="fab fa-whatsapp text-lg"></i>
+                    </a>
+                </div>
+
+                <div
+                    class="card-elegant rounded-xl shadow-luxury p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 group">
+                    <div class="flex flex-col md:flex-row items-center gap-6 w-full">
+                        <div
+                            class="w-16 h-16 rounded-full bg-[var(--color-light-bg)] flex items-center justify-center shrink-0 text-[var(--color-primary-dark)]">
+                            <i class="fas fa-utensils text-2xl"></i>
+                        </div>
+
+                        <div class="text-center md:text-left flex-grow">
+                            <h3 class="font-serif text-xl md:text-2xl font-bold text-[var(--color-primary-dark)] mb-2"
+                                x-text="t('cateringTitle')">
+                                Catering Services
+                            </h3>
+                            <p class="text-gray-600 text-sm md:text-base" x-text="t('cateringDesc')">
+                                Menu spesial dengan cita rasa otentik untuk setiap acara Anda.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+                        <a href="#dining"
+                            class="px-6 py-2.5 rounded-full font-semibold text-sm border border-[var(--color-primary-dark)] text-[var(--color-primary-dark)] hover:bg-[var(--color-light-bg)] transition-all text-center">
+                            <i class="fas fa-book-open mr-2"></i> <span x-text="t('viewMenu')">View Menu</span>
+                        </a>
+
+                        <a href="https://wa.me/+6281214831823?text=Halo,%20saya%20ingin%20tanya%20tentang%20Catering"
+                            target="_blank"
+                            class="px-6 py-2.5 rounded-full font-semibold text-sm bg-green-600 text-white hover:bg-green-700 transition-all text-center shadow-md flex items-center justify-center gap-2">
+                            <span>Chat</span> <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
@@ -1144,7 +1218,8 @@
                 </div>
                 <div class="pt-6 mt-8 md:mt-12 border-t text-center md:text-left"
                     style="border-color: rgba(255, 255, 255, 0.1);">
-                    <p class="text-xs md:text-sm text-white" x-text="t('copy')">Copyright © 2024 Takato.id.</p>
+                    <p class="text-xs md:text-sm text-white" x-text="t('copy')">Copyright © 2024 Takato.id. All Rights
+                        Reserved.</p>
                 </div>
             </div>
         </footer>
