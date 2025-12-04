@@ -32,6 +32,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/welcomenew', function () {
+    return view('welcomenew');
+});
+
 Route::get('/events/wedding', function () {
     return view('wedding');
 });
