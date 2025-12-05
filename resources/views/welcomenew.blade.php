@@ -867,7 +867,8 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"The villa is massive!
-                                        Perfect for our big family reunion."</p>
+                                        Perfect for our big family reunion. The pool is clean and the air is so fresh."
+                                    </p>
                                 </div>
                                 <span class="font-semibold text-xs text-white">- Budi Santoso</span>
                             </div>
@@ -882,7 +883,7 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Very private. We loved
-                                        the kitchen facilities."</p>
+                                        the kitchen facilities, complete and clean. Highly recommended."</p>
                                 </div>
                                 <span class="font-semibold text-xs text-white">- Sarah Jenkins</span>
                             </div>
@@ -897,9 +898,84 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Best healing spot near
-                                        Jakarta."</p>
+                                        Jakarta. No traffic noise, just nature sounds."</p>
                                 </div>
                                 <span class="font-semibold text-xs text-white">- Andi Pratama</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Halaman luas banget,
+                                        anak-anak puas lari-larian. Staff sangat ramah."</p>
+                                </div>
+                                <span class="font-semibold text-xs text-white">- Citra Lestari</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Held our intimate
+                                        wedding here. The garden setup was magical."</p>
+                                </div>
+                                <span class="font-semibold text-xs text-white">- Dimas & Rina</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Luxury vibes with
+                                        affordable price for large groups. Will come back!"</p>
+                                </div>
+                                <span class="font-semibold text-xs text-white">- Michael T.</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Kamar tidurnya banyak
+                                        dan bersih. AC dingin, water heater lancar."</p>
+                                </div>
+                                <span class="font-semibold text-xs text-white">- Ibu Ratna</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5 h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-secondary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-300 italic text-xs mb-2 line-clamp-3">"Pengalaman menginap yang
+                                        luar biasa. Sangat recommended!"</p>
+                                </div>
+                                <span class="font-semibold text-xs text-white">- Ferry Irawan</span>
                             </div>
                         </div>
                     </div>
@@ -955,10 +1031,10 @@
 
             <div class="border-t border-[var(--color-tertiary-accent)] pt-4 shrink-0">
                 <div class="flex items-center justify-center gap-4 mb-4 text-[var(--color-primary-dark)]">
-                    <div class="h-px bg-[var(--color-primary-dark)]/20 w-12 md:w-24"></div>
+                    <div class="h-px bg-[var(--color-primary-dark)] w-12 md:w-24"></div>
                     <h3 class="font-serif text-lg md:text-xl font-bold uppercase tracking-wider"
                         x-text="t('ourFriends')">Our Friends</h3>
-                    <div class="h-px bg-[var(--color-primary-dark)]/20 w-12 md:w-24"></div>
+                    <div class="h-px bg-[var(--color-primary-dark)] w-12 md:w-24"></div>
                 </div>
 
                 <div class="swiper reviews-swiper w-full">
@@ -973,7 +1049,7 @@
                                             class="fas fa-star"></i>
                                     </div>
                                     <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Great coffee, chill
-                                        vibes."</p>
+                                        vibes. The manual brew is a must try!"</p>
                                 </div>
                                 <span class="font-semibold text-xs text-gray-800">- Dina M.</span>
                             </div>
@@ -987,10 +1063,89 @@
                                             class="fas fa-star"></i><i class="fas fa-star"></i><i
                                             class="fas fa-star"></i>
                                     </div>
-                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Nasi Goreng Kampoeng nya
-                                        juara!"</p>
+                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Nasi Goreng Kampoeng
+                                        nya
+                                        juara! Rasanya otentik banget."</p>
                                 </div>
                                 <span class="font-semibold text-xs text-gray-800">- Rahmat Hidayat</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Cozy place for work
+                                        (WFC). Wifi kencang, colokan banyak."</p>
+                                </div>
+                                <span class="font-semibold text-xs text-gray-800">- Fajar Nugraha</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Hidden gem in Bogor.
+                                        The
+                                        ambiance at night is so romantic."</p>
+                                </div>
+                                <span class="font-semibold text-xs text-gray-800">- Clara S.</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Soto Ayam nya enak,
+                                        kuahnya seger. Harga juga reasonable."</p>
+                                </div>
+                                <span class="font-semibold text-xs text-gray-800">- Ibu Wati</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Pelayanan ramah,
+                                        tempat
+                                        bersih. Cocok buat nongkrong sore."</p>
+                                </div>
+                                <span class="font-semibold text-xs text-gray-800">- Dedi K.</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide h-auto">
+                            <div
+                                class="bg-white p-4 rounded-lg border border-[var(--color-tertiary-accent)] shadow-sm h-full flex flex-col justify-between">
+                                <div>
+                                    <div class="flex text-[var(--color-primary-accent)] text-xs mb-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                            class="fas fa-star"></i>
+                                    </div>
+                                    <p class="text-gray-600 italic text-xs mb-2 line-clamp-3">"Tempatnya
+                                        instagramable
+                                        banget, banyak spot foto."</p>
+                                </div>
+                                <span class="font-semibold text-xs text-gray-800">- Sisca E.</span>
                             </div>
                         </div>
                     </div>
@@ -1234,55 +1389,86 @@
 
     <script>
         document.addEventListener('alpine:init', () => {
+            // Inisialisasi Alpine Store untuk mengelola status menu mobile
             Alpine.store('mobileMenu', {
-                open: false
+                open: false // Default: menu mobile tertutup
             });
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Ambil semua elemen navigasi utama
             const navLinks = document.querySelectorAll('.nav-link-elegant');
+            // Ambil semua elemen section yang memiliki ID untuk dijadikan target scroll-snap
             const sections = document.querySelectorAll('section[id]');
 
+            /**
+             * Fungsi untuk mengaktifkan link navigasi berdasarkan posisi scroll.
+             * Ini mendukung fungsionalitas scroll-snap dan penanda posisi aktif.
+             */
             function onScroll() {
-                let current = 'home';
+                let current = 'home'; // Tetapkan default section saat di paling atas
+
+                // Iterasi melalui setiap section
                 sections.forEach(sec => {
                     const rect = sec.getBoundingClientRect();
+
+                    // Cek jika bagian tengah viewport berada di dalam batas section
+                    // Ini menandakan section tersebut adalah yang aktif (saat ini terlihat)
                     if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
                         current = sec.getAttribute('id');
                     }
                 });
+
+                // Update kelas 'active' pada link navigasi yang sesuai
                 navLinks.forEach(link => {
-                    link.classList.remove('active');
+                    link.classList.remove('active'); // Hapus kelas 'active' dari semua link
+
+                    // Tambahkan kelas 'active' jika href link cocok dengan ID section yang aktif
                     if (link.getAttribute('href').substring(1) === current) link.classList.add('active');
                 });
             }
+
+            // Tambahkan event listener untuk memanggil fungsi onScroll saat halaman digulir
+            // Penggunaan { passive: true } untuk meningkatkan performa scroll
             window.addEventListener('scroll', onScroll, {
                 passive: true
             });
 
-            // Initialize Swiper (Auto Slide Enabled)
+            // --- INISIALISASI SWIPER SLIDER UNTUK BAGIAN REVIEWS/TESTIMONIALS ---
+            /**
+             * Inisialisasi Swiper untuk bagian reviews/testimonials.
+             * Pengaturan ini mengaktifkan fitur auto-slide/autoplay.
+             */
             const reviewsSwiper = new Swiper('.reviews-swiper', {
-                slidesPerView: 1.2,
-                spaceBetween: 15,
-                centeredSlides: true,
-                loop: true,
-                grabCursor: true,
+                // Konfigurasi umum
+                slidesPerView: 1.2, // Jumlah slide yang terlihat (default untuk mobile)
+                spaceBetween: 15, // Jarak antar slide (dalam piksel)
+                centeredSlides: true, // Memposisikan slide aktif di tengah
+                loop: true, // Mengaktifkan mode loop (geser tak terbatas)
+                grabCursor: true, // Mengubah kursor menjadi 'grab' saat hover
+
+                // --- PENGATURAN AUTOPLAY (AUTO SLIDE) ---
                 autoplay: {
-                    delay: 3000,
-                    disableOnInteraction: false,
-                    pauseOnMouseEnter: true
+                    delay: 1000, // Durasi tunggu (dalam ms) sebelum geser ke slide berikutnya (3 detik)
+                    disableOnInteraction: false, // JANGAN hentikan autoplay saat pengguna berinteraksi (menggeser manual)
+                    pauseOnMouseEnter: true // Jeda autoplay saat kursor mouse di atas slider
                 },
+
+                // Pengaturan Responsif (Breakpoints)
                 breakpoints: {
+                    // Ketika lebar viewport >= 0px (Mobile)
                     0: {
                         slidesPerView: 1.2,
                         spaceBetween: 15,
                         centeredSlides: true
                     },
+                    // Ketika lebar viewport >= 640px (Small/Tablet)
                     640: {
                         slidesPerView: 2.5,
                         spaceBetween: 20,
-                        centeredSlides: false
+                        centeredSlides: false // Geser tidak lagi di tengah
                     },
+                    // Ketika lebar viewport >= 1024px (Desktop)
                     1024: {
                         slidesPerView: 3,
                         spaceBetween: 30,
@@ -1291,10 +1477,14 @@
                 },
             });
 
+            // --- LOGIKA LOADING SCREEN AWAL ---
             const loadingScreen = document.getElementById('loading-screen');
+            // Menunggu 2 detik (2000ms) sebelum memulai animasi fade out
             setTimeout(() => {
-                loadingScreen.style.opacity = '0';
-                loadingScreen.style.visibility = 'hidden';
+                loadingScreen.style.opacity = '0'; // Mulai transisi opacity ke 0 (fade out)
+                loadingScreen.style.visibility = 'hidden'; // Sembunyikan setelah fade out
+
+                // Setelah transisi opacity selesai (500ms), atur display ke 'none'
                 setTimeout(() => loadingScreen.style.display = 'none', 500);
             }, 2000);
         });
