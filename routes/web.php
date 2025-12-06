@@ -28,14 +28,17 @@ use App\Models\Table;
 
 
 // Public routes
-Route::get('/', function () {
+Route::get('/welcomeold', function () {
     return view('welcome');
 });
 
-Route::get('/welcomenew', function () {
+Route::get('/', function () {
     return view('welcomenew');
 });
 
+Route::get('/house', function () {
+    return view('house');
+});
 
 
 Route::get('/events/wedding', function () {
@@ -178,10 +181,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'owner'])->group(fun
     });
 
     Route::get('/grand-schedules', [GrandScheduleController::class, 'index'])->name('grand-schedules.index');
-    
+
     // 2. Calendar View
     Route::get('/grand-schedules/calendar', [GrandScheduleController::class, 'calendar'])->name('grand-schedules.calendar');
-    
+
     // 3. DATA API UNTUK CALENDAR ADMIN (INI YANG HILANG)
     // Menambahkan parameter ?is_admin=1 agar controller tahu ini request dari admin
     Route::get('/grand-schedules/data', [GrandScheduleController::class, 'getCalendarData'])->name('grand-schedules.calendar-data');

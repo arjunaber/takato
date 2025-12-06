@@ -839,7 +839,7 @@
                         <p class="text-xs text-gray-300" x-text="t('facilities')">Facilities...</p>
                     </div>
                     <div class="pt-2">
-                        <a href="https://wa.me/+6281214831823" target="_blank"
+                        <a href="/house" target="_blank"
                             class="inline-flex items-center gap-2 px-6 py-2 bg-[var(--color-secondary-accent)] hover:bg-[var(--color-primary-accent)] text-white rounded-full font-semibold text-sm transition-all shadow-md">
                             <span x-text="t('checkAvailability')">Check</span> <i class="fas fa-arrow-right"></i>
                         </a>
